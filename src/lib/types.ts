@@ -9,7 +9,6 @@ export interface Character {
   address: string;
   workplace: string;
   education: string;
-  notes?: string;
   additionalInfo?: string;
   color?: string;
 }

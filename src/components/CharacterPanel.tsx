@@ -222,13 +222,6 @@ export default function CharacterPanel({
             : <Val>{character.education}</Val>}
         </F>
 
-        <F label="Author Notes" editing={editing}>
-          {editing
-            ? <textarea className="cw-input" rows={2} style={{ resize: "none" }} value={draft.notes || ""}
-                onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
-            : <Val italic>{character.notes}</Val>}
-        </F>
-
         <F label="Additional Information" icon={<FileText size={10} />} editing={editing}>
           {editing
             ? <textarea className="cw-input" rows={4} style={{ resize: "vertical" }}

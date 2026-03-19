@@ -30,7 +30,6 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
       address: form.address || "",
       workplace: form.workplace || "",
       education: form.education || "",
-      notes: form.notes || "",
       additionalInfo: form.additionalInfo || "",
       color: form.color,
     });
@@ -97,11 +96,6 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
             <label className="cw-label">Education</label>
             <input className="cw-input" placeholder="MA in Art History, Edinburgh"
               value={form.education || ""} onChange={(e) => setForm({ ...form, education: e.target.value })} />
-          </div>
-          <div>
-            <label className="cw-label">Author Notes</label>
-            <textarea className="cw-input" rows={2} style={{ resize: "none" }} placeholder="Protagonist. Deeply private…"
-              value={form.notes || ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
           <div>
             <label className="cw-label">Additional Information</label>
