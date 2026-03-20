@@ -9,7 +9,7 @@ import ProjectSettingsModal from "./ProjectSettingsModal";
 import ProjectsSidebar from "./ProjectsSidebar";
 import SiteSettingsModal from "./SiteSettingsModal";
 import Legend from "./Legend";
-import { UserPlus, Link, BookOpen, SlidersHorizontal, Palette, Plus, ChevronDown } from "lucide-react";
+import { UserPlus, Link, SlidersHorizontal, Palette, Plus, ChevronDown } from "lucide-react";
 
 function useIsMobile() {
   const [mobile, setMobile] = useState(window.innerWidth < 640);
@@ -30,20 +30,20 @@ export default function GraphApp() {
 
   const isMobile = useIsMobile();
 
-  const [selectedId, setSelectedId]            = useState<string | null>(null);
-  const [highlightTypeId, setHighlightTypeId]  = useState<string | null>(null);
-  const [showAddChar, setShowAddChar]           = useState(false);
-  const [showAddConn, setShowAddConn]           = useState(false);
-  const [showProjects, setShowProjects]         = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [highlightTypeId, setHighlightTypeId] = useState<string | null>(null);
+  const [showAddChar, setShowAddChar] = useState(false);
+  const [showAddConn, setShowAddConn] = useState(false);
+  const [showProjects, setShowProjects] = useState(false);
   const [showProjSettings, setShowProjSettings] = useState(false);
   const [showSiteSettings, setShowSiteSettings] = useState(false);
   // Mobile: small "Add" dropdown
-  const [showAddMenu, setShowAddMenu]           = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
 
   const selectedCharacter = activeData.characters.find((c) => c.id === selectedId) ?? null;
   const theme = state.theme ?? "dark";
 
-  const handleUpdatePositions = useCallback(() => {}, []);
+  const handleUpdatePositions = useCallback(() => { }, []);
 
   const handleSelectCharacter = useCallback((id: string | null) => {
     setSelectedId(id);
@@ -109,12 +109,20 @@ export default function GraphApp() {
 
         {/* LEFT: logo + project name (clickable → stories) */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <BookOpen size={isMobile ? 16 : 18} style={{ color: "var(--gold)", flexShrink: 0 }} />
-
-          {/* Desktop: "Character Web" static label */}
+          <img
+            src="/logo.svg"
+            alt="Logo"
+            style={{
+              width: 30,
+              height: 30,
+              flexShrink: 0,
+            }}
+            className="logo-theme"
+          />
+          {/* Desktop: "Character Loom" static label */}
           {!isMobile && (
             <span className="font-display text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
-              Character Web
+              Character Loom
             </span>
           )}
 

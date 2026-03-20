@@ -109,7 +109,7 @@ export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose
                   <Upload size={15} style={{ color: "var(--gold)", flexShrink: 0 }} />
                   <div style={{ textAlign: "left" }}>
                     <p style={{ color: "var(--text-secondary)" }}>Choose .chrw file</p>
-                    <p style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>Exported from Character Web</p>
+                    <p style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>Exported from Character Loom©</p>
                   </div>
                 </button>
                 {error && (

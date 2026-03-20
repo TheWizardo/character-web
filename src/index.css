@@ -328,3 +328,15 @@ html, body, #root {
     width: 100% !important;
   }
 }
+
+.logo-theme {
+  transition: filter 0.2s ease;
+}
+
+html[data-theme="light"] .logo-theme {
+  filter: grayscale(1) brightness(0.55) contrast(10);
+}
+
+html[data-theme="dark"] .logo-theme {
+  filter: none;
+}
