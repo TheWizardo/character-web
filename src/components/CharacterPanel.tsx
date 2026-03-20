@@ -119,7 +119,7 @@ export default function CharacterPanel({
           </div>
           <div>
             {editing
-              ? <input className="bg-transparent font-display text-xl font-semibold focus:outline-none w-44 pb-0.5"
+              ? <input className="rounded bg-transparent font-display text-xl font-semibold focus:outline-none w-44 pb-0.5"
                 style={{ color: "var(--text-primary)", borderBottom: "1px solid var(--gold-border)" }}
                 value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
               : <h2 className="font-display text-xl font-semibold" style={{ color: "var(--text-primary)" }}>{character.name}</h2>
@@ -287,7 +287,7 @@ export default function CharacterPanel({
                     </span>
                     <button
                       onClick={() => setPendingConn(conn.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded flex-shrink-0"
+                      className="appearance-none opacity-0 group-hover:opacity-100 transition-opacity p-1 flex-shrink-0 rounded border-0 outline-none bg-transparent transition-colors"
                       style={{ color: "var(--text-muted)" }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = CRIT_COLOR)}
                       onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
@@ -298,13 +298,13 @@ export default function CharacterPanel({
                     {pendingConnDel === conn.id && (
                       <div className="absolute right-0 top-0 h-full flex items-center gap-1 px-2 rounded-lg"
                         style={{ background: "var(--bg-deep)", border: "1px solid rgba(192,57,43,0.35)", zIndex: 10 }}>
-                        <span className="text-xs font-mono" style={{ color: CRIT_COLOR }}>Remove?</span>
-                        <button onClick={() => { onDeleteConnection(conn.id); setPendingConn(null); }}
-                          className="text-xs font-mono px-1.5 py-0.5 rounded"
-                          style={{ background: "rgba(192,57,43,0.15)", color: CRIT_COLOR }}>Yes</button>
+                        <span className="text-xs font-mono" style={{ color: CRIT_COLOR }}>Remove?</span><button
+                          onClick={() => { onDeleteConnection(conn.id); setPendingConn(null); }}
+                          className="inline-block text-xs font-mono rounded appearance-none outline-none p-1"
+                          style={{ background: "rgba(192,57,43,0.15)", color: CRIT_COLOR, borderColor: CRIT_COLOR }}>Yes</button>
                         <button onClick={() => setPendingConn(null)}
-                          className="text-xs font-mono px-1.5 py-0.5 rounded"
-                          style={{ color: "var(--text-muted)" }}>No</button>
+                          className="inline-block text-xs font-mono rounded bg-transparent appearance-none outline-none p-1"
+                          style={{ color: "var(--text-muted)", borderColor: "var(--text-muted)" }}>No</button>
                       </div>
                     )}
                   </div>

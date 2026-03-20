@@ -124,10 +124,24 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
 
         <div className="px-6 py-4 flex justify-end gap-3 flex-shrink-0"
           style={{ borderTop: "1px solid var(--border-subtle)" }}>
-          <button onClick={onClose} className="px-4 py-2 text-sm font-mono" style={{ color: "var(--text-muted)" }}>Cancel</button>
-          <button onClick={submit} disabled={!form.name?.trim()}
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg text-sm font-mono transition-all hover:scale-105"
+            style={{
+              color: "var(--text-muted)",
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border-medium)",
+            }}
+          >
+            Cancel
+          </button><button onClick={submit} disabled={!form.name?.trim()}
             className="px-5 py-2 rounded-lg text-sm font-mono flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-40"
-            style={{ background: "linear-gradient(135deg, var(--text-muted), var(--gold))", color: "var(--bg-deep)", fontWeight: 600 }}>
+            style={{
+              background: "linear-gradient(135deg, var(--text-muted), var(--gold))",
+              color: "var(--bg-deep)",
+              border: "1px solid var(--gold-border)",
+              fontWeight: 600,
+            }}>
             <Plus size={14} /> Add Character
           </button>
         </div>

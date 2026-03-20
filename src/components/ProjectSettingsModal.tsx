@@ -4,17 +4,9 @@ import { X, Check, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Downl
 import { v4 as uuidv4 } from "uuid";
 import { downloadChrw } from "../lib/storage";
 import { GraphData } from "../lib/types";
-import { CON_PALETTE, CRIT_COLOR } from "../lib/constants";
+import { CON_PALETTE, CRIT_COLOR, EMOJIS } from "../lib/constants";
 
 type Tab = "general" | "connections";
-
-
-const EMOJIS = [
-  "🎶", "🎓", "🎖️", "🛠️", "🍕", "🔗", "🌹",
-  "👑", "🗡️", "🌿", "🔥", "❄️", "⚖️", "⚓",
-  "🎭", "🪄", "🧪", "📜", "🕊️", "🐍", "💀",
-  "⚡", "🌊", "🌙", "☀️", "🎯", "✈️", "♾️"
-];
 
 interface Props {
   project: Project;
@@ -100,7 +92,7 @@ export default function ProjectSettingsModal({
         </div>
 
         {/* Tabs */}
-        <div className="flex px-6 pt-3 gap-1 flex-shrink-0">
+        <div className="flex px-6 pt-3 gap-1 flex-shrink-0 mb-2">
           {([["general", Settings, "General"], ["connections", Link, "Connections"]] as const).map(([id, Icon, label]) => (
             <button key={id} onClick={() => setTab(id as Tab)}
               className={btnBase}
@@ -243,7 +235,7 @@ export default function ProjectSettingsModal({
                     </span>
                   ) : (
                     <button onClick={() => removeType(t.id)}
-                      className="p-1 rounded transition-colors"
+                      className="p-1 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
                       style={{ color: "var(--text-muted)" }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = CRIT_COLOR)}
                       onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}>
@@ -329,8 +321,13 @@ export default function ProjectSettingsModal({
           <div className="px-6 py-4 flex justify-end flex-shrink-0"
             style={{ borderTop: "1px solid var(--border-subtle)" }}>
             <button onClick={saveTypes}
-              className={`${btnBase} hover:scale-105`}
-              style={{ background: "linear-gradient(135deg, var(--text-muted), var(--gold))", color: "var(--bg-deep)", fontWeight: 600 }}>
+              className="px-5 py-2 rounded-lg text-sm font-mono flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-40"
+              style={{
+                background: "linear-gradient(135deg, var(--text-muted), var(--gold))",
+                color: "var(--bg-deep)",
+                border: "1px solid var(--gold-border)",
+                fontWeight: 600,
+              }}>
               <Check size={14} /> Save Types
             </button>
           </div>

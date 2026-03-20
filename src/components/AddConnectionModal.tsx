@@ -13,8 +13,8 @@ interface Props {
 export default function AddConnectionModal({ characters, connectionTypes, onAdd, onClose }: Props) {
   const [source, setSource] = useState("");
   const [target, setTarget] = useState("");
-  const [label, setLabel]   = useState("");
-  const [type, setType]     = useState(connectionTypes[0]?.id ?? "friendship");
+  const [label, setLabel] = useState("");
+  const [type, setType] = useState(connectionTypes[0]?.id ?? "friendship");
   const [mutual, setMutual] = useState(false);
 
   const normalize = (s: string) => {
@@ -35,7 +35,7 @@ export default function AddConnectionModal({ characters, connectionTypes, onAdd,
 
         <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <h3 className="font-display text-lg font-semibold" style={{ color: "var(--text-primary)" }}>New Connection</h3>
-          <button onClick={onClose} style={{ color: "var(--text-muted)" }}  className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={18} /></button>
+          <button onClick={onClose} style={{ color: "var(--text-muted)" }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={18} /></button>
         </div>
 
         <div className="px-6 py-5 space-y-4">
@@ -97,10 +97,28 @@ export default function AddConnectionModal({ characters, connectionTypes, onAdd,
         </div>
 
         <div className="px-6 py-4 flex justify-end gap-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-          <button onClick={onClose} className="px-4 py-2 text-sm font-mono" style={{ color: "var(--text-muted)" }}>Cancel</button>
-          <button onClick={submit} disabled={!source || !target || source === target || !label.trim()}
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg text-sm font-mono transition-all hover:scale-105"
+            style={{
+              color: "var(--text-muted)",
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border-medium)",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={!source || !target || source === target || !label.trim()}
             className="px-5 py-2 rounded-lg text-sm font-mono flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-40"
-            style={{ background: "linear-gradient(135deg, var(--text-muted), var(--gold))", color: "var(--bg-deep)", fontWeight: 600 }}>
+            style={{
+              background: "linear-gradient(135deg, var(--text-muted), var(--gold))",
+              color: "var(--bg-deep)",
+              border: "1px solid var(--gold-border)",
+              fontWeight: 600,
+            }}
+          >
             <Link size={14} /> Connect
           </button>
         </div>
