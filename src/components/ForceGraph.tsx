@@ -154,7 +154,8 @@ export default function ForceGraph({
 
     const labelGs = container.append("g").selectAll("g")
       .data(links).join("g");
-    labelGs.append("text")
+
+    const label = labelGs.append("text")
       .attr("text-anchor", "middle")
       .attr("font-family", "'DM Mono', monospace")
       .attr("font-size", "9px")
@@ -164,6 +165,18 @@ export default function ForceGraph({
         const s = String(d.label ?? "");
         return s.charAt(0).toUpperCase() + s.slice(1);
       });
+
+    label.each(function () {
+      const bbox = (this as SVGTextElement).getBBox();
+      d3.select(this.parentNode as SVGGElement)
+        .insert("rect", "text")
+        .attr("x", bbox.x - 1)
+        .attr("y", bbox.y)
+        .attr("width", bbox.width + 2)
+        .attr("height", bbox.height)
+        .attr("rx", 3)
+        .attr("fill", "var(--bg-base)");
+    });
 
     // ── Nodes ─────────────────────────────────────────────
     const nodeEls = container.append("g").selectAll("g")
