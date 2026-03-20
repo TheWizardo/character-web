@@ -213,7 +213,18 @@ export default function ForceGraph({
       });
 
     // ── Path helpers ──────────────────────────────────────
-    const pathD = (d: any) => {
+    const getPairOffset = (d: any, spread = 34) => {
+      if (d._pairTotal <= 1) return 0;
+
+      if (d._pairTotal % 2 === 1) {
+        const center = Math.floor(d._pairTotal / 2);
+        return (d._pairIdx - center) * spread;
+      }
+
+      return (d._pairIdx - (d._pairTotal / 2 - 0.5)) * spread;
+    };
+
+    const getCurveGeom = (d: any) => {
       const sx = d.source.x, sy = d.source.y;
       const tx = d.target.x, ty = d.target.y;
 
@@ -230,28 +241,66 @@ export default function ForceGraph({
       const endY = ty - uy * RADIUS;
 
       if (d._pairTotal === 1) {
-        return `M${startX},${startY} L${endX},${endY}`;
+        return {
+          startX, startY, endX, endY,
+          mx: (startX + endX) / 2,
+          my: (startY + endY) / 2,
+        };
       }
 
-      const nx = -dy / len;
-      const ny = dx / len;
-      const offset = (d._pairIdx - (d._pairTotal - 1) / 2) * 34;
+      // Canonical pair direction: stable regardless of actual source/target direction
+      const sourceId = String(d.source.id);
+      const targetId = String(d.target.id);
+      const forward = sourceId < targetId;
 
-      const mx = (sx + tx) / 2 + nx * offset;
-      const my = (sy + ty) / 2 + ny * offset;
+      const csx = forward ? sx : tx;
+      const csy = forward ? sy : ty;
+      const ctx = forward ? tx : sx;
+      const cty = forward ? ty : sy;
+
+      const cdx = ctx - csx;
+      const cdy = cty - csy;
+      const clen = Math.sqrt(cdx * cdx + cdy * cdy) || 1;
+
+      const nx = -cdy / clen;
+      const ny = cdx / clen;
+
+      const offset = getPairOffset(d);
+
+      const midBaseX = (sx + tx) / 2;
+      const midBaseY = (sy + ty) / 2;
+
+      const mx = midBaseX + nx * offset;
+      const my = midBaseY + ny * offset;
+
+      return { startX, startY, endX, endY, mx, my };
+    };
+
+    const pathD = (d: any) => {
+      const { startX, startY, endX, endY, mx, my } = getCurveGeom(d);
+
+      if (d._pairTotal === 1) {
+        return `M${startX},${startY} L${endX},${endY}`;
+      }
 
       return `M${startX},${startY} Q${mx},${my} ${endX},${endY}`;
     };
 
     const labelPos = (d: any) => {
-      const sx = d.source.x, sy = d.source.y, tx = d.target.x, ty = d.target.y;
-      if (d._pairTotal === 1) return { x: (sx + tx) / 2, y: (sy + ty) / 2 - 7 };
-      const dx = tx - sx, dy = ty - sy;
-      const len = Math.sqrt(dx * dx + dy * dy) || 1;
-      const nx = -dy / len, ny = dx / len; // eslint-disable-line @typescript-eslint/no-unused-vars
-      const offset = (d._pairIdx - (d._pairTotal - 1) / 2) * 34;
-      const mx = (sx + tx) / 2 + nx * offset, my = (sy + ty) / 2 + ny * offset;
-      return { x: 0.25 * sx + 0.5 * mx + 0.25 * tx, y: 0.25 * sy + 0.5 * my + 0.25 * ty - 6 };
+      const { startX, startY, endX, endY, mx, my } = getCurveGeom(d);
+
+      if (d._pairTotal === 1) {
+        return {
+          x: (startX + endX) / 2,
+          y: (startY + endY) / 2 - 7,
+        };
+      }
+
+      // Quadratic Bezier midpoint at t = 0.5
+      return {
+        x: 0.25 * startX + 0.5 * mx + 0.25 * endX,
+        y: 0.25 * startY + 0.5 * my + 0.25 * endY - 6,
+      };
     };
 
     // ── Tick ──────────────────────────────────────────────
