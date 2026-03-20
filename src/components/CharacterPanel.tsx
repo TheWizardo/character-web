@@ -27,6 +27,7 @@ export default function CharacterPanel({
   const [confirmDelete, setConfirm] = useState(false);
   const [pendingConnDel, setPendingConn] = useState<string | null>(null);
   const [newColor, setNewColor] = useState(CHAR_PALLETE[0]);
+  const [intermidiateHobbies, setIntermidiateHobbies] = useState<string>(draft.hobbies.join(", "));
 
   useEffect(() => {
     setDraft(character);
@@ -199,8 +200,21 @@ export default function CharacterPanel({
         {/* Hobbies */}
         <F label="Hobbies" icon={<Heart size={10} />} editing={editing}>
           {editing
-            ? <input className="cl-input" placeholder="Comma-separated" value={draft.hobbies.join(", ")}
-              onChange={(e) => setDraft({ ...draft, hobbies: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })} />
+            ? <input
+              className="cl-input"
+              placeholder="Comma-separated"
+              value={intermidiateHobbies}
+              onChange={(e) => setIntermidiateHobbies(e.target.value)}
+              onBlur={() =>
+                setDraft({
+                  ...draft,
+                  hobbies: intermidiateHobbies
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean),
+                })
+              }
+            />
             : character.hobbies.length > 0
               ? <div className="flex flex-wrap gap-1.5">
                 {character.hobbies.map((h, i) => (
