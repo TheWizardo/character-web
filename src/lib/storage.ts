@@ -40,11 +40,11 @@ function lsGet<T>(key: string): T | null {
 }
 
 function lsSet(key: string, val: unknown): void {
-  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch { }
 }
 
 function lsDel(key: string): void {
-  try { localStorage.removeItem(key); } catch {}
+  try { localStorage.removeItem(key); } catch { }
 }
 
 // ── public API ────────────────────────────────────────────
@@ -75,8 +75,8 @@ export function loadProjectData(id: string): GraphData {
     ...customTypes.filter((t) => !DEFAULT_CONNECTION_TYPES.some((d) => d.id === t.id)),
   ];
   return {
-    characters:      stored?.chars ?? [],
-    connections:     stored?.conns ?? [],
+    characters: stored?.chars ?? [],
+    connections: stored?.conns ?? [],
     connectionTypes,
   };
 }
@@ -106,10 +106,9 @@ export function downloadChrw(project: Project, data: GraphData): void {
     customTypes: data.connectionTypes.filter((t) => !t.isDefault),
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a");
-  a.href     = url;
-  a.download = `${project.name.replace(/[^a-z0-9_\-. ]/gi, "_")}.chrw`;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `${project.name.replaceAll(/[^a-z0-9_\-.]+/gi, "_")}.chrw`;
   a.click();
   URL.revokeObjectURL(url);
 }
