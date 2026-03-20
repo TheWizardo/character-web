@@ -11,8 +11,8 @@ interface Props {
 
 export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [pending, setPending]   = useState<ChrwFile | null>(null);
-  const [error, setError]       = useState<string | null>(null);
+  const [pending, setPending] = useState<ChrwFile | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -48,7 +48,9 @@ export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose
           <h3 className="font-display text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
             Settings
           </h3>
-          <button onClick={onClose} style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", display: "flex" }}>
+          <button onClick={onClose}
+            className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
+            style={{ color: "var(--text-muted)", cursor: "pointer", display: "flex" }}>
             <X size={18} />
           </button>
         </div>
@@ -75,7 +77,7 @@ export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose
                   }}>
                     {t === "dark"
                       ? <Moon size={18} style={{ color: "#d4a843" }} />
-                      : <Sun  size={18} style={{ color: "#a87818" }} />}
+                      : <Sun size={18} style={{ color: "#a87818" }} />}
                   </div>
                   <span className="font-mono text-sm capitalize"
                     style={{ color: theme === t ? "var(--gold)" : "var(--text-muted)", fontWeight: theme === t ? 600 : 400 }}>

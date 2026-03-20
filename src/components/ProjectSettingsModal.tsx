@@ -12,8 +12,10 @@ const PALETTE = [
   "#8e44ad","#16a085","#d4a843","#2c3e50","#e74c3c","#1abc9c",
 ];
 const EMOJIS = [
-  "💕","🏠","🤝","⚔️","💼","🔗","🌹","👑","🗡️","🌿","🔥","❄️",
-  "🎭","🪄","🧪","📜","🕊️","🐍","💀","⚡","🌊","🌙","☀️","🎯",
+  "🎶","🎓","🎖️","🛠️","🍕","🔗","🌹",
+  "👑","🗡️","🌿","🔥","❄️","⚖️","⚓",
+  "🎭","🪄","🧪","📜","🕊️","🐍","💀",
+  "⚡","🌊","🌙","☀️","🎯","✈️","♾️"
 ];
 
 interface Props {
@@ -96,7 +98,7 @@ export default function ProjectSettingsModal({
               {characterCount} character{characterCount !== 1 ? "s" : ""} · {connectionCount} connection{connectionCount !== 1 ? "s" : ""}
             </p>
           </div>
-          <button onClick={onClose} style={{ color: "var(--text-muted)" }}><X size={18} /></button>
+          <button onClick={onClose} style={{ color: "var(--text-muted)" }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={18} /></button>
         </div>
 
         {/* Tabs */}
@@ -270,13 +272,13 @@ export default function ProjectSettingsModal({
                       style={{ background: "var(--bg-deep)", border: "1px solid var(--border-medium)" }}>
                       {EMOJIS.map((e) => (
                         <button key={e} onClick={() => { setNewEmoji(e); setShowEmoji(false); }}
-                          className="text-base w-8 h-8 rounded flex items-center justify-center transition-colors hover:bg-white/10">
+                          className="text-base w-8 h-8 rounded flex items-center justify-center border-0 outline-none bg-transparent hover:bg-white/10 transition-colors">
                           {e}
                         </button>
                       ))}
                       <input className="col-span-2 bg-transparent text-center text-sm focus:outline-none"
                         style={{ border: "1px solid var(--border-input)", color: "var(--text-primary)", borderRadius: 4 }}
-                        placeholder="✍️" maxLength={2}
+                        placeholder="✍️ Custom" maxLength={2}
                         onChange={(e) => { if (e.target.value) setNewEmoji(e.target.value); }} />
                     </div>
                   )}

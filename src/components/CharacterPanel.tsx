@@ -129,11 +129,11 @@ export default function CharacterPanel({
         </div>
         <div className="flex gap-1.5">
           {editing
-            ? <button onClick={save} className="p-2 rounded" style={{ color: "#27ae60" }}><Check size={16} /></button>
-            : <button onClick={() => setEditing(true)} className="p-2 rounded" style={{ color: "var(--text-muted)" }} title="Edit"><Edit3 size={16} /></button>
+            ? <button onClick={save}  className="p-2 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors" style={{ color: "#27ae60" }}><Check size={16} /></button>
+            : <button onClick={() => setEditing(true)}  className="p-2 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors" style={{ color: "var(--text-muted)" }} title="Edit"><Edit3 size={16} /></button>
           }
-          <button onClick={() => setConfirm(true)} className="p-2 rounded" style={{ color: "var(--text-muted)" }} title="Delete"><Trash2 size={16} /></button>
-          <button onClick={onClose} className="p-2 rounded" style={{ color: "var(--text-muted)" }}><X size={16} /></button>
+          <button onClick={() => setConfirm(true)}  className="p-2 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors" style={{ color: "var(--text-muted)" }} title="Delete"><Trash2 size={16} /></button>
+          <button onClick={onClose} style={{ color: "var(--text-muted)" }}  className="p-2 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={16} /></button>
         </div>
       </div>
 

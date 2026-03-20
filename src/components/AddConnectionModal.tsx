@@ -35,7 +35,7 @@ export default function AddConnectionModal({ characters, connectionTypes, onAdd,
 
         <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <h3 className="font-display text-lg font-semibold" style={{ color: "var(--text-primary)" }}>New Connection</h3>
-          <button onClick={onClose} style={{ color: "var(--text-muted)" }}><X size={18} /></button>
+          <button onClick={onClose} style={{ color: "var(--text-muted)" }}  className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={18} /></button>
         </div>
 
         <div className="px-6 py-5 space-y-4">
