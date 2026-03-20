@@ -262,7 +262,7 @@ html, body, #root {
 .scale-in      { animation: scaleIn     0.25s cubic-bezier(0.16,1,0.3,1) forwards; }
 
 /* ─── FORM ELEMENTS ─────────────────────────────────── */
-.cw-input {
+.cl-input {
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border-input);
@@ -274,10 +274,10 @@ html, body, #root {
   outline: none;
   transition: border-color 0.15s;
 }
-.cw-input:focus   { border-color: var(--gold-border); }
-.cw-input::placeholder { color: var(--text-muted); opacity: 0.7; }
+.cl-input:focus   { border-color: var(--gold-border); }
+.cl-input::placeholder { color: var(--text-muted); opacity: 0.7; }
 
-.cw-select {
+.cl-select {
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border-input);
@@ -289,7 +289,7 @@ html, body, #root {
   outline: none;
 }
 
-.cw-label {
+.cl-label {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -339,4 +339,8 @@ html[data-theme="light"] .logo-theme {
 
 html[data-theme="dark"] .logo-theme {
   filter: none;
+}
+
+.node-label {
+  fill: var(--node-label);
 }

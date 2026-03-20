@@ -49,61 +49,61 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
         <div className="px-6 py-5 overflow-y-auto space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="cw-label">Name *</label>
-              <input className="cw-input" placeholder="Eleanor"
+              <label className="cl-label">Name *</label>
+              <input className="cl-input" placeholder="Eleanor"
                 value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && submit()} />
             </div>
             <div>
-              <label className="cw-label">Full Name</label>
-              <input className="cw-input" placeholder="Eleanor Voss"
+              <label className="cl-label">Full Name</label>
+              <input className="cl-input" placeholder="Eleanor Voss"
                 value={form.fullName || ""} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="cw-label">Age</label>
-              <input type="number" className="cw-input" placeholder="34"
+              <label className="cl-label">Age</label>
+              <input type="number" className="cl-input" placeholder="34"
                 value={form.age || ""} onChange={(e) => setForm({ ...form, age: parseInt(e.target.value) || undefined })} />
             </div>
             <div>
-              <label className="cw-label">Birthdate</label>
-              <input type="date" className="cw-input" value={form.birthDate || ""}
+              <label className="cl-label">Birthdate</label>
+              <input type="date" className="cl-input" value={form.birthDate || ""}
                 onChange={(e) => setForm({ ...form, birthDate: e.target.value })} />
             </div>
           </div>
           <div>
-            <label className="cw-label">Physical Description</label>
-            <textarea className="cw-input" rows={2} style={{ resize: "none" }} placeholder="Tall with auburn hair…"
+            <label className="cl-label">Physical Description</label>
+            <textarea className="cl-input" rows={2} style={{ resize: "none" }} placeholder="Tall with auburn hair…"
               value={form.physicalDescription || ""} onChange={(e) => setForm({ ...form, physicalDescription: e.target.value })} />
           </div>
           <div>
-            <label className="cw-label">Hobbies (comma-separated)</label>
-            <input className="cw-input" placeholder="Reading, Chess, Cooking"
+            <label className="cl-label">Hobbies (comma-separated)</label>
+            <input className="cl-input" placeholder="Reading, Chess, Cooking"
               value={hobbiesText} onChange={(e) => setHobbiesText(e.target.value)} />
           </div>
           <div>
-            <label className="cw-label">Address</label>
-            <input className="cw-input" placeholder="14 Harlow Street"
+            <label className="cl-label">Address</label>
+            <input className="cl-input" placeholder="14 Harlow Street"
               value={form.address || ""} onChange={(e) => setForm({ ...form, address: e.target.value })} />
           </div>
           <div>
-            <label className="cw-label">Workplace</label>
-            <input className="cw-input" placeholder="Voss & Merrick Antiquities"
+            <label className="cl-label">Workplace</label>
+            <input className="cl-input" placeholder="Voss & Merrick Antiquities"
               value={form.workplace || ""} onChange={(e) => setForm({ ...form, workplace: e.target.value })} />
           </div>
           <div>
-            <label className="cw-label">Education</label>
-            <input className="cw-input" placeholder="MA in Art History, Edinburgh"
+            <label className="cl-label">Education</label>
+            <input className="cl-input" placeholder="MA in Art History, Edinburgh"
               value={form.education || ""} onChange={(e) => setForm({ ...form, education: e.target.value })} />
           </div>
           <div>
-            <label className="cw-label">Additional Information</label>
-            <textarea className="cw-input" rows={3} style={{ resize: "vertical" }} placeholder="Backstory, secrets, arcs…"
+            <label className="cl-label">Additional Information</label>
+            <textarea className="cl-input" rows={3} style={{ resize: "vertical" }} placeholder="Backstory, secrets, arcs…"
               value={form.additionalInfo || ""} onChange={(e) => setForm({ ...form, additionalInfo: e.target.value })} />
           </div>
           <div>
-            <label className="cw-label">Color</label>
+            <label className="cl-label">Color</label>
             <div className="flex gap-2 flex-wrap mt-1">
               {COLORS.map((col) => (
                 <button key={col} onClick={() => setForm({ ...form, color: col })}

@@ -54,7 +54,7 @@ export default function Legend({ types, highlightTypeId, onHighlight, compact }:
       overflowY: "auto",
       opacity: 0.93,
     }}>
-      <p className="cw-label" style={{ marginBottom: 8 }}>Connections</p>
+      <p className="cl-label" style={{ marginBottom: 8 }}>Connections</p>
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {types.map((t) => {
           const active = highlightTypeId === t.id;

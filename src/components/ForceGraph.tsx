@@ -39,7 +39,6 @@ export default function ForceGraph({
 
     const cssVar = (v: string, fb: string) =>
       getComputedStyle(document.documentElement).getPropertyValue(v).trim() || fb;
-    const nodeLabel = cssVar("--node-label", "#f5efe0");
 
     // ── Defs ──────────────────────────────────────────────
     const defs = svg.append("defs");
@@ -194,7 +193,7 @@ export default function ForceGraph({
 
     nodeEls.append("text").attr("text-anchor", "middle").attr("dy", "2.8em")
       .attr("font-family", "'Cormorant Garamond', serif").attr("font-size", "13px")
-      .attr("font-weight", "500").attr("fill", nodeLabel).attr("opacity", 0.9)
+      .attr("font-weight", "500").attr("class", "node-label").attr("opacity", 0.9)
       .text((d: any) => d.name);
 
     nodeEls

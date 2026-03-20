@@ -59,7 +59,7 @@ export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose
 
           {/* ── Theme ──────────────────────────────────── */}
           <div>
-            <label className="cw-label" style={{ marginBottom: 8 }}>Theme</label>
+            <label className="cl-label" style={{ marginBottom: 8 }}>Theme</label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               {(["dark", "light"] as const).map((t) => (
                 <button key={t} onClick={() => onSetTheme(t)}
@@ -90,7 +90,7 @@ export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose
 
           {/* ── Import ─────────────────────────────────── */}
           <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 20 }}>
-            <label className="cw-label" style={{ marginBottom: 8 }}>Import Story (.chrw)</label>
+            <label className="cl-label" style={{ marginBottom: 8 }}>Import Story (.chrw)</label>
 
             {!pending ? (
               <>
@@ -126,7 +126,7 @@ export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose
                 <p className="font-mono text-xs" style={{ color: "var(--text-muted)", marginBottom: 14 }}>
                   {pending.characters.length} characters · {pending.connections.length} connections
                 </p>
-                <p className="cw-label" style={{ marginBottom: 8 }}>How to import?</p>
+                <p className="cl-label" style={{ marginBottom: 8 }}>How to import?</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   <button onClick={() => confirm("append")}
                     style={{

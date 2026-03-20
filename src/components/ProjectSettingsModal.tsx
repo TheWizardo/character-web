@@ -123,9 +123,9 @@ export default function ProjectSettingsModal({
           {tab === "general" && (
             <div className="space-y-5">
               <div>
-                <label className="cw-label">Story Name</label>
+                <label className="cl-label">Story Name</label>
                 <div className="flex gap-2">
-                  <input className="cw-input flex-1" value={name}
+                  <input className="cl-input flex-1" value={name}
                     onChange={(e) => setName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && saveRename()} />
                   <button onClick={saveRename}
@@ -257,11 +257,11 @@ export default function ProjectSettingsModal({
 
               {/* Add new */}
               <div className="pt-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-                <p className="cw-label mb-3">Add Custom Type</p>
+                <p className="cl-label mb-3">Add Custom Type</p>
 
                 {/* Emoji */}
                 <div className="mb-3">
-                  <label className="cw-label">Emoji</label>
+                  <label className="cl-label">Emoji</label>
                   <button onClick={() => setShowEmoji(!showEmoji)}
                     className="text-xl w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-110"
                     style={{ background: "var(--bg-surface)", border: "1px solid var(--border-medium)" }}>
@@ -286,15 +286,15 @@ export default function ProjectSettingsModal({
 
                 {/* Label */}
                 <div className="mb-3">
-                  <label className="cw-label">Label</label>
-                  <input className="cw-input" placeholder="Mentor, Nemesis, Soulmate…"
+                  <label className="cl-label">Label</label>
+                  <input className="cl-input" placeholder="Mentor, Nemesis, Soulmate…"
                     value={newLabel} onChange={(e) => setNewLabel(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && addType()} />
                 </div>
 
                 {/* Color */}
                 <div className="mb-4">
-                  <label className="cw-label">Color</label>
+                  <label className="cl-label">Color</label>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {PALETTE.map((col) => (
                       <button key={col} onClick={() => setNewColor(col)}

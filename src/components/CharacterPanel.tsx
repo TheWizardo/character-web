@@ -143,7 +143,7 @@ export default function CharacterPanel({
         {/* Color picker */}
         {editing && (
           <div className="mb-5">
-            <label className="cw-label">Color</label>
+            <label className="cl-label">Color</label>
             <div className="flex gap-2 flex-wrap mt-1">
               {COLORS.map((col) => (
                 <button key={col} onClick={() => setDraft({ ...draft, color: col })}
@@ -157,7 +157,7 @@ export default function CharacterPanel({
         {/* Full name */}
         <F label="Full Name" editing={editing}>
           {editing
-            ? <input className="cw-input" value={draft.fullName} onChange={(e) => setDraft({ ...draft, fullName: e.target.value })} />
+            ? <input className="cl-input" value={draft.fullName} onChange={(e) => setDraft({ ...draft, fullName: e.target.value })} />
             : <Val>{character.fullName}</Val>}
         </F>
 
@@ -165,13 +165,13 @@ export default function CharacterPanel({
         <div className="grid grid-cols-2 gap-4 mb-4">
           <F label="Age" editing={editing}>
             {editing
-              ? <input type="number" className="cw-input" value={draft.age || ""}
+              ? <input type="number" className="cl-input" value={draft.age || ""}
                   onChange={(e) => setDraft({ ...draft, age: parseInt(e.target.value) || undefined })} />
               : <Val>{character.age?.toString()}</Val>}
           </F>
           <F label="Birthdate" icon={<Calendar size={10} />} editing={editing}>
             {editing
-              ? <input type="date" className="cw-input" value={draft.birthDate || ""}
+              ? <input type="date" className="cl-input" value={draft.birthDate || ""}
                   onChange={(e) => setDraft({ ...draft, birthDate: e.target.value })} />
               : <Val>{character.birthDate
                   ? new Date(character.birthDate + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
@@ -182,7 +182,7 @@ export default function CharacterPanel({
         {/* Physical description */}
         <F label="Physical Description" icon={<User size={10} />} editing={editing}>
           {editing
-            ? <textarea className="cw-input" rows={3} style={{ resize: "none" }} value={draft.physicalDescription}
+            ? <textarea className="cl-input" rows={3} style={{ resize: "none" }} value={draft.physicalDescription}
                 onChange={(e) => setDraft({ ...draft, physicalDescription: e.target.value })} />
             : <Val multiline>{character.physicalDescription}</Val>}
         </F>
@@ -190,7 +190,7 @@ export default function CharacterPanel({
         {/* Hobbies */}
         <F label="Hobbies" icon={<Heart size={10} />} editing={editing}>
           {editing
-            ? <input className="cw-input" placeholder="Comma-separated" value={draft.hobbies.join(", ")}
+            ? <input className="cl-input" placeholder="Comma-separated" value={draft.hobbies.join(", ")}
                 onChange={(e) => setDraft({ ...draft, hobbies: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })} />
             : character.hobbies.length > 0
               ? <div className="flex flex-wrap gap-1.5">
@@ -206,25 +206,25 @@ export default function CharacterPanel({
 
         <F label="Address" icon={<MapPin size={10} />} editing={editing}>
           {editing
-            ? <input className="cw-input" value={draft.address} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
+            ? <input className="cl-input" value={draft.address} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
             : <Val>{character.address}</Val>}
         </F>
 
         <F label="Workplace" icon={<Briefcase size={10} />} editing={editing}>
           {editing
-            ? <input className="cw-input" value={draft.workplace} onChange={(e) => setDraft({ ...draft, workplace: e.target.value })} />
+            ? <input className="cl-input" value={draft.workplace} onChange={(e) => setDraft({ ...draft, workplace: e.target.value })} />
             : <Val>{character.workplace}</Val>}
         </F>
 
         <F label="Education" icon={<GraduationCap size={10} />} editing={editing}>
           {editing
-            ? <input className="cw-input" value={draft.education} onChange={(e) => setDraft({ ...draft, education: e.target.value })} />
+            ? <input className="cl-input" value={draft.education} onChange={(e) => setDraft({ ...draft, education: e.target.value })} />
             : <Val>{character.education}</Val>}
         </F>
 
         <F label="Additional Information" icon={<FileText size={10} />} editing={editing}>
           {editing
-            ? <textarea className="cw-input" rows={4} style={{ resize: "vertical" }}
+            ? <textarea className="cl-input" rows={4} style={{ resize: "vertical" }}
                 placeholder="Backstory, secrets, arcs…"
                 value={draft.additionalInfo || ""}
                 onChange={(e) => setDraft({ ...draft, additionalInfo: e.target.value })} />
@@ -234,7 +234,7 @@ export default function CharacterPanel({
         {/* Connections */}
         {related.length > 0 && (
           <div className="mt-6 pt-5" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-            <label className="cw-label">Connections</label>
+            <label className="cl-label">Connections</label>
             <div className="space-y-2 mt-2">
               {related.map((conn) => {
                 const other = getOther(conn);
@@ -299,7 +299,7 @@ export default function CharacterPanel({
 function F({ label, icon, editing, children }: { label: string; icon?: React.ReactNode; editing: boolean; children: React.ReactNode }) {
   return (
     <div className="mb-4">
-      <label className="cw-label flex items-center gap-1">
+      <label className="cl-label flex items-center gap-1">
         {icon}{label}
       </label>
       {children}

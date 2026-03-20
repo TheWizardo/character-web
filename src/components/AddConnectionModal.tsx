@@ -42,14 +42,14 @@ export default function AddConnectionModal({ characters, connectionTypes, onAdd,
           {/* From / Mutual toggle / To */}
           <div className="flex items-end gap-2">
             <div className="flex-1">
-              <label className="cw-label">From</label>
-              <select className="cw-select" value={source} onChange={(e) => setSource(e.target.value)}>
+              <label className="cl-label">From</label>
+              <select className="cl-select" value={source} onChange={(e) => setSource(e.target.value)}>
                 <option value="">Select…</option>
                 {characters.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div className="flex flex-col items-center gap-1 pb-0.5">
-              <span className="cw-label">Mutual</span>
+              <span className="cl-label">Mutual</span>
               <button onClick={() => setMutual(!mutual)}
                 className="w-10 h-9 rounded-lg flex items-center justify-center transition-all hover:scale-105"
                 style={{ background: mutual ? "var(--gold-dim)" : "var(--bg-surface)", border: `1px solid ${mutual ? "var(--gold-border)" : "var(--border-medium)"}`, color: mutual ? "var(--gold)" : "var(--text-muted)" }}>
@@ -57,8 +57,8 @@ export default function AddConnectionModal({ characters, connectionTypes, onAdd,
               </button>
             </div>
             <div className="flex-1">
-              <label className="cw-label">To</label>
-              <select className="cw-select" value={target} onChange={(e) => setTarget(e.target.value)}>
+              <label className="cl-label">To</label>
+              <select className="cl-select" value={target} onChange={(e) => setTarget(e.target.value)}>
                 <option value="">Select…</option>
                 {characters.filter((c) => c.id !== source).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
@@ -66,10 +66,10 @@ export default function AddConnectionModal({ characters, connectionTypes, onAdd,
           </div>
 
           <div>
-            <label className="cw-label">
+            <label className="cl-label">
               Label <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>({label.length}/15)</span>
             </label>
-            <input className="cw-input" placeholder="Married, Rivals…" maxLength={15}
+            <input className="cl-input" placeholder="Married, Rivals…" maxLength={15}
               value={label}
               onChange={(e) => {
                 const v = e.target.value.slice(0, 15);
@@ -79,7 +79,7 @@ export default function AddConnectionModal({ characters, connectionTypes, onAdd,
           </div>
 
           <div>
-            <label className="cw-label mb-2">Type</label>
+            <label className="cl-label mb-2">Type</label>
             <div className="grid grid-cols-2 gap-2">
               {connectionTypes.map((t) => (
                 <button key={t.id} onClick={() => setType(t.id)}

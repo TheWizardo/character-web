@@ -1,8 +1,8 @@
 /**
  * localStorage layout
  *
- * cw:meta    → { projects, activeProjectId, theme }
- * cw:p:{id}  → { chars: Character[], conns: Connection[], types: ConnectionType[] }
+ * cl:meta    → { projects, activeProjectId, theme }
+ * cl:p:{id}  → { chars: Character[], conns: Connection[], types: ConnectionType[] }
  *
  * "types" stores ONLY custom (non-default) types. Defaults are hard-coded in
  * connectionTypes.ts and merged in at load time, keeping stored data minimal.
@@ -13,8 +13,8 @@ import { DEFAULT_CONNECTION_TYPES } from "./connectionTypes";
 
 // ── keys ─────────────────────────────────────────────────
 const K = {
-  meta: "cw:meta",
-  proj: (id: string) => `cw:p:${id}`,
+  meta: "cl:meta",
+  proj: (id: string) => `cl:p:${id}`,
 };
 
 // ── internal shapes ───────────────────────────────────────
