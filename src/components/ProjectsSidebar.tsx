@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Project } from "../lib/types";
 import { BookOpen, Plus, Pencil, Trash2, Check, X, ChevronRight } from "lucide-react";
+import { CRIT_COLOR, OK_COLOR } from "../lib/constants";
 
 interface Props {
   projects: Project[];
@@ -60,8 +61,8 @@ export default function ProjectsSidebar({ projects, activeId, onSwitch, onCreate
                   style={{ color: "var(--text-primary)", fontFamily: "'Crimson Pro', serif" }}
                   value={editingName} onChange={(e) => setEditingName(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") submitRename(p.id); if (e.key === "Escape") setEditingId(null); }} />
-                <button onClick={() => submitRename(p.id)} style={{ color: "#27ae60" }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><Check size={13} /></button>
-                <button onClick={() => setEditingId(null)} style={{ color: "#b72c2c" }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={13} /></button>
+                <button onClick={() => submitRename(p.id)} style={{ color: OK_COLOR }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><Check size={13} /></button>
+                <button onClick={() => setEditingId(null)} style={{ color: CRIT_COLOR }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={13} /></button>
               </div>
             ) : (
               <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all"
@@ -86,7 +87,7 @@ export default function ProjectsSidebar({ projects, activeId, onSwitch, onCreate
                     pendingDeleteId === p.id ? <>
                       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => { onDelete(p.id); setPendingDel(null); }}
-                          style={{ background: "rgba(192,57,43,0.15)", color: "#c0392b" }}
+                          style={{ background: "rgba(192,57,43,0.15)", color: CRIT_COLOR }}
                           className="text-xs font-mono px-1.5 py-0.5 rounded border-0 outline-none hover:bg-white/10 transition-colors">Del</button>
                         <button onClick={() => setPendingDel(null)}
                           className="p-1 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
@@ -104,7 +105,7 @@ export default function ProjectsSidebar({ projects, activeId, onSwitch, onCreate
                         <button onClick={(e) => { e.stopPropagation(); setPendingDel(p.id); }}
                           className="p-1 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
                           style={{ color: "var(--text-muted)" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.color = "#c0392b")}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = CRIT_COLOR)}
                           onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}>
                           <Trash2 size={11} />
                         </button>
@@ -130,8 +131,8 @@ export default function ProjectsSidebar({ projects, activeId, onSwitch, onCreate
               placeholder="Story name…" value={creatingName}
               onChange={(e) => setCreatingName(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") submitCreate(); if (e.key === "Escape") setIsCreating(false); }} />
-            <button onClick={submitCreate} style={{ color: "#27ae60" }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><Check size={14} /></button>
-            <button onClick={() => setIsCreating(false)} style={{ color: "#b72c2c" }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={14} /></button>
+            <button onClick={submitCreate} style={{ color: OK_COLOR }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><Check size={14} /></button>
+            <button onClick={() => setIsCreating(false)} style={{ color: CRIT_COLOR }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={14} /></button>
           </div>
         ) : (
           <button onClick={() => setIsCreating(true)}

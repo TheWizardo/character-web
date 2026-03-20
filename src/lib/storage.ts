@@ -5,11 +5,11 @@
  * cl:p:{id}  → { chars: Character[], conns: Connection[], types: ConnectionType[] }
  *
  * "types" stores ONLY custom (non-default) types. Defaults are hard-coded in
- * connectionTypes.ts and merged in at load time, keeping stored data minimal.
+ * costants.ts and merged in at load time, keeping stored data minimal.
  */
 
 import { GraphData, Project, Character, Connection, ConnectionType } from "./types";
-import { DEFAULT_CONNECTION_TYPES } from "./connectionTypes";
+import { DEFAULT_CONNECTION_TYPES } from "./constants";
 
 // ── keys ─────────────────────────────────────────────────
 const K = {

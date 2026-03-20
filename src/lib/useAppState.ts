@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { AppState, GraphData, Project } from "./types";
-import { DEFAULT_CONNECTION_TYPES } from "./connectionTypes";
+import { DEFAULT_CONNECTION_TYPES } from "./constants";
 import {
   saveMeta, loadMeta, saveProjectData, loadProjectData,
   deleteProjectData, ChrwFile, chrwToGraphData,

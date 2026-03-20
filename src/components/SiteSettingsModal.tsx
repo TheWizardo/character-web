@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { X, Moon, Sun, Upload, AlertTriangle } from "lucide-react";
 import { parseChrwFile, ChrwFile } from "../lib/storage";
+import { CRIT_COLOR } from "../lib/constants";
 
 interface Props {
   theme: "dark" | "light";
@@ -113,7 +114,7 @@ export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose
                   </div>
                 </button>
                 {error && (
-                  <p style={{ marginTop: 8, fontSize: 12, color: "#c0392b", fontFamily: "'DM Mono', monospace", display: "flex", alignItems: "center", gap: 6 }}>
+                  <p style={{ marginTop: 8, fontSize: 12, color: CRIT_COLOR, fontFamily: "'DM Mono', monospace", display: "flex", alignItems: "center", gap: 6 }}>
                     <AlertTriangle size={12} /> {error}
                   </p>
                 )}
@@ -140,7 +141,7 @@ export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose
                     style={{
                       padding: "10px 14px", borderRadius: 8, cursor: "pointer", textAlign: "left",
                       background: "rgba(192,57,43,0.07)", border: "1px solid rgba(192,57,43,0.3)",
-                      color: "#c0392b", fontFamily: "'DM Mono', monospace", fontSize: 12,
+                      color: CRIT_COLOR, fontFamily: "'DM Mono', monospace", fontSize: 12,
                     }}>
                     Replace current story
                   </button>

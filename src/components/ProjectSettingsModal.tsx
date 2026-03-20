@@ -4,18 +4,16 @@ import { X, Check, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Downl
 import { v4 as uuidv4 } from "uuid";
 import { downloadChrw } from "../lib/storage";
 import { GraphData } from "../lib/types";
+import { CON_PALETTE, CRIT_COLOR } from "../lib/constants";
 
 type Tab = "general" | "connections";
 
-const PALETTE = [
-  "#e84393","#e67e22","#27ae60","#c0392b","#2980b9","#8b6f47",
-  "#8e44ad","#16a085","#d4a843","#2c3e50","#e74c3c","#1abc9c",
-];
+
 const EMOJIS = [
-  "🎶","🎓","🎖️","🛠️","🍕","🔗","🌹",
-  "👑","🗡️","🌿","🔥","❄️","⚖️","⚓",
-  "🎭","🪄","🧪","📜","🕊️","🐍","💀",
-  "⚡","🌊","🌙","☀️","🎯","✈️","♾️"
+  "🎶", "🎓", "🎖️", "🛠️", "🍕", "🔗", "🌹",
+  "👑", "🗡️", "🌿", "🔥", "❄️", "⚖️", "⚓",
+  "🎭", "🪄", "🧪", "📜", "🕊️", "🐍", "💀",
+  "⚡", "🌊", "🌙", "☀️", "🎯", "✈️", "♾️"
 ];
 
 interface Props {
@@ -36,18 +34,18 @@ export default function ProjectSettingsModal({
   project, canDelete, connectionTypes, characterCount, connectionCount, projectData,
   onRename, onReset, onDelete, onSaveConnectionTypes, onClose,
 }: Props) {
-  const [tab, setTab]                   = useState<Tab>("general");
-  const [name, setName]                 = useState(project.name);
+  const [tab, setTab] = useState<Tab>("general");
+  const [name, setName] = useState(project.name);
   const [confirmReset, setConfirmReset] = useState(false);
-  const [confirmDel, setConfirmDel]     = useState(false);
+  const [confirmDel, setConfirmDel] = useState(false);
 
   // Connection types state
-  const [ctDraft, setCtDraft]           = useState<ConnectionType[]>(connectionTypes);
-  const [newLabel, setNewLabel]         = useState("");
-  const [newEmoji, setNewEmoji]         = useState("🔗");
-  const [newColor, setNewColor]         = useState(PALETTE[0]);
-  const [showEmoji, setShowEmoji]       = useState(false);
-  const [ctDirty, setCtDirty]           = useState(false);
+  const [ctDraft, setCtDraft] = useState<ConnectionType[]>(connectionTypes);
+  const [newLabel, setNewLabel] = useState("");
+  const [newEmoji, setNewEmoji] = useState("🔗");
+  const [newColor, setNewColor] = useState(CON_PALETTE[0]);
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [ctDirty, setCtDirty] = useState(false);
 
   const saveRename = () => {
     if (name.trim() && name.trim() !== project.name) onRename(name.trim());
@@ -60,7 +58,7 @@ export default function ProjectSettingsModal({
     setCtDraft(next);
     setCtDirty(true);
     setNewLabel(""); setNewEmoji("🔗");
-    setNewColor(PALETTE[Math.floor(Math.random() * PALETTE.length)]);
+    setNewColor(CON_PALETTE[Math.floor(Math.random() * CON_PALETTE.length)]);
     setShowEmoji(false);
   };
 
@@ -157,8 +155,8 @@ export default function ProjectSettingsModal({
                   <div className="rounded-lg p-4"
                     style={{ background: "rgba(192,57,43,0.07)", border: "1px solid rgba(192,57,43,0.25)" }}>
                     <div className="flex items-center gap-2 mb-2">
-                      <AlertTriangle size={14} style={{ color: "#c0392b" }} />
-                      <p className="text-sm font-mono" style={{ color: "#c0392b" }}>
+                      <AlertTriangle size={14} style={{ color: CRIT_COLOR }} />
+                      <p className="text-sm font-mono" style={{ color: CRIT_COLOR }}>
                         Clear all characters and connections?
                       </p>
                     </div>
@@ -173,7 +171,7 @@ export default function ProjectSettingsModal({
                       </button>
                       <button onClick={() => { onReset(); onClose(); }}
                         className="flex-1 py-2 rounded-lg text-sm font-mono font-semibold"
-                        style={{ background: "rgba(192,57,43,0.15)", border: "1px solid rgba(192,57,43,0.4)", color: "#c0392b" }}>
+                        style={{ background: "rgba(192,57,43,0.15)", border: "1px solid rgba(192,57,43,0.4)", color: CRIT_COLOR }}>
                         Reset Story
                       </button>
                     </div>
@@ -197,7 +195,7 @@ export default function ProjectSettingsModal({
                   {confirmDel ? (
                     <div className="rounded-lg p-4"
                       style={{ background: "rgba(192,57,43,0.07)", border: "1px solid rgba(192,57,43,0.25)" }}>
-                      <p className="text-sm font-mono mb-3" style={{ color: "#c0392b" }}>
+                      <p className="text-sm font-mono mb-3" style={{ color: CRIT_COLOR }}>
                         Delete "{project.name}"? Cannot be undone.
                       </p>
                       <div className="flex gap-2">
@@ -208,7 +206,7 @@ export default function ProjectSettingsModal({
                         </button>
                         <button onClick={() => { onDelete(); onClose(); }}
                           className="flex-1 py-2 rounded-lg text-sm font-mono font-semibold"
-                          style={{ background: "rgba(192,57,43,0.15)", border: "1px solid rgba(192,57,43,0.4)", color: "#c0392b" }}>
+                          style={{ background: "rgba(192,57,43,0.15)", border: "1px solid rgba(192,57,43,0.4)", color: CRIT_COLOR }}>
                           Delete
                         </button>
                       </div>
@@ -216,7 +214,7 @@ export default function ProjectSettingsModal({
                   ) : (
                     <button onClick={() => setConfirmDel(true)}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-mono transition-all hover:scale-[1.01]"
-                      style={{ background: "var(--bg-surface)", border: "1px solid rgba(192,57,43,0.2)", color: "#c0392b" }}>
+                      style={{ background: "var(--bg-surface)", border: "1px solid rgba(192,57,43,0.2)", color: CRIT_COLOR }}>
                       <Trash2 size={14} /> Delete Story
                     </button>
                   )}
@@ -247,7 +245,7 @@ export default function ProjectSettingsModal({
                     <button onClick={() => removeType(t.id)}
                       className="p-1 rounded transition-colors"
                       style={{ color: "var(--text-muted)" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "#c0392b")}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = CRIT_COLOR)}
                       onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}>
                       <Trash2 size={13} />
                     </button>
@@ -296,7 +294,7 @@ export default function ProjectSettingsModal({
                 <div className="mb-4">
                   <label className="cl-label">Color</label>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {PALETTE.map((col) => (
+                    {CON_PALETTE.map((col) => (
                       <button key={col} onClick={() => setNewColor(col)}
                         className="w-7 h-7 rounded-full transition-transform hover:scale-110"
                         style={{
@@ -305,8 +303,14 @@ export default function ProjectSettingsModal({
                           boxShadow: newColor === col ? `0 0 8px ${col}` : "none",
                         }} />
                     ))}
+                    <div
+                      className="w-7 h-7 rounded-full transition-transform hover:scale-110"
+                      style={{
+                        display: "hide",
+                      }} />
                     <input type="color" value={newColor} onChange={(e) => setNewColor(e.target.value)}
                       className="w-7 h-7 rounded-full cursor-pointer border-0 p-0 bg-transparent" />
+                    <p className={`text-sm font-mono flex items-center justify-center`} style={{ textAlign: "center", color: "var(--gold)" }}>Custom</p>
                   </div>
                 </div>
 

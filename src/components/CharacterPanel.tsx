@@ -4,6 +4,7 @@ import {
   X, MapPin, Briefcase, GraduationCap, Heart, Edit3, Check,
   Trash2, User, ArrowLeftRight, ArrowRight, Calendar, FileText, AlertTriangle
 } from "lucide-react";
+import { CHAR_PALLETE, CRIT_COLOR, DEF_COLOR, OK_COLOR } from "../lib/constants";
 
 interface Props {
   character: Character;
@@ -20,10 +21,12 @@ export default function CharacterPanel({
   character, connections, allCharacters, connectionTypes,
   onClose, onUpdate, onDelete, onDeleteConnection,
 }: Props) {
-  const [editing, setEditing]            = useState(false);
-  const [draft, setDraft]                = useState<Character>(character);
-  const [confirmDelete, setConfirm]      = useState(false);
+
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Character>(character);
+  const [confirmDelete, setConfirm] = useState(false);
   const [pendingConnDel, setPendingConn] = useState<string | null>(null);
+  const [newColor, setNewColor] = useState(CHAR_PALLETE[0]);
 
   useEffect(() => {
     setDraft(character);
@@ -47,8 +50,6 @@ export default function CharacterPanel({
 
   const save = () => { onUpdate(draft); setEditing(false); };
 
-  const COLORS = ["#c0392b","#2980b9","#16a085","#8e44ad","#e67e22","#27ae60","#d4a843","#8b6f47","#2c3e50","#e84393"];
-
   // ── Delete confirmation ───────────────────────────────
   if (confirmDelete) {
     return (
@@ -57,7 +58,7 @@ export default function CharacterPanel({
         <div className="flex-1 flex flex-col items-center justify-center px-8 py-10 text-center scale-in">
           <div className="w-14 h-14 rounded-full flex items-center justify-center mb-5"
             style={{ background: "rgba(192,57,43,0.12)", border: "1px solid rgba(192,57,43,0.35)" }}>
-            <AlertTriangle size={24} style={{ color: "#c0392b" }} />
+            <AlertTriangle size={24} style={{ color: CRIT_COLOR }} />
           </div>
           <h3 className="font-display text-xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
             Delete {character.name}?
@@ -68,7 +69,7 @@ export default function CharacterPanel({
           {related.length > 0 && (
             <div className="w-full mb-6 text-left rounded-lg p-3"
               style={{ background: "rgba(192,57,43,0.07)", border: "1px solid rgba(192,57,43,0.2)" }}>
-              <p className="text-xs font-mono mb-2" style={{ color: "#c0392b" }}>
+              <p className="text-xs font-mono mb-2" style={{ color: CRIT_COLOR }}>
                 {related.length} connection{related.length !== 1 ? "s" : ""} will also be removed:
               </p>
               <div className="space-y-1.5">
@@ -93,7 +94,7 @@ export default function CharacterPanel({
             </button>
             <button onClick={() => onDelete(character.id)}
               className="flex-1 py-2.5 rounded-lg font-mono text-sm font-semibold transition-all hover:scale-105"
-              style={{ background: "rgba(192,57,43,0.15)", border: "1px solid rgba(192,57,43,0.4)", color: "#c0392b" }}>
+              style={{ background: "rgba(192,57,43,0.15)", border: "1px solid rgba(192,57,43,0.4)", color: CRIT_COLOR }}>
               Delete
             </button>
           </div>
@@ -112,14 +113,14 @@ export default function CharacterPanel({
         style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full flex items-center justify-center font-display font-semibold text-lg flex-shrink-0"
-            style={{ background: `${character.color || "#8b6f47"}22`, border: `2px solid ${character.color || "#8b6f47"}`, color: character.color || "var(--gold)" }}>
+            style={{ background: `${character.color || DEF_COLOR}22`, border: `2px solid ${character.color || DEF_COLOR}`, color: character.color || "var(--gold)" }}>
             {character.name[0]}
           </div>
           <div>
             {editing
               ? <input className="bg-transparent font-display text-xl font-semibold focus:outline-none w-44 pb-0.5"
-                  style={{ color: "var(--text-primary)", borderBottom: "1px solid var(--gold-border)" }}
-                  value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                style={{ color: "var(--text-primary)", borderBottom: "1px solid var(--gold-border)" }}
+                value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
               : <h2 className="font-display text-xl font-semibold" style={{ color: "var(--text-primary)" }}>{character.name}</h2>
             }
             <p className="text-xs font-mono mt-0.5" style={{ color: "var(--text-muted)" }}>
@@ -129,11 +130,11 @@ export default function CharacterPanel({
         </div>
         <div className="flex gap-1.5">
           {editing
-            ? <button onClick={save}  className="p-2 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors" style={{ color: "#27ae60" }}><Check size={16} /></button>
-            : <button onClick={() => setEditing(true)}  className="p-2 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors" style={{ color: "var(--text-muted)" }} title="Edit"><Edit3 size={16} /></button>
+            ? <button onClick={save} className="p-2 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors" style={{ color: OK_COLOR }}><Check size={16} /></button>
+            : <button onClick={() => setEditing(true)} className="p-2 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors" style={{ color: "var(--text-muted)" }} title="Edit"><Edit3 size={16} /></button>
           }
-          <button onClick={() => setConfirm(true)}  className="p-2 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors" style={{ color: "var(--text-muted)" }} title="Delete"><Trash2 size={16} /></button>
-          <button onClick={onClose} style={{ color: "var(--text-muted)" }}  className="p-2 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={16} /></button>
+          <button onClick={() => setConfirm(true)} className="p-2 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors" style={{ color: "var(--text-muted)" }} title="Delete"><Trash2 size={16} /></button>
+          <button onClick={onClose} style={{ color: "var(--text-muted)" }} className="p-2 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={16} /></button>
         </div>
       </div>
 
@@ -145,7 +146,7 @@ export default function CharacterPanel({
           <div className="mb-5">
             <label className="cl-label">Color</label>
             <div className="flex gap-2 flex-wrap mt-1">
-              {COLORS.map((col) => (
+              {CHAR_PALLETE.map((col) => (
                 <button key={col} onClick={() => setDraft({ ...draft, color: col })}
                   className="w-7 h-7 rounded-full transition-transform hover:scale-110"
                   style={{ background: col, border: draft.color === col ? "2px solid var(--text-primary)" : "2px solid transparent", boxShadow: draft.color === col ? `0 0 8px ${col}` : "none" }} />
@@ -166,16 +167,16 @@ export default function CharacterPanel({
           <F label="Age" editing={editing}>
             {editing
               ? <input type="number" className="cl-input" value={draft.age || ""}
-                  onChange={(e) => setDraft({ ...draft, age: parseInt(e.target.value) || undefined })} />
+                onChange={(e) => setDraft({ ...draft, age: parseInt(e.target.value) || undefined })} />
               : <Val>{character.age?.toString()}</Val>}
           </F>
           <F label="Birthdate" icon={<Calendar size={10} />} editing={editing}>
             {editing
               ? <input type="date" className="cl-input" value={draft.birthDate || ""}
-                  onChange={(e) => setDraft({ ...draft, birthDate: e.target.value })} />
+                onChange={(e) => setDraft({ ...draft, birthDate: e.target.value })} />
               : <Val>{character.birthDate
-                  ? new Date(character.birthDate + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
-                  : undefined}</Val>}
+                ? new Date(character.birthDate + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+                : undefined}</Val>}
           </F>
         </div>
 
@@ -183,7 +184,7 @@ export default function CharacterPanel({
         <F label="Physical Description" icon={<User size={10} />} editing={editing}>
           {editing
             ? <textarea className="cl-input" rows={3} style={{ resize: "none" }} value={draft.physicalDescription}
-                onChange={(e) => setDraft({ ...draft, physicalDescription: e.target.value })} />
+              onChange={(e) => setDraft({ ...draft, physicalDescription: e.target.value })} />
             : <Val multiline>{character.physicalDescription}</Val>}
         </F>
 
@@ -191,16 +192,16 @@ export default function CharacterPanel({
         <F label="Hobbies" icon={<Heart size={10} />} editing={editing}>
           {editing
             ? <input className="cl-input" placeholder="Comma-separated" value={draft.hobbies.join(", ")}
-                onChange={(e) => setDraft({ ...draft, hobbies: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })} />
+              onChange={(e) => setDraft({ ...draft, hobbies: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })} />
             : character.hobbies.length > 0
               ? <div className="flex flex-wrap gap-1.5">
-                  {character.hobbies.map((h, i) => (
-                    <span key={i} className="text-xs px-2 py-0.5 rounded-full font-mono"
-                      style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)", color: "var(--text-secondary)" }}>
-                      {h}
-                    </span>
-                  ))}
-                </div>
+                {character.hobbies.map((h, i) => (
+                  <span key={i} className="text-xs px-2 py-0.5 rounded-full font-mono"
+                    style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)", color: "var(--text-secondary)" }}>
+                    {h}
+                  </span>
+                ))}
+              </div>
               : <Val>{undefined}</Val>}
         </F>
 
@@ -225,9 +226,9 @@ export default function CharacterPanel({
         <F label="Additional Information" icon={<FileText size={10} />} editing={editing}>
           {editing
             ? <textarea className="cl-input" rows={4} style={{ resize: "vertical" }}
-                placeholder="Backstory, secrets, arcs…"
-                value={draft.additionalInfo || ""}
-                onChange={(e) => setDraft({ ...draft, additionalInfo: e.target.value })} />
+              placeholder="Backstory, secrets, arcs…"
+              value={draft.additionalInfo || ""}
+              onChange={(e) => setDraft({ ...draft, additionalInfo: e.target.value })} />
             : <Val multiline>{character.additionalInfo}</Val>}
         </F>
 
@@ -244,7 +245,7 @@ export default function CharacterPanel({
                   <div key={conn.id} className="flex items-center gap-3 p-2.5 rounded-lg group relative"
                     style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}>
                     <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-display font-semibold flex-shrink-0"
-                      style={{ background: `${other.color || "#8b6f47"}22`, border: `1.5px solid ${other.color || "#8b6f47"}`, color: other.color || "var(--gold)" }}>
+                      style={{ background: `${other.color || DEF_COLOR}22`, border: `1.5px solid ${other.color || DEF_COLOR}`, color: other.color || "var(--gold)" }}>
                       {other.name[0]}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -266,7 +267,7 @@ export default function CharacterPanel({
                       onClick={() => setPendingConn(conn.id)}
                       className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded flex-shrink-0"
                       style={{ color: "var(--text-muted)" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "#c0392b")}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = CRIT_COLOR)}
                       onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
                       title="Delete connection">
                       <Trash2 size={12} />
@@ -275,10 +276,10 @@ export default function CharacterPanel({
                     {pendingConnDel === conn.id && (
                       <div className="absolute right-0 top-0 h-full flex items-center gap-1 px-2 rounded-lg"
                         style={{ background: "var(--bg-deep)", border: "1px solid rgba(192,57,43,0.35)", zIndex: 10 }}>
-                        <span className="text-xs font-mono" style={{ color: "#c0392b" }}>Remove?</span>
+                        <span className="text-xs font-mono" style={{ color: CRIT_COLOR }}>Remove?</span>
                         <button onClick={() => { onDeleteConnection(conn.id); setPendingConn(null); }}
                           className="text-xs font-mono px-1.5 py-0.5 rounded"
-                          style={{ background: "rgba(192,57,43,0.15)", color: "#c0392b" }}>Yes</button>
+                          style={{ background: "rgba(192,57,43,0.15)", color: CRIT_COLOR }}>Yes</button>
                         <button onClick={() => setPendingConn(null)}
                           className="text-xs font-mono px-1.5 py-0.5 rounded"
                           style={{ color: "var(--text-muted)" }}>No</button>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import * as d3 from "d3";
 import { GraphData } from "../lib/types";
+import { DEF_COLOR } from "../lib/constants";
 
 interface Props {
   data: GraphData;
@@ -25,7 +26,7 @@ export default function ForceGraph({
   useEffect(() => { highlightTypeIdRef.current = highlightTypeId; }, [highlightTypeId]);
 
   const typeColor = useCallback(
-    (id: string) => data.connectionTypes.find((ct) => ct.id === id)?.color ?? "#8b6f47",
+    (id: string) => data.connectionTypes.find((ct) => ct.id === id)?.color ?? DEF_COLOR,
     [data.connectionTypes]
   );
 
@@ -182,8 +183,8 @@ export default function ForceGraph({
       .on("click", (e, d: any) => { e.stopPropagation(); onSelectCharacter(d.id); });
 
     nodeEls.append("circle").attr("r", 24)
-      .attr("fill", (d: any) => d.color || "#8b6f47").attr("fill-opacity", 0.15)
-      .attr("stroke", (d: any) => d.color || "#8b6f47").attr("stroke-width", 2)
+      .attr("fill", (d: any) => d.color || DEF_COLOR).attr("fill-opacity", 0.15)
+      .attr("stroke", (d: any) => d.color || DEF_COLOR).attr("stroke-width", 2)
       .attr("class", "node-ring");
 
     nodeEls.append("text").attr("text-anchor", "middle").attr("dy", "0.35em")
