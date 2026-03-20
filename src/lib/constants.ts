@@ -20,3 +20,5 @@ export const DEFAULT_CONNECTION_TYPES: ConnectionType[] = [
   { id: "rivalry",      label: "Rivalry",     emoji: "⚔️", color: "#c0392b", isDefault: true },
   { id: "professional", label: "Professional",emoji: "💼", color: "#2980b9", isDefault: true },
 ];
+
+export const RADIUS = 24

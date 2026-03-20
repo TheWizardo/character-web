@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import * as d3 from "d3";
 import { GraphData } from "../lib/types";
-import { DEF_COLOR } from "../lib/constants";
+import { DEF_COLOR, RADIUS } from "../lib/constants";
 
 interface Props {
   data: GraphData;
@@ -16,10 +16,10 @@ export default function ForceGraph({
   data, selectedId, highlightTypeId, theme,
   onSelectCharacter, onUpdatePositions,
 }: Props) {
-  const svgRef             = useRef<SVGSVGElement>(null);
-  const simRef             = useRef<d3.Simulation<any, any> | null>(null);
-  const posRef             = useRef<Record<string, { x: number; y: number }>>({});
-  const selectedIdRef      = useRef(selectedId);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const simRef = useRef<d3.Simulation<any, any> | null>(null);
+  const posRef = useRef<Record<string, { x: number; y: number }>>({});
+  const selectedIdRef = useRef(selectedId);
   const highlightTypeIdRef = useRef(highlightTypeId);
 
   useEffect(() => { selectedIdRef.current = selectedId; }, [selectedId]);
@@ -102,8 +102,8 @@ export default function ForceGraph({
     const pairIdx = new Map<string, number>();
     links.forEach((d: any) => {
       const key = [d.source, d.target].sort().join("||");
-      d._pairKey   = key;
-      d._pairIdx   = pairIdx.get(key) ?? 0;
+      d._pairKey = key;
+      d._pairIdx = pairIdx.get(key) ?? 0;
       d._pairTotal = pairCount.get(key) ?? 1;
       pairIdx.set(key, (pairIdx.get(key) ?? 0) + 1);
     });
@@ -111,11 +111,11 @@ export default function ForceGraph({
     // ── Simulation ────────────────────────────────────────
     // Scale link distance so more nodes get more breathing room (√n factor)
     const n = Math.max(nodes.length, 1);
-    const linkDist  = 160 + 20 * Math.sqrt(n);
+    const linkDist = 160 + 20 * Math.sqrt(n);
     // If positions are already known, start soft — prevents nodes flying when
     // data changes (e.g. editing a character) from restarting the layout hard.
     const hasKnownPositions = nodes.some((nd: any) => posRef.current[nd.id]);
-    const startAlpha  = hasKnownPositions ? 0.15 : 0.8;
+    const startAlpha = hasKnownPositions ? 0.15 : 0.8;
 
     // Viewport bounds for bounding force (container is centered at W/2, H/2)
     const padX = Math.min(W / 2 - 80, 200 + n * 12);
@@ -125,18 +125,18 @@ export default function ForceGraph({
       .alpha(startAlpha)
       .alphaDecay(0.025)       // slightly faster decay → settles quicker after a rebuild
       .velocityDecay(0.55)     // nodes slow down firmly — prevents drifting
-      .force("link",      d3.forceLink(links).id((d: any) => d.id).distance(linkDist).strength(0.3))
-      .force("charge",    d3.forceManyBody().strength(-220))
+      .force("link", d3.forceLink(links).id((d: any) => d.id).distance(linkDist).strength(0.3))
+      .force("charge", d3.forceManyBody().strength(-220))
       .force("collision", d3.forceCollide(48))
-      .force("center",    d3.forceCenter(0, 0).strength(0.04))
+      .force("center", d3.forceCenter(0, 0).strength(0.04))
       // Soft bounding force — pushes nodes back into view without hard-clamping
-      .force("bound",     (alpha: number) => {
+      .force("bound", (alpha: number) => {
         nodes.forEach((nd: any) => {
           const k = 0.6 * alpha;
-          if (nd.x >  padX)  nd.vx -= k * (nd.x - padX);
-          if (nd.x < -padX)  nd.vx -= k * (nd.x + padX);
-          if (nd.y >  padY)  nd.vy -= k * (nd.y - padY);
-          if (nd.y < -padY)  nd.vy -= k * (nd.y + padY);
+          if (nd.x > padX) nd.vx -= k * (nd.x - padX);
+          if (nd.x < -padX) nd.vx -= k * (nd.x + padX);
+          if (nd.y > padY) nd.vy -= k * (nd.y - padY);
+          if (nd.y < -padY) nd.vy -= k * (nd.y + padY);
         });
       });
 
@@ -149,7 +149,7 @@ export default function ForceGraph({
       .attr("stroke", (d: any) => typeColor(d.type))
       .attr("stroke-width", 1.5)
       .attr("stroke-opacity", 0.65)
-      .attr("marker-end",   (d: any) => `url(#ae-${d.type})`)
+      .attr("marker-end", (d: any) => `url(#ae-${d.type})`)
       .attr("marker-start", (d: any) => d.mutual ? `url(#as-${d.type})` : null);
 
     const labelGs = container.append("g").selectAll("g")
@@ -175,21 +175,24 @@ export default function ForceGraph({
           d.fx = d.x; d.fy = d.y;
         })
         .on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; })
-        .on("end",  (e, d) => {
+        .on("end", (e, d) => {
           if (!e.active) sim.alphaTarget(0);
           d.fx = null; d.fy = null;
         })
       )
       .on("click", (e, d: any) => { e.stopPropagation(); onSelectCharacter(d.id); });
 
-    nodeEls.append("circle").attr("r", 24)
+    nodeEls.append("circle").attr("r", RADIUS)
       .attr("fill", (d: any) => d.color || DEF_COLOR).attr("fill-opacity", 0.15)
       .attr("stroke", (d: any) => d.color || DEF_COLOR).attr("stroke-width", 2)
       .attr("class", "node-ring");
 
+    // nodeEls.append("circle").attr("r", RADIUS * 0.33)
+    //   .attr("fill", (d: any) => d.color || DEF_COLOR).attr("opacity", 0.40);
+
     nodeEls.append("text").attr("text-anchor", "middle").attr("dy", "0.35em")
       .attr("font-family", "'Cormorant Garamond', serif").attr("font-size", "15px")
-      .attr("font-weight", "600").attr("fill", (d: any) => d.color || "#d4a843").attr("opacity", 0.9)
+      .attr("font-weight", "600").attr("fill", (d: any) => d.color || DEF_COLOR).attr("opacity", 0.9)
       .text((d: any) => d.name[0]);
 
     nodeEls.append("text").attr("text-anchor", "middle").attr("dy", "2.8em")
@@ -200,25 +203,44 @@ export default function ForceGraph({
     nodeEls
       .on("mouseenter", function () {
         d3.select(this).select(".node-ring")
-          .attr("r", 28).attr("fill-opacity", 0.25).attr("filter", "url(#glow)");
+          .attr("r", RADIUS * 1.25).attr("fill-opacity", 0.25).attr("filter", "url(#glow)");
       })
       .on("mouseleave", function (_e, d: any) {
         const s = d.id === selectedIdRef.current;
         d3.select(this).select(".node-ring")
-          .attr("r", s ? 28 : 24).attr("fill-opacity", s ? 0.3 : 0.15)
+          .attr("r", RADIUS * (s ? 1.25 : 1)).attr("fill-opacity", s ? 0.3 : 0.15)
           .attr("filter", s ? "url(#selGlow)" : null);
       });
 
     // ── Path helpers ──────────────────────────────────────
     const pathD = (d: any) => {
-      const sx = d.source.x, sy = d.source.y, tx = d.target.x, ty = d.target.y;
-      if (d._pairTotal === 1) return `M${sx},${sy} L${tx},${ty}`;
-      const dx = tx - sx, dy = ty - sy;
+      const sx = d.source.x, sy = d.source.y;
+      const tx = d.target.x, ty = d.target.y;
+
+      const dx = tx - sx;
+      const dy = ty - sy;
       const len = Math.sqrt(dx * dx + dy * dy) || 1;
-      const nx = -dy / len, ny = dx / len; // eslint-disable-line @typescript-eslint/no-unused-vars
+
+      const ux = dx / len;
+      const uy = dy / len;
+
+      const startX = sx + ux * RADIUS;
+      const startY = sy + uy * RADIUS;
+      const endX = tx - ux * RADIUS;
+      const endY = ty - uy * RADIUS;
+
+      if (d._pairTotal === 1) {
+        return `M${startX},${startY} L${endX},${endY}`;
+      }
+
+      const nx = -dy / len;
+      const ny = dx / len;
       const offset = (d._pairIdx - (d._pairTotal - 1) / 2) * 34;
-      const mx = (sx + tx) / 2 + nx * offset, my = (sy + ty) / 2 + ny * offset;
-      return `M${sx},${sy} Q${mx},${my} ${tx},${ty}`;
+
+      const mx = (sx + tx) / 2 + nx * offset;
+      const my = (sy + ty) / 2 + ny * offset;
+
+      return `M${startX},${startY} Q${mx},${my} ${endX},${endY}`;
     };
 
     const labelPos = (d: any) => {
@@ -246,7 +268,7 @@ export default function ForceGraph({
     // ── Highlight (exposed via DOM ref) ───────────────────
     const applyHighlight = (charId: string | null, typeId: string | null) => {
       nodeEls.select(".node-ring")
-        .attr("r", (d: any) => d.id === charId ? 28 : 24)
+        .attr("r", (d: any) => RADIUS * (d.id === charId ? 1.25 : 1))
         .attr("fill-opacity", (d: any) => d.id === charId ? 0.3 : 0.15)
         .attr("stroke-width", (d: any) => d.id === charId ? 3 : 2)
         .attr("filter", (d: any) => d.id === charId ? "url(#selGlow)" : null);
@@ -254,13 +276,13 @@ export default function ForceGraph({
       if (typeId) {
         linkPaths
           .attr("stroke-opacity", (d: any) => d.type === typeId ? 1 : 0.08)
-          .attr("stroke-width",   (d: any) => d.type === typeId ? 2.5 : 1.5);
+          .attr("stroke-width", (d: any) => d.type === typeId ? 2.5 : 1.5);
         labelGs.attr("opacity", (d: any) => d.type === typeId ? 1 : 0.08);
         nodeEls.attr("opacity", 1);
       } else if (charId) {
         linkPaths
           .attr("stroke-opacity", (d: any) => (d.source.id === charId || d.target.id === charId) ? 1 : 0.12)
-          .attr("stroke-width",   (d: any) => (d.source.id === charId || d.target.id === charId) ? 2.5 : 1.5);
+          .attr("stroke-width", (d: any) => (d.source.id === charId || d.target.id === charId) ? 2.5 : 1.5);
         labelGs.attr("opacity", (d: any) => (d.source.id === charId || d.target.id === charId) ? 1 : 0.12);
         nodeEls.attr("opacity", (d: any) => {
           if (d.id === charId) return 1;
@@ -278,7 +300,7 @@ export default function ForceGraph({
 
     (svgRef.current as any).__applyHighlight = applyHighlight;
     applyHighlight(selectedIdRef.current, highlightTypeIdRef.current);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, theme, onSelectCharacter, onUpdatePositions, typeColor]);
 
   useEffect(() => {
