@@ -266,7 +266,7 @@ export default function CharacterPanel({
         {/* Connections */}
         {related.length > 0 && (
           <div className="mt-6 pt-5" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-            <label className="cl-label">Connections</label>
+            <label className="cl-label">{related.length} Connections</label>
             <div className="space-y-2 mt-2">
               {related.map((conn) => {
                 const other = getOther(conn);
