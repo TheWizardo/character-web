@@ -234,7 +234,7 @@ export default function GraphApp() {
       />
 
       {/* ── LEGEND — always visible, z-index above SVG ─── */}
-      <div style={{ position: "absolute", bottom: 24, left: 16, zIndex: 15 }}>
+      <div style={{ position: "absolute", bottom: isMobile ? 50 : 24, left: 16, zIndex: 15 }}>
         <Legend
           types={activeData.connectionTypes}
           highlightTypeId={highlightTypeId}
@@ -255,6 +255,16 @@ export default function GraphApp() {
           <p>Click node · Click legend to filter</p>
         </div>
       )}
+
+      <div style={{
+        position: "absolute", bottom: 24, zIndex: 5,
+        margin: "auto", width: "100%",
+        textAlign: "center", pointerEvents: "none",
+        fontFamily: "'DM Mono', monospace", fontSize: 11,
+        color: "var(--text-muted-dim)",
+      }}>
+        <p>TheWizard studio ©{(new Date()).getFullYear()}</p>
+      </div>
 
       {/* ── STORIES SIDEBAR ────────────────────────────── */}
       {showProjects && (
