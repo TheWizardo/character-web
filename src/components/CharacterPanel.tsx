@@ -44,9 +44,18 @@ export default function CharacterPanel({
   const getOther = (conn: Connection) =>
     allCharacters.find((c) => c.id === (conn.source === character.id ? conn.target : conn.source));
 
+  const getType = (typeId: string) => {
+    return connectionTypes.find((ct) => ct.id === typeId);
+  }
+
   const typeDisplay = (typeId: string) => {
-    const t = connectionTypes.find((ct) => ct.id === typeId);
+    const t = getType(typeId);
     return t ? `${t.emoji} ${t.label}` : typeId;
+  };
+
+  const typeColor = (typeId: string) => {
+    const t = getType(typeId);
+    return t ? `${t.color}` : DEF_COLOR;
   };
 
   const save = () => { onUpdate(draft); setEditing(false); };
@@ -264,8 +273,20 @@ export default function CharacterPanel({
                 if (!other) return null;
                 const isSource = conn.source === character.id;
                 return (
-                  <div key={conn.id} className="flex items-center gap-3 p-2.5 rounded-lg group relative"
-                    style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}>
+                  <div key={conn.id} className="flex items-center gap-3 rounded-lg group relative"
+                    style={{
+                      background: "var(--bg-surface)",
+                      border: "1px solid var(--border-subtle)",
+                      paddingLeft: "1ch",
+                      paddingRight: "0.33ch"
+                    }}>
+                    <span style={{ color: "var(--text-muted)" }} title={conn.mutual ? "Mutual" : isSource ? "Outgoing" : "Incoming"}>
+                      {conn.mutual
+                        ? <ArrowLeftRight size={15} />
+                        : isSource
+                          ? <ArrowRight size={15} />
+                          : <ArrowRight size={15} style={{ transform: "rotate(180deg)" }} />}
+                    </span>
                     <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-display font-semibold flex-shrink-0"
                       style={{ background: `${other.color || DEF_COLOR}22`, border: `1.5px solid ${other.color || DEF_COLOR}`, color: other.color || "var(--gold)" }}>
                       {other.name[0]}
@@ -274,15 +295,8 @@ export default function CharacterPanel({
                       <p className="text-sm font-body truncate" style={{ color: "var(--text-secondary)" }}>{other.name}</p>
                       <p className="text-xs font-mono" style={{ color: "var(--text-muted)" }}>{conn.label}</p>
                     </div>
-                    <span style={{ color: "var(--text-muted)" }} title={conn.mutual ? "Mutual" : isSource ? "Outgoing" : "Incoming"}>
-                      {conn.mutual
-                        ? <ArrowLeftRight size={11} />
-                        : isSource
-                          ? <ArrowRight size={11} />
-                          : <ArrowRight size={11} style={{ transform: "rotate(180deg)" }} />}
-                    </span>
                     <span className="text-xs font-mono px-1.5 py-0.5 rounded flex-shrink-0"
-                      style={{ background: "var(--bg-surface)", color: "var(--text-muted)" }}>
+                      style={{ background: `${typeColor(conn.type)}50`, color: "var(--text-muted)" }}>
                       {typeDisplay(conn.type).split(" ")[0]}
                     </span>
                     <button

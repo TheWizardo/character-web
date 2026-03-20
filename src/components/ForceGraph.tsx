@@ -275,14 +275,14 @@ export default function ForceGraph({
 
       if (typeId) {
         linkPaths
-          .attr("stroke-opacity", (d: any) => d.type === typeId ? 1 : 0.08)
-          .attr("stroke-width", (d: any) => d.type === typeId ? 2.5 : 1.5);
+          .attr("opacity", (d: any) => d.type === typeId ? 1 : 0.08)
+          .attr("stroke-width", (d: any) => d.type === typeId ? 2 : 1.5);
         labelGs.attr("opacity", (d: any) => d.type === typeId ? 1 : 0.08);
         nodeEls.attr("opacity", 1);
       } else if (charId) {
         linkPaths
-          .attr("stroke-opacity", (d: any) => (d.source.id === charId || d.target.id === charId) ? 1 : 0.12)
-          .attr("stroke-width", (d: any) => (d.source.id === charId || d.target.id === charId) ? 2.5 : 1.5);
+          .attr("opacity", (d: any) => (d.source.id === charId || d.target.id === charId) ? 1 : 0.12)
+          .attr("stroke-width", (d: any) => (d.source.id === charId || d.target.id === charId) ? 2 : 1.5);
         labelGs.attr("opacity", (d: any) => (d.source.id === charId || d.target.id === charId) ? 1 : 0.12);
         nodeEls.attr("opacity", (d: any) => {
           if (d.id === charId) return 1;
@@ -292,7 +292,7 @@ export default function ForceGraph({
           ) ? 0.85 : 0.3;
         });
       } else {
-        linkPaths.attr("stroke-opacity", 0.65).attr("stroke-width", 1.5);
+        linkPaths.attr("opacity", 0.65).attr("stroke-width", 1.5);
         labelGs.attr("opacity", 1);
         nodeEls.attr("opacity", 1);
       }
