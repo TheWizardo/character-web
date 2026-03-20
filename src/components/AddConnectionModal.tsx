@@ -15,7 +15,7 @@ export default function AddConnectionModal({ characters, connectionTypes, onAdd,
   const [target, setTarget] = useState("");
   const [label, setLabel] = useState("");
   const [type, setType] = useState(connectionTypes[0]?.id ?? "friendship");
-  const [mutual, setMutual] = useState(false);
+  const [mutual, setMutual] = useState(true);
 
   const normalize = (s: string) => {
     const t = s.trim().slice(0, 15);
@@ -30,8 +30,13 @@ export default function AddConnectionModal({ characters, connectionTypes, onAdd,
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "var(--overlay)" }}>
-      <div className="w-full max-w-sm rounded-xl overflow-hidden fade-in"
-        style={{ background: "var(--panel-gradient)", border: "1px solid var(--border-medium)", boxShadow: "0 40px 80px var(--shadow-xl)" }}>
+      <div className="w-full rounded-xl overflow-hidden fade-in"
+        style={{
+          maxWidth: "32rem",
+          background: "var(--panel-gradient)",
+          border: "1px solid var(--border-medium)",
+          boxShadow: "0 40px 80px var(--shadow-xl)"
+        }}>
 
         <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <h3 className="font-display text-lg font-semibold" style={{ color: "var(--text-primary)" }}>New Connection</h3>
@@ -43,10 +48,25 @@ export default function AddConnectionModal({ characters, connectionTypes, onAdd,
           <div className="flex items-end gap-2">
             <div className="flex-1">
               <label className="cl-label">From</label>
-              <select className="cl-select" value={source} onChange={(e) => setSource(e.target.value)}>
-                <option value="">Select…</option>
-                {characters.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              <input
+                className="cl-input"
+                list="characters-from-list"
+                value={characters.find((c) => c.id === source)?.name ?? ""}
+                onChange={(e) => {
+                  const selected = [...characters]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .find((c) => c.name === e.target.value);
+                  setSource(selected?.id ?? "");
+                }}
+                placeholder="Select or type a character…"
+              />
+              <datalist id="characters-from-list">
+                {[...characters]
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((c) => (
+                    <option key={c.id} value={c.name} />
+                  ))}
+              </datalist>
             </div>
             <div className="flex flex-col items-center gap-1 pb-0.5">
               <span className="cl-label">Mutual</span>
@@ -58,10 +78,27 @@ export default function AddConnectionModal({ characters, connectionTypes, onAdd,
             </div>
             <div className="flex-1">
               <label className="cl-label">To</label>
-              <select className="cl-select" value={target} onChange={(e) => setTarget(e.target.value)}>
-                <option value="">Select…</option>
-                {characters.filter((c) => c.id !== source).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              <input
+                className="cl-input"
+                list="characters-to-list"
+                value={characters.find((c) => c.id === target)?.name ?? ""}
+                onChange={(e) => {
+                  const selected = [...characters]
+                    .filter((c) => c.id !== source)
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .find((c) => c.name === e.target.value);
+                  setTarget(selected?.id ?? "");
+                }}
+                placeholder="Select or type a character…"
+              />
+              <datalist id="characters-to-list">
+                {[...characters]
+                  .filter((c) => c.id !== source)
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((c) => (
+                    <option key={c.id} value={c.name} />
+                  ))}
+              </datalist>
             </div>
           </div>
 
@@ -85,11 +122,11 @@ export default function AddConnectionModal({ characters, connectionTypes, onAdd,
                 <button key={t.id} onClick={() => setType(t.id)}
                   className="py-2 px-3 rounded-lg text-sm font-mono text-left flex items-center gap-2 transition-all"
                   style={{
-                    background: type === t.id ? "var(--gold-dim)" : "var(--bg-surface)",
-                    border: type === t.id ? `1px solid ${t.color}80` : "1px solid var(--border-subtle)",
+                    background: type === t.id ? `${t.color}25` : "var(--bg-surface)",
+                    border: type === t.id ? `4px solid ${t.color}80` : "1px solid var(--border-subtle)",
                     color: type === t.id ? t.color : "var(--text-muted)",
                   }}>
-                  <span>{t.emoji}</span> {t.label}
+                  <span style={{fontSize: 18}}>{t.emoji}</span> {t.label}
                 </button>
               ))}
             </div>
