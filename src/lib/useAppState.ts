@@ -17,6 +17,7 @@ function makeInitialMeta() {
     projects: [{ id, name: "My Story", createdAt: Date.now(), updatedAt: Date.now() }] as Project[],
     activeProjectId: id,
     theme: "dark" as const,
+    useLabelBg: true
   };
 }
 
@@ -111,6 +112,9 @@ export function useAppState() {
   const setTheme = (theme: "dark" | "light") =>
     persistMeta({ ...meta, theme });
 
+  const setLabelBg = (show: boolean) =>
+    persistMeta({...meta, useLabelBg: show});
+
   const importChrl = (file: ChrlFile, mode: "append" | "override") => {
     const data = chrlToGraphData(file);
     if (mode === "override") {
@@ -139,12 +143,13 @@ export function useAppState() {
     activeProjectId: meta.activeProjectId,
     projectData: dataCache,
     theme: meta.theme,
+    useLabelBg: meta.useLabelBg
   };
 
   return {
     state, loaded,
     activeData, saveActiveData, resetActiveProject,
-    createProject, renameProject, deleteProject, switchProject, setTheme, importChrl,
+    createProject, renameProject, deleteProject, switchProject, setTheme, setLabelBg, importChrl,
     activeProject: meta.projects.find((p) => p.id === meta.activeProjectId)!,
   };
 }

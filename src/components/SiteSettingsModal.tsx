@@ -5,12 +5,14 @@ import { CRIT_COLOR } from "../lib/constants";
 
 interface Props {
   theme: "dark" | "light";
+  labelBg: boolean;
   onSetTheme: (t: "dark" | "light") => void;
+  onSetLabelBg: (b: boolean) => void;
   onImport: (file: ChrlFile, mode: "append" | "override") => void;
   onClose: () => void;
 }
 
-export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose }: Props) {
+export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLabelBg, onImport, onClose }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<ChrlFile | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -87,6 +89,53 @@ export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose
                 </button>
               ))}
             </div>
+          </div>
+          {/* ── Label background ───────────────────────── */}
+          <div>
+            <label className="cl-label" style={{ marginBottom: 8 }}>Link Label Background</label>
+            <button
+              onClick={() => onSetLabelBg(!labelBg)}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "12px 14px",
+                borderRadius: 10,
+                cursor: "pointer",
+                background: labelBg ? "var(--gold-dim)" : "var(--bg-surface)",
+                border: `1px solid ${labelBg ? "var(--gold-border)" : "var(--border-medium)"}`,
+                color: labelBg ? "var(--gold)" : "var(--text-muted)",
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 13,
+                transition: "all 0.2s ease",
+              }}
+            >
+              <span>{labelBg ? "Enabled" : "Disabled"}</span>
+              <div
+                style={{
+                  width: 42,
+                  height: 24,
+                  borderRadius: 999,
+                  background: labelBg ? "var(--gold)" : "var(--border-medium)",
+                  position: "relative",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 3,
+                    left: labelBg ? 21 : 3,
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    background: labelBg ? "var(--bg-deep)" : "var(--bg-base)",
+                    transition: "all 0.2s ease",
+                  }}
+                />
+              </div>
+            </button>
           </div>
 
           {/* ── Import ─────────────────────────────────── */}

@@ -48,4 +48,5 @@ export interface AppState {
   activeProjectId: string;
   projectData: Record<string, GraphData>;
   theme?: "dark" | "light";
+  useLabelBg: boolean;
 }

@@ -25,7 +25,7 @@ export default function GraphApp() {
   const {
     state, loaded,
     activeData, saveActiveData, resetActiveProject,
-    activeProject, createProject, renameProject, deleteProject, switchProject, setTheme, importChrl,
+    activeProject, createProject, renameProject, deleteProject, switchProject, setTheme, setLabelBg, importChrl,
   } = useAppState();
 
   const isMobile = useIsMobile();
@@ -42,6 +42,7 @@ export default function GraphApp() {
 
   const selectedCharacter = activeData.characters.find((c) => c.id === selectedId) ?? null;
   const theme = state.theme ?? "dark";
+  const useLabelBg = state.useLabelBg ?? true;
 
   const handleUpdatePositions = useCallback(() => { }, []);
 
@@ -229,6 +230,7 @@ export default function GraphApp() {
         selectedId={selectedId}
         highlightTypeId={highlightTypeId}
         theme={theme}
+        useLabelBg={useLabelBg}
         onSelectCharacter={handleSelectCharacter}
         onUpdatePositions={handleUpdatePositions}
       />
@@ -330,7 +332,9 @@ export default function GraphApp() {
       {showSiteSettings && (
         <SiteSettingsModal
           theme={theme}
+          labelBg={useLabelBg}
           onSetTheme={setTheme}
+          onSetLabelBg={setLabelBg}
           onImport={importChrl}
           onClose={() => setShowSiteSettings(false)}
         />

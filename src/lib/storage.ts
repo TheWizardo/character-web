@@ -22,6 +22,7 @@ interface Meta {
   projects: Project[];
   activeProjectId: string;
   theme?: "dark" | "light";
+  useLabelBg: boolean
 }
 
 interface StoredProject {

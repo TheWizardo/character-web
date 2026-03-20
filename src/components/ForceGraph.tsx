@@ -8,12 +8,13 @@ interface Props {
   selectedId: string | null;
   highlightTypeId: string | null;
   theme?: string;
+  useLabelBg: boolean;
   onSelectCharacter: (id: string | null) => void;
   onUpdatePositions: (positions: Record<string, { x: number; y: number }>) => void;
 }
 
 export default function ForceGraph({
-  data, selectedId, highlightTypeId, theme,
+  data, selectedId, highlightTypeId, theme, useLabelBg,
   onSelectCharacter, onUpdatePositions,
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -24,6 +25,7 @@ export default function ForceGraph({
 
   useEffect(() => { selectedIdRef.current = selectedId; }, [selectedId]);
   useEffect(() => { highlightTypeIdRef.current = highlightTypeId; }, [highlightTypeId]);
+  // useEffect(() => buildGraph(), [useLabelBg])
 
   const typeColor = useCallback(
     (id: string) => data.connectionTypes.find((ct) => ct.id === id)?.color ?? DEF_COLOR,
@@ -166,17 +168,19 @@ export default function ForceGraph({
         return s.charAt(0).toUpperCase() + s.slice(1);
       });
 
-    label.each(function () {
-      const bbox = (this as SVGTextElement).getBBox();
-      d3.select(this.parentNode as SVGGElement)
-        .insert("rect", "text")
-        .attr("x", bbox.x - 1)
-        .attr("y", bbox.y)
-        .attr("width", bbox.width + 2)
-        .attr("height", bbox.height)
-        .attr("rx", 3)
-        .attr("fill", "var(--bg-base)");
-    });
+    if (useLabelBg) {
+      label.each(function () {
+        const bbox = (this as SVGTextElement).getBBox();
+        d3.select(this.parentNode as SVGGElement)
+          .insert("rect", "text")
+          .attr("x", bbox.x - 1)
+          .attr("y", bbox.y)
+          .attr("width", bbox.width + 2)
+          .attr("height", bbox.height)
+          .attr("rx", 3)
+          .attr("fill", "var(--bg-base)");
+      });
+    }
 
     // ── Nodes ─────────────────────────────────────────────
     const nodeEls = container.append("g").selectAll("g")
@@ -363,7 +367,7 @@ export default function ForceGraph({
     (svgRef.current as any).__applyHighlight = applyHighlight;
     applyHighlight(selectedIdRef.current, highlightTypeIdRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, theme, onSelectCharacter, onUpdatePositions, typeColor]);
+  }, [data, useLabelBg, theme, onSelectCharacter, onUpdatePositions, typeColor]);
 
   useEffect(() => {
     buildGraph();
