@@ -15,6 +15,7 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
     hobbies: [],
   });
   const [hobbiesText, setHobbiesText] = useState("");
+  const [newColor, setNewColor] = useState(CHAR_PALLETE[0]);
 
   const submit = () => {
     if (!form.name?.trim()) return;
@@ -42,7 +43,7 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
         <div className="flex items-center justify-between px-6 py-4 flex-shrink-0"
           style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <h3 className="font-display text-lg font-semibold" style={{ color: "var(--text-primary)" }}>New Character</h3>
-          <button onClick={onClose} style={{ color: "var(--text-muted)" }}  className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={18} /></button>
+          <button onClick={onClose} style={{ color: "var(--text-muted)" }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={18} /></button>
         </div>
 
         <div className="px-6 py-5 overflow-y-auto space-y-4">
@@ -109,6 +110,14 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
                   className="w-7 h-7 rounded-full transition-transform hover:scale-110"
                   style={{ background: col, border: form.color === col ? "2px solid var(--text-primary)" : "2px solid transparent", boxShadow: form.color === col ? `0 0 8px ${col}` : "none" }} />
               ))}
+              <div
+                className="w-7 h-7 rounded-full transition-transform hover:scale-110"
+                style={{
+                  display: "hide",
+                }} />
+              <input type="color" value={newColor} onChange={(e) => { setForm({ ...form, color: e.target.value }); setNewColor(e.target.value) }}
+                className="w-7 h-7 rounded-full cursor-pointer border-0 p-0 bg-transparent" />
+              <p className={`text-sm font-mono flex items-center justify-center`} style={{ textAlign: "center", color: "var(--gold)" }}>Custom</p>
             </div>
           </div>
         </div>

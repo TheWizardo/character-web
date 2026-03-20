@@ -151,6 +151,14 @@ export default function CharacterPanel({
                   className="w-7 h-7 rounded-full transition-transform hover:scale-110"
                   style={{ background: col, border: draft.color === col ? "2px solid var(--text-primary)" : "2px solid transparent", boxShadow: draft.color === col ? `0 0 8px ${col}` : "none" }} />
               ))}
+              <div
+                className="w-7 h-7 rounded-full transition-transform hover:scale-110"
+                style={{
+                  display: "hide",
+                }} />
+              <input type="color" value={newColor} onChange={(e) => { setDraft({ ...draft, color: e.target.value }); setNewColor(e.target.value) }}
+                className="w-7 h-7 rounded-full cursor-pointer border-0 p-0 bg-transparent" />
+              <p className={`text-sm font-mono flex items-center justify-center`} style={{ textAlign: "center", color: "var(--gold)" }}>Custom</p>
             </div>
           </div>
         )}
