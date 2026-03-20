@@ -9,6 +9,13 @@ export const CON_PALETTE = [
     "#8e44ad", "#16a085", "#d4a843", "#2c3e50", "#e74c3c", "#1abc9c",
 ];
 
+export const EMOJIS = [
+  "🎶", "🎓", "🎖️", "🛠️", "🍕", "🔗", "🌹",
+  "👑", "🗡️", "🌿", "🔥", "❄️", "⚖️", "⚓",
+  "🎭", "🪄", "🧪", "📜", "🕊️", "🐍", "💀",
+  "⚡", "🌊", "🌙", "☀️", "🎯", "✈️", "♾️"
+];
+
 export const CRIT_COLOR = "#c0392b"
 export const OK_COLOR = "#27ae60"
 export const DEF_COLOR = "#8b6f47"
