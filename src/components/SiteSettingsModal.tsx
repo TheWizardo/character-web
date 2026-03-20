@@ -1,18 +1,18 @@
 import { useRef, useState } from "react";
 import { X, Moon, Sun, Upload, AlertTriangle } from "lucide-react";
-import { parseChrwFile, ChrwFile } from "../lib/storage";
+import { parseChrlFile, ChrlFile } from "../lib/storage";
 import { CRIT_COLOR } from "../lib/constants";
 
 interface Props {
   theme: "dark" | "light";
   onSetTheme: (t: "dark" | "light") => void;
-  onImport: (file: ChrwFile, mode: "append" | "override") => void;
+  onImport: (file: ChrlFile, mode: "append" | "override") => void;
   onClose: () => void;
 }
 
 export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [pending, setPending] = useState<ChrwFile | null>(null);
+  const [pending, setPending] = useState<ChrlFile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,8 +22,8 @@ export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose
     const reader = new FileReader();
     reader.onload = (ev) => {
       const text = ev.target?.result as string;
-      const parsed = parseChrwFile(text);
-      if (!parsed) { setError("Invalid .chrw file. Please check the file and try again."); return; }
+      const parsed = parseChrlFile(text);
+      if (!parsed) { setError("Invalid .chrl file. Please check the file and try again."); return; }
       setPending(parsed);
     };
     reader.readAsText(file);
@@ -91,12 +91,12 @@ export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose
 
           {/* ── Import ─────────────────────────────────── */}
           <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 20 }}>
-            <label className="cl-label" style={{ marginBottom: 8 }}>Import Story (.chrw)</label>
+            <label className="cl-label" style={{ marginBottom: 8 }}>Import Story (.chrl)</label>
 
             {!pending ? (
               <>
                 <input
-                  ref={fileRef} type="file" accept=".chrw"
+                  ref={fileRef} type="file" accept=".chrl"
                   style={{ display: "none" }}
                   onChange={handleFile} />
                 <button
@@ -109,7 +109,7 @@ export default function SiteSettingsModal({ theme, onSetTheme, onImport, onClose
                   }}>
                   <Upload size={15} style={{ color: "var(--gold)", flexShrink: 0 }} />
                   <div style={{ textAlign: "left" }}>
-                    <p style={{ color: "var(--text-secondary)" }}>Choose .chrw file</p>
+                    <p style={{ color: "var(--text-secondary)" }}>Choose .chrl file</p>
                     <p style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>Exported from Character Loom©</p>
                   </div>
                 </button>

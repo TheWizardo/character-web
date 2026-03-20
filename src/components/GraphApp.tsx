@@ -25,7 +25,7 @@ export default function GraphApp() {
   const {
     state, loaded,
     activeData, saveActiveData, resetActiveProject,
-    activeProject, createProject, renameProject, deleteProject, switchProject, setTheme, importChrw,
+    activeProject, createProject, renameProject, deleteProject, switchProject, setTheme, importChrl,
   } = useAppState();
 
   const isMobile = useIsMobile();
@@ -331,7 +331,7 @@ export default function GraphApp() {
         <SiteSettingsModal
           theme={theme}
           onSetTheme={setTheme}
-          onImport={importChrw}
+          onImport={importChrl}
           onClose={() => setShowSiteSettings(false)}
         />
       )}

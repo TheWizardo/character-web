@@ -3,7 +3,7 @@ import { AppState, GraphData, Project } from "./types";
 import { DEFAULT_CONNECTION_TYPES } from "./constants";
 import {
   saveMeta, loadMeta, saveProjectData, loadProjectData,
-  deleteProjectData, ChrwFile, chrwToGraphData,
+  deleteProjectData, ChrlFile, chrlToGraphData,
 } from "./storage";
 import { v4 as uuidv4 } from "uuid";
 
@@ -62,7 +62,7 @@ export function useAppState() {
         p.id === id ? { ...p, updatedAt: Date.now() } : p
       ),
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meta, persistMeta]);
 
   const resetActiveProject = () =>
@@ -111,8 +111,8 @@ export function useAppState() {
   const setTheme = (theme: "dark" | "light") =>
     persistMeta({ ...meta, theme });
 
-  const importChrw = (file: ChrwFile, mode: "append" | "override") => {
-    const data = chrwToGraphData(file);
+  const importChrl = (file: ChrlFile, mode: "append" | "override") => {
+    const data = chrlToGraphData(file);
     if (mode === "override") {
       saveActiveData(data);
       persistMeta({
@@ -144,7 +144,7 @@ export function useAppState() {
   return {
     state, loaded,
     activeData, saveActiveData, resetActiveProject,
-    createProject, renameProject, deleteProject, switchProject, setTheme, importChrw,
+    createProject, renameProject, deleteProject, switchProject, setTheme, importChrl,
     activeProject: meta.projects.find((p) => p.id === meta.activeProjectId)!,
   };
 }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Project, ConnectionType } from "../lib/types";
 import { X, Check, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
-import { downloadChrw } from "../lib/storage";
+import { downloadChrl } from "../lib/storage";
 import { GraphData } from "../lib/types";
 import { CON_PALETTE, CRIT_COLOR, EMOJIS } from "../lib/constants";
 
@@ -130,13 +130,13 @@ export default function ProjectSettingsModal({
               {/* Export */}
               <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 16 }}>
                 <button
-                  onClick={() => downloadChrw(project, projectData)}
+                  onClick={() => downloadChrl(project, projectData)}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-mono transition-all hover:scale-[1.01]"
                   style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)", color: "var(--text-secondary)" }}>
                   <Download size={14} style={{ color: "var(--gold)", flexShrink: 0 }} />
                   <div className="text-left">
                     <p>Export Story</p>
-                    <p className="text-xs opacity-60 mt-0.5">Downloads a .chrw file</p>
+                    <p className="text-xs opacity-60 mt-0.5">Downloads a .chrl file</p>
                   </div>
                 </button>
               </div>

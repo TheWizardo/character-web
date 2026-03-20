@@ -85,9 +85,9 @@ export function deleteProjectData(id: string): void {
   lsDel(K.proj(id));
 }
 
-// ── .chrw export / import ────────────────────────────────
+// ── .chrl export / import ────────────────────────────────
 
-export interface ChrwFile {
+export interface ChrlFile {
   version: 1;
   name: string;
   exportedAt: number;
@@ -96,8 +96,8 @@ export interface ChrwFile {
   customTypes: ConnectionType[]; // custom only — defaults reconstructed on import
 }
 
-export function downloadChrw(project: Project, data: GraphData): void {
-  const payload: ChrwFile = {
+export function downloadChrl(project: Project, data: GraphData): void {
+  const payload: ChrlFile = {
     version: 1,
     name: project.name,
     exportedAt: Date.now(),
@@ -108,21 +108,21 @@ export function downloadChrw(project: Project, data: GraphData): void {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = `${project.name.replaceAll(/[^a-z0-9_\-.]+/gi, "_")}.chrw`;
+  a.href = url; a.download = `${project.name.replaceAll(/[^a-z0-9_\-.]+/gi, "_")}.chrl`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-export function parseChrwFile(text: string): ChrwFile | null {
+export function parseChrlFile(text: string): ChrlFile | null {
   try {
     const obj = JSON.parse(text);
     if (obj?.version !== 1 || !Array.isArray(obj.characters)) return null;
-    return obj as ChrwFile;
+    return obj as ChrlFile;
   } catch { return null; }
 }
 
-/** Reconstruct a full GraphData from an imported .chrw file */
-export function chrwToGraphData(file: ChrwFile): GraphData {
+/** Reconstruct a full GraphData from an imported .chrl file */
+export function chrlToGraphData(file: ChrlFile): GraphData {
   const customTypes: ConnectionType[] = file.customTypes ?? [];
   return {
     characters: file.characters,
