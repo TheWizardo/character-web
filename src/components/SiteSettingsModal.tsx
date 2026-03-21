@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { X, Moon, Sun, Upload, AlertTriangle } from "lucide-react";
-import { parseChrlFile, ChrlFile } from "../lib/storage";
+import { isValidCompressedFile, parseChrlFile } from "../lib/storage";
 import { CRIT_COLOR } from "../lib/constants";
+import { ChrlFile } from "../lib/types";
 
 interface Props {
   theme: "dark" | "light";
@@ -20,12 +21,19 @@ export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLab
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!isValidCompressedFile(file)) {
+      setError("Invalid .chrl file. Please check the file and try again.");
+      return;
+    }
     setError(null);
     const reader = new FileReader();
     reader.onload = (ev) => {
       const text = ev.target?.result as string;
       const parsed = parseChrlFile(text);
-      if (!parsed) { setError("Invalid .chrl file. Please check the file and try again."); return; }
+      if (!parsed) {
+        setError("Invalid .chrl file. Please check the file and try again.");
+        return;
+      }
       setPending(parsed);
     };
     reader.readAsText(file);

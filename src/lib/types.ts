@@ -1,14 +1,14 @@
 export interface Character {
   id: string;
   name: string;
-  fullName: string;
+  fullName?: string;
   age?: number;
   birthDate?: string;
-  physicalDescription: string;
-  hobbies: string[];
-  address: string;
-  workplace: string;
-  education: string;
+  physicalDescription?: string;
+  hobbies?: string[];
+  address?: string;
+  workplace?: string;
+  education?: string;
   additionalInfo?: string;
   color?: string;
 }
@@ -19,7 +19,7 @@ export interface Connection {
   target: string;
   label: string;
   type: string;
-  mutual?: boolean;
+  mutual?: false;
 }
 
 export interface ConnectionType {
@@ -36,6 +36,13 @@ export interface GraphData {
   connectionTypes: ConnectionType[];
 }
 
+export interface Meta {
+  projects: Project[];
+  activeProjectId: string;
+  theme?: "dark" | "light";
+  useLabelBg?: boolean;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -49,4 +56,13 @@ export interface AppState {
   projectData: Record<string, GraphData>;
   theme?: "dark" | "light";
   useLabelBg: boolean;
+}
+
+export interface ChrlFile {
+  version: 1;
+  name: string;
+  exportedAt: number;
+  characters: Character[];
+  connections: Connection[];
+  customTypes: ConnectionType[]; // custom only — defaults reconstructed on import
 }

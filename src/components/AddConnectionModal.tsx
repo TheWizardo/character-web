@@ -59,7 +59,7 @@ export default function AddConnectionModal({
 
   const submit = () => {
     if (!source || !target || source === target || !label.trim()) return;
-    onAdd({ id: uuidv4(), source, target, label: normalize(label), type, mutual });
+    onAdd({ id: uuidv4(), source, target, label: normalize(label), type, mutual: (mutual ? undefined : false) });
     onClose();
   };
 

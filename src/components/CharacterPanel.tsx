@@ -27,7 +27,7 @@ export default function CharacterPanel({
   const [confirmDelete, setConfirm] = useState(false);
   const [pendingConnDel, setPendingConn] = useState<string | null>(null);
   const [newColor, setNewColor] = useState(CHAR_PALLETE[0]);
-  const [intermidiateHobbies, setIntermidiateHobbies] = useState<string>(draft.hobbies.join(", "));
+  const [intermidiateHobbies, setIntermidiateHobbies] = useState<string>(draft.hobbies?.join(", ") || "");
 
   useEffect(() => {
     setDraft(character);
@@ -219,7 +219,7 @@ export default function CharacterPanel({
                 })
               }
             />
-            : character.hobbies.length > 0
+            : character.hobbies?.length > 0
               ? <div className="flex flex-wrap gap-1.5">
                 {character.hobbies.map((h, i) => (
                   <span key={i} className="text-xs px-2 py-0.5 rounded-full font-mono"

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { AppState, GraphData, Project } from "./types";
+import { AppState, GraphData, Project, ChrlFile } from "./types";
 import { DEFAULT_CONNECTION_TYPES } from "./constants";
 import {
   saveMeta, loadMeta, saveProjectData, loadProjectData,
-  deleteProjectData, ChrlFile, chrlToGraphData,
+  deleteProjectData, chrlToGraphData,
 } from "./storage";
 import { v4 as uuidv4 } from "uuid";
 
