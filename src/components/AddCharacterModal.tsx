@@ -134,7 +134,8 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
             }}
           >
             Cancel
-          </button><button onClick={submit} disabled={!form.name?.trim()}
+          </button>
+          <button onClick={submit} disabled={!form.name?.trim()}
             className="px-5 py-2 rounded-lg text-sm font-mono flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-40"
             style={{
               background: "linear-gradient(135deg, var(--text-muted), var(--gold))",

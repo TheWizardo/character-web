@@ -32,7 +32,7 @@ export default function Legend({ types, highlightTypeId, onHighlight, compact }:
                 opacity: highlightTypeId && !active ? 0.4 : 1,
                 backdropFilter: "blur(6px)",
               }}>
-              <div style={{ width: 12, height: 1, background: t.color, flexShrink: 0 }} />
+              <div style={{ width: 15, borderRadius: 5, height: 2, background: t.color, flexShrink: 0 }} />
               <span style={{ fontSize: 12, lineHeight: 1 }}>{t.emoji}</span>
               <span>{t.label}</span>
             </button>
@@ -45,7 +45,7 @@ export default function Legend({ types, highlightTypeId, onHighlight, compact }:
   // Desktop: vertical list
   return (
     <div style={{
-      padding: "12px 16px",
+      padding: "12px 12px 12px 16px",
       borderRadius: 12,
       background: "var(--bg-deep)",
       border: "1px solid var(--border-subtle)",
@@ -64,13 +64,13 @@ export default function Legend({ types, highlightTypeId, onHighlight, compact }:
               title={active ? "Click to deselect" : `Highlight ${t.label}`}
               style={{
                 display: "flex", alignItems: "center", gap: 8,
-                width: "100%", padding: "5px 6px", borderRadius: 6, cursor: "pointer",
+                width: "100%", padding: "5px 6px 5px 0", borderRadius: 6, cursor: "pointer",
                 background: active ? "var(--bg-surface)" : "transparent",
                 border: "none", outline: "none",
                 opacity: highlightTypeId && !active ? 0.38 : 1,
                 transition: "opacity 0.15s",
               }}>
-              <div style={{ width: 20, height: 1, flexShrink: 0, background: t.color, boxShadow: active ? `0 0 6px ${t.color}` : "none" }} />
+              <div style={{ width: 25, borderRadius: 5, height: 3, flexShrink: 0, background: t.color, boxShadow: active ? `0 0 6px ${t.color}` : "none" }} />
               <span style={{ fontSize: 14, lineHeight: 1 }}>{t.emoji}</span>
               <span style={{
                 fontFamily: "'DM Mono', monospace", fontSize: 11,
