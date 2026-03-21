@@ -1,3 +1,5 @@
+import { AuthUser, AuthState } from "./useAuth";
+
 export interface Character {
   id: string;
   name: string;
@@ -65,4 +67,11 @@ export interface ChrlFile {
   characters: Character[];
   connections: Connection[];
   customTypes: ConnectionType[]; // custom only — defaults reconstructed on import
+}
+
+export interface AuthProps {
+    user: AuthUser | null;
+    authStatus: AuthState;
+    onSignIn: () => Promise<any>;
+    onSignOut: () => void;
 }

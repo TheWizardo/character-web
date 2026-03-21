@@ -1,6 +1,6 @@
 // GraphNavigation.tsx
 import { MoveLeft, MoveRight, MoveUp, MoveDown, Plus, Minus, LocateFixed, Compass } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useIsMobile } from "../lib/useIsMobile";
 import { CRIT_COLOR } from "../lib/constants";
 import ToolBtn from "./ToolBtn";
@@ -17,7 +17,6 @@ interface Props {
 }
 function DesktopHint() {
     const isMobile = useIsMobile();
-    {/* Desktop hint */ }
     return <>
         {!isMobile && (
             <div style={{

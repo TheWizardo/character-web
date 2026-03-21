@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
-import { Character, Connection, ConnectionType } from "../lib/types";
+import { AuthProps, Character, Connection, ConnectionType } from "../lib/types";
 import { useAppState } from "../lib/useAppState";
+import { useIsMobile } from "../lib/useIsMobile";
+import { AuthUser, AuthState } from "../lib/useAuth";
 import ForceGraph from "./ForceGraph";
 import CharacterPanel from "./CharacterPanel";
 import AddCharacterModal from "./AddCharacterModal";
@@ -11,10 +13,12 @@ import SiteSettingsModal from "./SiteSettingsModal";
 import Legend from "./Legend";
 import { UserPlus, Link, SlidersHorizontal, Cog, Plus, ChevronDown } from "lucide-react";
 import GraphNavigation from "./GraphNavigation";
-import { useIsMobile } from "../lib/useIsMobile";
 import ToolBtn from "./ToolBtn";
+import UserMenu from "./UserMenu";
+import IconBtn from "./IconBtn";
 
-export default function GraphApp() {
+
+export default function GraphApp({ user, authStatus, onSignIn, onSignOut }: AuthProps) {
   const {
     state, loaded,
     activeData, saveActiveData, resetActiveProject,
@@ -223,6 +227,8 @@ export default function GraphApp() {
               <IconBtn onClick={() => setShowSiteSettings(true)} title="Site settings">
                 <Cog size={18} />
               </IconBtn>
+              {/* User avatar + sign out */}
+              <UserMenu user={user} authStatus={authStatus} onSignIn={onSignIn} onSignOut={onSignOut} />
             </>
           )}
 
@@ -287,6 +293,8 @@ export default function GraphApp() {
               <IconBtn onClick={() => setShowSiteSettings(true)} title="Site settings">
                 <Cog size={20} />
               </IconBtn>
+
+              <UserMenu isMobile user={user} authStatus={authStatus} onSignIn={onSignIn} onSignOut={onSignOut} />
             </>
           )}
         </div>
@@ -480,40 +488,3 @@ const dropdownItemStyle = (gold: boolean): React.CSSProperties => ({
   color: gold ? "var(--gold)" : "var(--text-secondary)",
   borderBottom: gold ? "1px solid var(--border-subtle)" : "none",
 });
-
-function IconBtn({
-  onClick,
-  title,
-  children,
-  active,
-}: {
-  onClick: () => void;
-  title?: string;
-  children: React.ReactNode;
-  active?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      title={title}
-      style={{
-        padding: 8,
-        borderRadius: 8,
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        background: active ? "var(--gold-dim)" : "transparent",
-        border: active ? "1px solid var(--gold-border)" : "1px solid transparent",
-        color: active ? "var(--gold)" : "var(--text-muted)",
-      }}
-      onMouseEnter={(e) => {
-        if (!active) e.currentTarget.style.color = "var(--gold)";
-      }}
-      onMouseLeave={(e) => {
-        if (!active) e.currentTarget.style.color = "var(--text-muted)";
-      }}
-    >
-      {children}
-    </button>
-  );
-}
