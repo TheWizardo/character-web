@@ -45,7 +45,7 @@ export default function Legend({ types, highlightTypeId, onHighlight, compact }:
   // Desktop: vertical list
   return (
     <div style={{
-      padding: "12px 12px 12px 16px",
+      padding: "10px 8px 10px 10px",
       borderRadius: 12,
       background: "var(--bg-deep)",
       border: "1px solid var(--border-subtle)",
@@ -64,7 +64,7 @@ export default function Legend({ types, highlightTypeId, onHighlight, compact }:
               title={active ? "Click to deselect" : `Highlight ${t.label}`}
               style={{
                 display: "flex", alignItems: "center", gap: 8,
-                width: "100%", padding: "5px 6px 5px 0", borderRadius: 6, cursor: "pointer",
+                width: "100%", padding: "5px 6px", borderRadius: 6, cursor: "pointer",
                 background: active ? "var(--bg-surface)" : "transparent",
                 border: "none", outline: "none",
                 opacity: highlightTypeId && !active ? 0.38 : 1,
