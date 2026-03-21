@@ -1,5 +1,5 @@
-export default function ToolBtn({ onClick, children, gold, active }: {
-    onClick: () => void; children: React.ReactNode; gold?: boolean; active?: boolean;
+export default function ToolBtn({ onClick, children, gold, active, style }: {
+    onClick: () => void; children: React.ReactNode; gold?: boolean; active?: boolean, style?: any;
 }) {
     return (
         <button onClick={onClick} style={{
@@ -10,7 +10,7 @@ export default function ToolBtn({ onClick, children, gold, active }: {
                 : active ? "var(--gold-dim)" : "var(--bg-surface)",
             border: `1px solid ${gold || active ? "var(--gold-border)" : "var(--border-medium)"}`,
             color: gold || active ? "var(--gold)" : "var(--text-muted)",
-            transition: "transform 0.12s",
+            transition: "transform 0.12s", ...style
         }}
             onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
             onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}>

@@ -228,28 +228,63 @@ export default function GraphApp() {
         onUpdatePositions={handleUpdatePositions}
       />
 
-      {/* ── LEGEND — always visible, z-index above SVG ─── */}
-      <div style={{ position: "absolute", bottom: isMobile ? 50 : 24, left: 16, zIndex: 15 }}>
-        <Legend
-          types={activeData.connectionTypes}
-          highlightTypeId={highlightTypeId}
-          onHighlight={handleLegendHighlight}
-          compact={isMobile}
-        />
-      </div>
+      {isMobile ? (
+        <div
+          style={{
+            position: "absolute",
+            left: 16,
+            right: 16,
+            bottom: 50,
+            zIndex: 16,
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            gap: 12,
+          }}
+        >
+          <Legend
+            types={activeData.connectionTypes}
+            highlightTypeId={highlightTypeId}
+            onHighlight={handleLegendHighlight}
+            compact={isMobile}
+          />
 
-      {/* --- NAVIGATION - Enables you to move around the map without touch ---*/}<div style={{ position: "absolute", right: 16, bottom: isMobile ? 108 : 24, zIndex: 16 }}>
-        <GraphNavigation
-          compact={isMobile}
-          onPanLeft={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(120, 0)}
-          onPanRight={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(-120, 0)}
-          onPanUp={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(0, 120)}
-          onPanDown={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(0, -120)}
-          onZoomIn={() => (document.querySelector(".graph-svg") as any)?.__zoomBy?.(1.2)}
-          onZoomOut={() => (document.querySelector(".graph-svg") as any)?.__zoomBy?.(1 / 1.2)}
-          onReset={() => (document.querySelector(".graph-svg") as any)?.__fitGraphToScreen?.()}
-        />
-      </div>
+          <GraphNavigation
+            compact={isMobile}
+            onPanLeft={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(120, 0)}
+            onPanRight={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(-120, 0)}
+            onPanUp={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(0, 120)}
+            onPanDown={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(0, -120)}
+            onZoomIn={() => (document.querySelector(".graph-svg") as any)?.__zoomBy?.(1.2)}
+            onZoomOut={() => (document.querySelector(".graph-svg") as any)?.__zoomBy?.(1 / 1.2)}
+            onReset={() => (document.querySelector(".graph-svg") as any)?.__fitGraphToScreen?.()}
+          />
+        </div>
+      ) : (
+        <>
+          <div style={{ position: "absolute", bottom: 24, left: 16, zIndex: 15 }}>
+            <Legend
+              types={activeData.connectionTypes}
+              highlightTypeId={highlightTypeId}
+              onHighlight={handleLegendHighlight}
+              compact={isMobile}
+            />
+          </div>
+
+          <div style={{ position: "absolute", right: 16, bottom: 24, zIndex: 16 }}>
+            <GraphNavigation
+              compact={isMobile}
+              onPanLeft={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(120, 0)}
+              onPanRight={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(-120, 0)}
+              onPanUp={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(0, 120)}
+              onPanDown={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(0, -120)}
+              onZoomIn={() => (document.querySelector(".graph-svg") as any)?.__zoomBy?.(1.2)}
+              onZoomOut={() => (document.querySelector(".graph-svg") as any)?.__zoomBy?.(1 / 1.2)}
+              onReset={() => (document.querySelector(".graph-svg") as any)?.__fitGraphToScreen?.()}
+            />
+          </div>
+        </>
+      )}
 
       <div style={{
         position: "absolute", bottom: 24, zIndex: 5,

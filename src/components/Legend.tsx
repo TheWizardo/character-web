@@ -15,7 +15,6 @@ export default function Legend({ types, highlightTypeId, onHighlight, compact }:
     return (
       <div style={{
         display: "flex", flexWrap: "wrap", gap: 6,
-        maxWidth: "calc(100vw - 32px)",
       }}>
         {types.map((t) => {
           const active = highlightTypeId === t.id;
@@ -46,7 +45,8 @@ export default function Legend({ types, highlightTypeId, onHighlight, compact }:
   // Desktop: vertical list
   return (
     <div style={{
-      padding: "12px 16px", borderRadius: 12,
+      padding: "12px 16px",
+      borderRadius: 12,
       background: "var(--bg-deep)",
       border: "1px solid var(--border-subtle)",
       backdropFilter: "blur(8px)",

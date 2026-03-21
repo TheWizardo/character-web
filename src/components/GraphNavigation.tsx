@@ -43,16 +43,15 @@ export default function GraphNavigation({
     compact = false,
 }: Props) {
     const [expanded, setExpanded] = useState(false);
-    const panelRef = useRef<HTMLDivElement>(null);
 
-    const size = compact ? 42 : 46;
+    const size = compact ? 40 : 46;
     const icon = compact ? 16 : 18;
 
 
     const btnStyle: React.CSSProperties = {
         width: size,
         height: size,
-        borderRadius: 14,
+        borderRadius: 10,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -86,77 +85,112 @@ export default function GraphNavigation({
     };
 
 
+    if (expanded) {
+        return <div
+            style={{
+                display: compact ? "flex" : "grid",
+                flexDirection: compact ? "column" : undefined,
+                gridTemplateColumns: compact ? undefined : `${size}px ${size}px ${size}px`,
+                gridTemplateRows: compact ? undefined : `${size}px ${size}px ${size}px`,
+                gap: compact ? 6 : 8,
+                padding: `${icon * (compact ? 0.5 : 0.75)}px ${icon * (compact ? 0.75 : 1)}px`,
+                borderRadius: 12,
+                background: "var(--bg-deep)",
+                border: "1px solid var(--border-subtle)",
+                backdropFilter: "blur(8px)",
+                opacity: 0.93,
+                alignItems: "center",
+            }}
+        >
+            {compact ? (
+                <>
+                    <ToolBtn onClick={onZoomIn} gold style={{ width: size, height: size }}>
+                        <Plus size={icon} />
+                    </ToolBtn>
+
+                    <button
+                        style={goldenBtnStyle}
+                        onClick={onReset}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "scale(1.05)";
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "scale(1)";
+                        }}
+                        title="Reset / fit"
+                    >
+                        <LocateFixed size={icon} />
+                    </button>
+
+                    <ToolBtn onClick={onZoomOut} gold style={{ width: size, height: size }}>
+                        <Minus size={icon} />
+                    </ToolBtn>
+
+                    <button style={{ ...btnStyle, ...{ color: CRIT_COLOR } }} onClick={() => setExpanded(false)} title="Exit">
+                        <Compass size={icon} />
+                    </button>
+                </>
+            ) : (
+                <>
+                    <div />
+                    <button style={btnStyle} onClick={onPanUp} onMouseEnter={hoverIn} onMouseLeave={hoverOut} title="Pan up">
+                        <MoveUp size={icon} />
+                    </button>
+                    <button style={{ ...btnStyle, ...{ color: CRIT_COLOR } }} onClick={() => setExpanded(false)} title="Exit">
+                        <Compass size={icon} />
+                    </button>
+
+                    <button style={btnStyle} onClick={onPanLeft} onMouseEnter={hoverIn} onMouseLeave={hoverOut} title="Pan left">
+                        <MoveLeft size={icon} />
+                    </button>
+                    <button
+                        style={goldenBtnStyle}
+                        onClick={onReset}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "scale(1.05)";
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "scale(1)";
+                        }}
+                        title="Reset / fit"
+                    >
+                        <LocateFixed size={icon} />
+                    </button>
+                    <button style={btnStyle} onClick={onPanRight} onMouseEnter={hoverIn} onMouseLeave={hoverOut} title="Pan right">
+                        <MoveRight size={icon} />
+                    </button>
+
+                    <ToolBtn onClick={onZoomOut} gold style={{ width: size, height: size }}>
+                        <Minus size={icon} />
+                    </ToolBtn>
+                    <button style={btnStyle} onClick={onPanDown} onMouseEnter={hoverIn} onMouseLeave={hoverOut} title="Pan down">
+                        <MoveDown size={icon} />
+                    </button>
+                    <ToolBtn onClick={onZoomIn} gold style={{ width: size, height: size }}>
+                        <Plus size={icon} />
+                    </ToolBtn>
+                </>
+            )}
+        </div>
+    }
+
     return (
         <div
             className="flex flex-col items-end gap-3"
-            style={{ position: "absolute", right: 0, bottom: 0, zIndex: 15, width: "30ch" }}>
-            {expanded ? <div
-                ref={panelRef}
+            style={compact ? {} : { width: "30ch" }}>
+            <button
+                onClick={() => { setExpanded(true); console.log("click") }}
+                title="Navigation"
                 style={{
-                    display: "grid",
-                    gridTemplateColumns: `${size}px ${size}px ${size}px`,
-                    gridTemplateRows: `${size}px ${size}px ${size}px`,
-                    gap: 8,
-                    padding: "12px 16px",
-                    borderRadius: 12,
-                    background: "var(--bg-deep)",
-                    border: "1px solid var(--border-subtle)",
-                    backdropFilter: "blur(8px)",
-                    opacity: 0.93,
-                    // boxShadow: "0 6px 18px var(--shadow-lg)",
+                    ...btnStyle,
+                    width: compact ? 48 : 52,
+                    height: compact ? 48 : 52,
                 }}
+                onMouseEnter={hoverIn}
+                onMouseLeave={hoverOut}
             >
-                <div />
-                <button style={btnStyle} onClick={onPanUp} onMouseEnter={hoverIn} onMouseLeave={hoverOut} title="Pan up">
-                    <MoveUp size={icon} />
-                </button>
-                <button style={{ ...btnStyle, ...{ color: CRIT_COLOR } }} onClick={() => setExpanded(false)} title="Exit">
-                    <Compass size={icon} />
-                </button>
-
-                <button style={btnStyle} onClick={onPanLeft} onMouseEnter={hoverIn} onMouseLeave={hoverOut} title="Pan left">
-                    <MoveLeft size={icon} />
-                </button>
-                <button
-                    style={goldenBtnStyle}
-                    onClick={onReset}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "scale(1.05)";
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "scale(1)";
-                    }}
-                    title="Reset / fit"
-                >
-                    <LocateFixed size={icon} />
-                </button>
-                <button style={btnStyle} onClick={onPanRight} onMouseEnter={hoverIn} onMouseLeave={hoverOut} title="Pan right">
-                    <MoveRight size={icon} />
-                </button>
-
-                <ToolBtn onClick={onZoomOut} gold>
-                    <Minus size={icon} />
-                </ToolBtn>
-                <button style={btnStyle} onClick={onPanDown} onMouseEnter={hoverIn} onMouseLeave={hoverOut} title="Pan down">
-                    <MoveDown size={icon} />
-                </button>
-                <ToolBtn onClick={onZoomOut} gold>
-                    <Plus size={icon} />
-                </ToolBtn>
-            </div> :
-                <button
-                    onClick={() => setExpanded(true)}
-                    title="Navigation"
-                    style={{
-                        ...btnStyle,
-                        width: compact ? 48 : 52,
-                        height: compact ? 48 : 52,
-                    }}
-                    onMouseEnter={hoverIn}
-                    onMouseLeave={hoverOut}
-                >
-                    <Compass size={compact ? 18 : 20} />
-                </button>}
+                <Compass size={compact ? 18 : 20} />
+            </button>
             <DesktopHint />
         </div >
     );
