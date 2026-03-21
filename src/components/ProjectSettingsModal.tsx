@@ -295,14 +295,11 @@ export default function ProjectSettingsModal({
                           boxShadow: newColor === col ? `0 0 8px ${col}` : "none",
                         }} />
                     ))}
-                    <div
-                      className="w-7 h-7 rounded-full transition-transform hover:scale-110"
-                      style={{
-                        display: "hide",
-                      }} />
-                    <input type="color" value={newColor} onChange={(e) => setNewColor(e.target.value)}
-                      className="w-7 h-7 rounded-full cursor-pointer border-0 p-0 bg-transparent" />
-                    <p className={`text-sm font-mono flex items-center justify-center`} style={{ textAlign: "center", color: "var(--gold)" }}>Custom</p>
+                    <div className="flex gap-2 mt-1">
+                      <p className={`text-sm font-mono flex items-center justify-center`} style={{ textAlign: "center", color: "var(--gold)" }}>Custom</p>
+                      <input type="color" value={newColor} onChange={(e) => setNewColor(e.target.value)}
+                        className="w-7 h-7 rounded-full cursor-pointer border-0 p-0 bg-transparent" />
+                    </div>
                   </div>
                 </div>
 

@@ -106,18 +106,15 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
             <label className="cl-label">Color</label>
             <div className="flex gap-2 flex-wrap mt-1">
               {CHAR_PALLETE.map((col) => (
-                <button key={col} onClick={() => setForm({ ...form, color: col })}
+                <button key={col} onClick={() => { setForm({ ...form, color: col }); setNewColor(col); }}
                   className="w-7 h-7 rounded-full transition-transform hover:scale-110"
                   style={{ background: col, border: form.color === col ? "2px solid var(--text-primary)" : "2px solid transparent", boxShadow: form.color === col ? `0 0 8px ${col}` : "none" }} />
               ))}
-              <div
-                className="w-7 h-7 rounded-full transition-transform hover:scale-110"
-                style={{
-                  display: "hide",
-                }} />
-              <input type="color" value={newColor} onChange={(e) => { setForm({ ...form, color: e.target.value }); setNewColor(e.target.value) }}
-                className="w-7 h-7 rounded-full cursor-pointer border-0 p-0 bg-transparent" />
-              <p className={`text-sm font-mono flex items-center justify-center`} style={{ textAlign: "center", color: "var(--gold)" }}>Custom</p>
+              <div className="flex gap-2 mt-1">
+                <p className={`text-sm font-mono flex items-center justify-center`} style={{ textAlign: "center", color: "var(--gold)" }}>Custom</p>
+                <input type="color" value={newColor} onChange={(e) => { setForm({ ...form, color: e.target.value }); setNewColor(e.target.value) }}
+                  className="w-7 h-7 rounded-full cursor-pointer border-0 p-0 bg-transparent" />
+              </div>
             </div>
           </div>
         </div>
