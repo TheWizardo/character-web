@@ -128,14 +128,11 @@ export default function CharacterPanel({
           </div>
           <div>
             {editing
-              ? <input className="rounded bg-transparent font-display text-xl font-semibold focus:outline-none w-44 pb-0.5"
-                style={{ color: "var(--text-primary)", borderBottom: "1px solid var(--gold-border)" }}
+              ? <input className="rounded bg-transparent font-display text-xl font-semibold focus:outline-none pb-0.5"
+                style={{ color: "var(--text-primary)", borderBottom: "1px solid var(--gold-border)", maxWidth: "20ch" }}
                 value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
               : <h2 className="font-display text-xl font-semibold" style={{ color: "var(--text-primary)" }}>{character.name}</h2>
             }
-            <p className="text-xs font-mono mt-0.5" style={{ color: "var(--text-muted)" }}>
-              {related.length} connection{related.length !== 1 ? "s" : ""}
-            </p>
           </div>
         </div>
         <div className="flex gap-1.5">

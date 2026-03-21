@@ -45,14 +45,14 @@ export default function ForceGraph({
 
   const fitGraphToScreen = useCallback(() => {
     if (!svgRef.current || !zoomRef.current || !containerRef.current) return;
-    
+
     const svgEl = svgRef.current;
     const gNode = containerRef.current.node();
     if (!gNode) return;
-    
+
     const bounds = gNode.getBBox();
     if (!bounds.width || !bounds.height) return;
-    
+
     const width = svgEl.clientWidth || window.innerWidth;
     const height = svgEl.clientHeight || window.innerHeight;
     const padding = 50;
@@ -321,7 +321,7 @@ export default function ForceGraph({
         onSelectCharacter(d.id);
       });
 
-    nodeEls
+    const charNodes = nodeEls
       .append("circle")
       .attr("r", RADIUS)
       .attr("fill", (d: any) => d.color || DEF_COLOR)
@@ -329,6 +329,16 @@ export default function ForceGraph({
       .attr("stroke", (d: any) => d.color || DEF_COLOR)
       .attr("stroke-width", 2)
       .attr("class", "node-ring");
+
+    if (useLabelBg) {
+      charNodes.each(function () {
+        d3.select(this.parentNode as SVGGElement)
+          .insert("circle", ".node-ring")
+          .attr("r", RADIUS)
+          .attr("fill", "var(--bg-base)")
+          .attr("class", "node-fill");
+      });
+    }
 
     nodeEls
       .append("text")
@@ -359,6 +369,9 @@ export default function ForceGraph({
           .attr("r", RADIUS * 1.25)
           .attr("fill-opacity", 0.25)
           .attr("filter", "url(#glow)");
+        d3.select(this)
+          .select(".node-fill")
+          .attr("r", RADIUS * 1.25);
       })
       .on("mouseleave", function (_e, d: any) {
         const s = d.id === selectedIdRef.current;
@@ -367,6 +380,9 @@ export default function ForceGraph({
           .attr("r", RADIUS * (s ? 1.25 : 1))
           .attr("fill-opacity", s ? 0.3 : 0.15)
           .attr("filter", s ? "url(#selGlow)" : null);
+        d3.select(this)
+          .select(".node-fill")
+          .attr("r", RADIUS * (s ? 1.25 : 1));
       });
 
     // ── Path helpers ──────────────────────────────────────
