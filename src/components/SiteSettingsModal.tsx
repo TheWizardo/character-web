@@ -90,6 +90,7 @@ export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLab
               ))}
             </div>
           </div>
+
           {/* ── Label background ───────────────────────── */}
           <div>
             <label className="cl-label" style={{ marginBottom: 8 }}>Link Label Background</label>
@@ -136,6 +137,33 @@ export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLab
                 />
               </div>
             </button>
+          </div>
+
+          {/* ── Donations for the poor ───────────────────────── */}
+          <div>
+            <label className="cl-label" style={{ marginBottom: 8 }}>Support this project</label>
+            <a
+              href="https://www.paypal.com/paypalme/BooksByOss"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-lg text-sm font-mono transition-all hover:scale-105"
+              style={{
+                background: "linear-gradient(135deg, var(--text-muted), var(--gold))",
+                color: "var(--bg-deep)",
+                border: "1px solid var(--gold-border)",
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                width: "100%",
+              }}
+            >
+              <span style={{
+                margin: "0 auto",
+                fontWeight: 600,
+              }}>
+                ☕ Buy me a coffee
+              </span>
+            </a>
           </div>
 
           {/* ── Import ─────────────────────────────────── */}

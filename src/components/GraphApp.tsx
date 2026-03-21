@@ -9,7 +9,7 @@ import ProjectSettingsModal from "./ProjectSettingsModal";
 import ProjectsSidebar from "./ProjectsSidebar";
 import SiteSettingsModal from "./SiteSettingsModal";
 import Legend from "./Legend";
-import { UserPlus, Link, SlidersHorizontal, Palette, Plus, ChevronDown } from "lucide-react";
+import { UserPlus, Link, SlidersHorizontal, Cog, Plus, ChevronDown } from "lucide-react";
 import GraphNavigation from "./GraphNavigation";
 import { useIsMobile } from "../lib/useIsMobile";
 import ToolBtn from "./ToolBtn";
@@ -220,8 +220,8 @@ export default function GraphApp() {
               <IconBtn onClick={() => setShowProjSettings(true)} title="Story settings">
                 <SlidersHorizontal size={15} />
               </IconBtn>
-              <IconBtn onClick={() => setShowSiteSettings(true)} title="Appearance">
-                <Palette size={15} />
+              <IconBtn onClick={() => setShowSiteSettings(true)} title="Site settings">
+                <Cog size={18} />
               </IconBtn>
             </>
           )}
@@ -284,8 +284,8 @@ export default function GraphApp() {
                 <SlidersHorizontal size={18} />
               </IconBtn>
 
-              <IconBtn onClick={() => setShowSiteSettings(true)} title="Appearance">
-                <Palette size={18} />
+              <IconBtn onClick={() => setShowSiteSettings(true)} title="Site settings">
+                <Cog size={20} />
               </IconBtn>
             </>
           )}
