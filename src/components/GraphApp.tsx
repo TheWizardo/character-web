@@ -10,16 +10,9 @@ import ProjectsSidebar from "./ProjectsSidebar";
 import SiteSettingsModal from "./SiteSettingsModal";
 import Legend from "./Legend";
 import { UserPlus, Link, SlidersHorizontal, Palette, Plus, ChevronDown } from "lucide-react";
-
-function useIsMobile() {
-  const [mobile, setMobile] = useState(window.innerWidth < 640);
-  useEffect(() => {
-    const fn = () => setMobile(window.innerWidth < 640);
-    window.addEventListener("resize", fn);
-    return () => window.removeEventListener("resize", fn);
-  }, []);
-  return mobile;
-}
+import GraphNavigation from "./GraphNavigation";
+import { useIsMobile } from "../lib/useIsMobile";
+import ToolBtn from "./ToolBtn";
 
 export default function GraphApp() {
   const {
@@ -245,18 +238,18 @@ export default function GraphApp() {
         />
       </div>
 
-      {/* Desktop hint */}
-      {!isMobile && (
-        <div style={{
-          position: "absolute", bottom: 24, right: 24, zIndex: 5,
-          textAlign: "right", pointerEvents: "none",
-          fontFamily: "'DM Mono', monospace", fontSize: 11,
-          color: "var(--text-muted-dim)",
-        }}>
-          <p>Scroll to zoom · Drag to pan</p>
-          <p>Click node · Click legend to filter</p>
-        </div>
-      )}
+      {/* --- NAVIGATION - Enables you to move around the map without touch ---*/}<div style={{ position: "absolute", right: 16, bottom: isMobile ? 108 : 24, zIndex: 16 }}>
+        <GraphNavigation
+          compact={isMobile}
+          onPanLeft={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(120, 0)}
+          onPanRight={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(-120, 0)}
+          onPanUp={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(0, 120)}
+          onPanDown={() => (document.querySelector(".graph-svg") as any)?.__panBy?.(0, -120)}
+          onZoomIn={() => (document.querySelector(".graph-svg") as any)?.__zoomBy?.(1.2)}
+          onZoomOut={() => (document.querySelector(".graph-svg") as any)?.__zoomBy?.(1 / 1.2)}
+          onReset={() => (document.querySelector(".graph-svg") as any)?.__fitGraphToScreen?.()}
+        />
+      </div>
 
       <div style={{
         position: "absolute", bottom: 24, zIndex: 5,
@@ -353,26 +346,7 @@ const dropdownItemStyle = (gold: boolean): React.CSSProperties => ({
   borderBottom: gold ? "1px solid var(--border-subtle)" : "none",
 });
 
-function ToolBtn({ onClick, children, gold, active }: {
-  onClick: () => void; children: React.ReactNode; gold?: boolean; active?: boolean;
-}) {
-  return (
-    <button onClick={onClick} style={{
-      display: "flex", alignItems: "center", gap: 8,
-      padding: "8px 14px", borderRadius: 8, cursor: "pointer",
-      fontFamily: "'DM Mono', monospace", fontSize: 13,
-      background: gold ? "linear-gradient(135deg, rgba(139,111,71,0.3), var(--gold-dim))"
-        : active ? "var(--gold-dim)" : "var(--bg-surface)",
-      border: `1px solid ${gold || active ? "var(--gold-border)" : "var(--border-medium)"}`,
-      color: gold || active ? "var(--gold)" : "var(--text-muted)",
-      transition: "transform 0.12s",
-    }}
-      onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}>
-      {children}
-    </button>
-  );
-}
+
 
 function IconBtn({ onClick, title, children, active }: {
   onClick: () => void; title?: string; children: React.ReactNode; active?: boolean;

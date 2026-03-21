@@ -27,6 +27,8 @@ export default function ForceGraph({
   const posRef = useRef<Record<string, { x: number; y: number }>>({});
   const selectedIdRef = useRef(selectedId);
   const highlightTypeIdRef = useRef(highlightTypeId);
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const containerRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null);
 
   useEffect(() => {
     selectedIdRef.current = selectedId;
@@ -40,6 +42,39 @@ export default function ForceGraph({
     (id: string) => data.connectionTypes.find((ct) => ct.id === id)?.color ?? DEF_COLOR,
     [data.connectionTypes]
   );
+
+  const fitGraphToScreen = useCallback(() => {
+    if (!svgRef.current || !zoomRef.current || !containerRef.current) return;
+    
+    const svgEl = svgRef.current;
+    const gNode = containerRef.current.node();
+    if (!gNode) return;
+    
+    const bounds = gNode.getBBox();
+    if (!bounds.width || !bounds.height) return;
+    
+    const width = svgEl.clientWidth || window.innerWidth;
+    const height = svgEl.clientHeight || window.innerHeight;
+    const padding = 50;
+
+    const scale = Math.min(
+      (width - padding * 2) / bounds.width,
+      (height - padding * 2) / bounds.height
+    );
+
+    const clampedScale = Math.max(0.2, Math.min(4, scale));
+
+    const tx = width / 2 - clampedScale * (bounds.x + bounds.width / 2);
+    const ty = height / 2 - clampedScale * (bounds.y + bounds.height / 2);
+
+    d3.select(svgEl)
+      .transition()
+      .duration(350)
+      .call(
+        zoomRef.current.transform,
+        d3.zoomIdentity.translate(tx, ty).scale(clampedScale)
+      );
+  }, []);
 
   const buildGraph = useCallback(() => {
     if (!svgRef.current) return;
@@ -106,10 +141,14 @@ export default function ForceGraph({
       .on("click", () => onSelectCharacter(null));
 
     const container = svg.append("g");
+    containerRef.current = container;
+
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.2, 4])
       .on("zoom", (e) => container.attr("transform", e.transform));
+
+    zoomRef.current = zoom;
 
     svg.call(zoom);
     svg.call(zoom.transform, d3.zoomIdentity.translate(W / 2, H / 2));
@@ -168,7 +207,7 @@ export default function ForceGraph({
         const maxL = 350;
         const maxDegree = 8;
 
-        const t = Math.min(avgDegree, maxDegree) / maxDegree; // 0..1
+        const t = Math.min(avgDegree, maxDegree) / maxDegree;
         return maxL - t * (maxL - minL);
       })
       .strength((l: any) => {
@@ -484,9 +523,24 @@ export default function ForceGraph({
     };
 
     (svgRef.current as any).__applyHighlight = applyHighlight;
+    (svgRef.current as any).__fitGraphToScreen = fitGraphToScreen;
+    (svgRef.current as any).__zoomBy = (factor: number) => {
+      if (!svgRef.current || !zoomRef.current) return;
+      d3.select(svgRef.current)
+        .transition()
+        .duration(220)
+        .call(zoomRef.current.scaleBy, factor);
+    };
+    (svgRef.current as any).__panBy = (dx: number, dy: number) => {
+      if (!svgRef.current || !zoomRef.current) return;
+      d3.select(svgRef.current)
+        .transition()
+        .duration(220)
+        .call(zoomRef.current.translateBy, dx, dy);
+    };
     applyHighlight(selectedIdRef.current, highlightTypeIdRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, useLabelBg, theme, onSelectCharacter, onUpdatePositions, typeColor]);
+  }, [data, useLabelBg, theme, onSelectCharacter, onUpdatePositions, typeColor, fitGraphToScreen]);
 
   useEffect(() => {
     buildGraph();
