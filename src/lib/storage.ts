@@ -117,129 +117,7 @@ function lsSet(key: string, val: unknown): void {
   }
 }
 
-// ── public API ────────────────────────────────────────────
-
-export function saveMeta(meta: Meta): void {
-  lsSet(K.meta, meta);
-}
-
-export function loadMeta(): Meta | null {
-  return lsGet<Meta>(K.meta);
-}
-
-export function saveProjectData(id: string, data: GraphData): void {
-  const stored: GraphData = {
-    characters: data.characters,
-    connections: data.connections,
-    connectionTypes: data.connectionTypes.filter((t) => !t.isDefault), // custom only
-  };
-  lsSet(K.proj(id), stored);
-}
-
-export function loadProjectData(id: string): GraphData {
-  const stored = lsGet<GraphData>(K.proj(id));
-  const customTypes: ConnectionType[] = stored?.connectionTypes ?? [];
-
-  const connectionTypes = [
-    ...DEFAULT_CONNECTION_TYPES,
-    ...customTypes.filter((t) => !DEFAULT_CONNECTION_TYPES.some((d) => d.id === t.id)),
-  ];
-
-  return {
-    characters: (stored?.characters ?? []),
-    connections: (stored?.connections ?? []),
-    connectionTypes,
-  };
-}
-
-export function deleteProjectData(id: string): void {
-  lsDel(K.proj(id));
-}
-
-// ── .chrl export / import ────────────────────────────────
-export function downloadChrl(project: Project, data: GraphData): void {
-  const payload: ChrlFile = {
-    version: 1,
-    name: project.name,
-    exportedAt: Date.now(),
-    characters: data.characters,
-    connections: data.connections,
-    customTypes: data.connectionTypes.filter((t) => !t.isDefault),
-  };
-
-  let fileText: string;
-  try {
-    fileText = compressData(payload);
-  } catch {
-    fileText = JSON.stringify(payload, null, 2);
-  }
-
-  const blob = new Blob([fileText], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${project.name.replaceAll(/[^a-z0-9_\-.]+/gi, "_")}.chrl`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-export function parseChrlFile(text: string): ChrlFile | null {
-  try {
-    const raw = text.trim();
-    if (!raw) return null;
-
-    if (isCompressed(raw)) {
-      const obj = decompressData<ChrlFile>(raw);
-      if (!isValidChrlFile(obj)) return null;
-      return obj;
-    }
-
-    const obj = JSON.parse(raw);
-    if (!isValidChrlFile(obj)) return null;
-    return obj as ChrlFile;
-  } catch {
-    return null;
-  }
-}
-
-/** Reconstruct a full GraphData from an imported .chrl file */
-export function chrlToGraphData(file: ChrlFile): GraphData {
-  const customTypes: ConnectionType[] = file.customTypes ?? [];
-  return {
-    characters: file.characters,
-    connections: file.connections,
-    connectionTypes: [
-      ...DEFAULT_CONNECTION_TYPES,
-      ...customTypes.filter((t) => !DEFAULT_CONNECTION_TYPES.some((d) => d.id === t.id)),
-    ],
-  };
-}
-
-export async function isValidCompressedFile(file: File): Promise<boolean> {
-  try {
-    const raw = (await file.text()).trim();
-    if (!raw) return false;
-
-    const binary = atob(raw);
-    if (binary.length < 3) return false;
-
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-
-    // gzip magic bytes
-    if (bytes[0] !== 0x1f || bytes[1] !== 0x8b) return false;
-
-    // try full decompression
-    gunzipSync(bytes);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-export function isValidChrlFile(obj: unknown): obj is ChrlFile {
+function isValidChrlFile(obj: unknown): obj is ChrlFile {
   const isPlainObject = (v: unknown): v is Record<string, unknown> =>
     typeof v === "object" && v !== null && !Array.isArray(v);
 
@@ -353,4 +231,126 @@ export function isValidChrlFile(obj: unknown): obj is ChrlFile {
   }
 
   return true;
+}
+
+// ── public API ────────────────────────────────────────────
+
+export function saveMeta(meta: Meta): void {
+  lsSet(K.meta, meta);
+}
+
+export function loadMeta(): Meta | null {
+  return lsGet<Meta>(K.meta);
+}
+
+export function saveProjectData(id: string, data: GraphData): void {
+  const stored: GraphData = {
+    characters: data.characters,
+    connections: data.connections,
+    connectionTypes: data.connectionTypes.filter((t) => !t.isDefault), // custom only
+  };
+  lsSet(K.proj(id), stored);
+}
+
+export function loadProjectData(id: string): GraphData {
+  const stored = lsGet<GraphData>(K.proj(id));
+  const customTypes: ConnectionType[] = stored?.connectionTypes ?? [];
+
+  const connectionTypes = [
+    ...DEFAULT_CONNECTION_TYPES,
+    ...customTypes.filter((t) => !DEFAULT_CONNECTION_TYPES.some((d) => d.id === t.id)),
+  ];
+
+  return {
+    characters: (stored?.characters ?? []),
+    connections: (stored?.connections ?? []),
+    connectionTypes,
+  };
+}
+
+export function deleteProjectData(id: string): void {
+  lsDel(K.proj(id));
+}
+
+// ── .chrl export / import ────────────────────────────────
+export function downloadChrl(project: Project, data: GraphData): void {
+  const payload: ChrlFile = {
+    version: 1,
+    name: project.name,
+    exportedAt: Date.now(),
+    characters: data.characters,
+    connections: data.connections,
+    customTypes: data.connectionTypes.filter((t) => !t.isDefault).map(ct => { ct.isDefault = undefined; return ct }),
+  };
+
+  let fileText: string;
+  try {
+    fileText = compressData(payload);
+  } catch {
+    fileText = JSON.stringify(payload, null, 2);
+  }
+
+  const blob = new Blob([fileText], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${project.name.replaceAll(/[^a-z0-9_\-.]+/gi, "_")}.chrl`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function parseChrlFile(text: string): ChrlFile | null {
+  try {
+    const raw = text.trim();
+    if (!raw) return null;
+
+    if (isCompressed(raw)) {
+      const obj = decompressData<ChrlFile>(raw);
+      if (!isValidChrlFile(obj)) return null;
+      return obj;
+    }
+
+    const obj = JSON.parse(raw);
+    if (!isValidChrlFile(obj)) return null;
+    return obj as ChrlFile;
+  } catch {
+    return null;
+  }
+}
+
+/** Reconstruct a full GraphData from an imported .chrl file */
+export function chrlToGraphData(file: ChrlFile): GraphData {
+  const customTypes: ConnectionType[] = file.customTypes ?? [];
+  return {
+    characters: file.characters,
+    connections: file.connections,
+    connectionTypes: [
+      ...DEFAULT_CONNECTION_TYPES,
+      ...customTypes.filter((t) => !DEFAULT_CONNECTION_TYPES.some((d) => d.id === t.id)),
+    ],
+  };
+}
+
+export async function isValidCompressedFile(file: File): Promise<boolean> {
+  try {
+    const raw = (await file.text()).trim();
+    if (!raw) return false;
+
+    const binary = atob(raw);
+    if (binary.length < 3) return false;
+
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    // gzip magic bytes
+    if (bytes[0] !== 0x1f || bytes[1] !== 0x8b) return false;
+
+    // try full decompression
+    gunzipSync(bytes);
+    return true;
+  } catch {
+    return false;
+  }
 }

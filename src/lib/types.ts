@@ -27,7 +27,7 @@ export interface ConnectionType {
   label: string;
   emoji: string;
   color: string;
-  isDefault: boolean;
+  isDefault?: boolean;
 }
 
 export interface GraphData {
