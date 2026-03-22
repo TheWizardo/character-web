@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Project, ConnectionType } from "../lib/types";
+import { Project, ConnectionType, GraphData } from "../lib/types";
 import { X, Check, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
-import { downloadChrl } from "../lib/storage";
-import { GraphData } from "../lib/types";
+import { downloadChrl } from "../lib/localstorage";
 import { CON_PALETTE, CRIT_COLOR, EMOJIS } from "../lib/constants";
 
 type Tab = "general" | "connections";
@@ -14,7 +13,6 @@ interface Props {
   connectionTypes: ConnectionType[];
   characterCount: number;
   connectionCount: number;
-  projectData: GraphData;
   onRename: (name: string) => void;
   onReset: () => void;
   onDelete: () => void;
@@ -23,7 +21,7 @@ interface Props {
 }
 
 export default function ProjectSettingsModal({
-  project, canDelete, connectionTypes, characterCount, connectionCount, projectData,
+  project, canDelete, connectionTypes, characterCount, connectionCount,
   onRename, onReset, onDelete, onSaveConnectionTypes, onClose,
 }: Props) {
   const [tab, setTab] = useState<Tab>("general");
@@ -130,7 +128,7 @@ export default function ProjectSettingsModal({
               {/* Export */}
               <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 16 }}>
                 <button
-                  onClick={() => downloadChrl(project, projectData)}
+                  onClick={() => downloadChrl(project)}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-mono transition-all hover:scale-[1.01]"
                   style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)", color: "var(--text-secondary)" }}>
                   <Download size={14} style={{ color: "var(--gold)", flexShrink: 0 }} />

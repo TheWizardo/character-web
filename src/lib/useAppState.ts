@@ -1,155 +1,226 @@
-import { useState, useEffect, useCallback } from "react";
-import { AppState, GraphData, Project, ChrlFile } from "./types";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { AppState, GraphData, Meta, Project, ChrlFile } from "./types";
 import { DEFAULT_CONNECTION_TYPES } from "./constants";
 import {
-  saveMeta, loadMeta, saveProjectData, loadProjectData,
-  deleteProjectData, chrlToGraphData,
-} from "./storage";
+  saveMeta,
+  loadMeta,
+  saveProjectData,
+  loadProjectData,
+  loadProjects,
+  deleteProjectData,
+  chrlToProject,
+  makeEmptyProject,
+} from "./localstorage";
 import { v4 as uuidv4 } from "uuid";
 
-function makeEmptyProject(): GraphData {
-  return { characters: [], connections: [], connectionTypes: [...DEFAULT_CONNECTION_TYPES] };
-}
-
-function makeInitialMeta() {
-  const id = uuidv4();
-  return {
-    projects: [{ id, name: "My Story", createdAt: Date.now(), updatedAt: Date.now() }] as Project[],
-    activeProjectId: id,
-    theme: "dark" as const,
-    useLabelBg: true
-  };
-}
-
 export function useAppState() {
-  // Only store meta (project list + active + theme) in React state.
-  // Project data is loaded on-demand and kept in a local cache.
-  const [meta, setMeta] = useState(() => {
-    return loadMeta() ?? makeInitialMeta();
-  });
-  const [dataCache, setDataCache] = useState<Record<string, GraphData>>({});
+  const [meta, setMeta] = useState<Meta | null>(() => loadMeta());
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loaded, setLoaded] = useState(false);
 
-  // Load active project data on mount / project switch
   useEffect(() => {
-    const id = meta.activeProjectId;
-    if (!dataCache[id]) {
-      const data = loadProjectData(id);
-      setDataCache((prev) => ({ ...prev, [id]: data }));
-    }
+    const loadedProjects = loadProjects(meta.projectIds);
+
+    // loadMeta already guarantees a valid meta+project setup,
+    // so this effect only keeps the in-memory projects in sync.
+    setProjects(loadedProjects);
     setLoaded(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [meta.activeProjectId]);
+  }, [meta.projectIds]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", meta.theme ?? "dark");
   }, [meta.theme]);
 
-  const persistMeta = useCallback((next: typeof meta) => {
+  const persistMeta = useCallback((next: Meta) => {
     setMeta(next);
     saveMeta(next);
   }, []);
 
-  const activeData: GraphData =
-    dataCache[meta.activeProjectId] ?? loadProjectData(meta.activeProjectId);
+  const activeProject = useMemo(
+    () => projects.find((p) => p.id === meta.activeProjectId) ?? projects[0] ?? null,
+    [projects, meta.activeProjectId]
+  );
 
-  const saveActiveData = useCallback((data: GraphData) => {
-    const id = meta.activeProjectId;
-    setDataCache((prev) => ({ ...prev, [id]: data }));
-    saveProjectData(id, data);
-    persistMeta({
-      ...meta,
-      projects: meta.projects.map((p) =>
-        p.id === id ? { ...p, updatedAt: Date.now() } : p
-      ),
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [meta, persistMeta]);
+  const activeData: GraphData = activeProject
+    ? {
+      characters: activeProject.characters,
+      connections: activeProject.connections,
+      connectionTypes: activeProject.connectionTypes,
+    }
+    : {
+      characters: [],
+      connections: [],
+      connectionTypes: [...DEFAULT_CONNECTION_TYPES],
+    };
 
-  const resetActiveProject = () =>
-    saveActiveData({ ...activeData, characters: [], connections: [] });
+  const saveProject = useCallback(
+    (project: Project) => {
+      saveProjectData(project.id, project);
+      setProjects((prev) =>
+        prev
+          .map((p) => (p.id === project.id ? project : p))
+          .sort((a, b) => b.updatedAt - a.updatedAt)
+      );
+    },
+    []
+  );
+
+  const saveActiveData = useCallback(
+    (data: GraphData) => {
+      if (!activeProject) return;
+
+      const updated: Project = {
+        ...activeProject,
+        ...data,
+        updatedAt: Date.now(),
+      };
+
+      saveProject(updated);
+    },
+    [activeProject, saveProject]
+  );
+
+  const resetActiveProject = () => {
+    if (!activeProject) return;
+    const reset: Project = {
+      ...activeProject,
+      characters: [],
+      connections: [],
+      connectionTypes: [...DEFAULT_CONNECTION_TYPES],
+      updatedAt: Date.now(),
+    };
+    saveProject(reset);
+  };
 
   const createProject = (name: string) => {
     const id = uuidv4();
-    const empty = makeEmptyProject();
-    setDataCache((prev) => ({ ...prev, [id]: empty }));
-    saveProjectData(id, empty);
+    const project = makeEmptyProject(id, name);
+
+    saveProjectData(id, project);
+    setProjects((prev) => [project, ...prev]);
+
     persistMeta({
       ...meta,
-      projects: [...meta.projects, { id, name, createdAt: Date.now(), updatedAt: Date.now() }],
+      projectIds: [id, ...meta.projectIds],
       activeProjectId: id,
     });
   };
 
-  const renameProject = (id: string, name: string) =>
-    persistMeta({
-      ...meta,
-      projects: meta.projects.map((p) =>
-        p.id === id ? { ...p, name, updatedAt: Date.now() } : p
-      ),
-    });
+  const renameProject = (id: string, name: string) => {
+    const existing = projects.find((p) => p.id === id);
+    if (!existing) return;
+
+    const updated: Project = {
+      ...existing,
+      name,
+      updatedAt: Date.now(),
+    };
+
+    saveProject(updated);
+  };
 
   const deleteProject = (id: string) => {
-    if (meta.projects.length === 1) return;
-    const remaining = meta.projects.filter((p) => p.id !== id);
+    if (projects.length === 1) return;
+
+    const remaining = projects.filter((p) => p.id !== id);
     deleteProjectData(id);
-    setDataCache((prev) => { const n = { ...prev }; delete n[id]; return n; });
+    setProjects(remaining);
+
     persistMeta({
       ...meta,
-      projects: remaining,
+      projectIds: remaining.map((p) => p.id),
       activeProjectId: meta.activeProjectId === id ? remaining[0].id : meta.activeProjectId,
     });
   };
 
   const switchProject = (id: string) => {
-    if (!dataCache[id]) {
-      const data = loadProjectData(id);
-      setDataCache((prev) => ({ ...prev, [id]: data }));
+    if (!projects.some((p) => p.id === id)) {
+      const loadedProject = loadProjectData(id);
+      if (loadedProject) {
+        setProjects((prev) => [loadedProject, ...prev.filter((p) => p.id !== id)]);
+      } else {
+        return;
+      }
     }
+
     persistMeta({ ...meta, activeProjectId: id });
   };
 
-  const setTheme = (theme: "dark" | "light") =>
-    persistMeta({ ...meta, theme });
+  const setTheme = (theme: "dark" | "light") => persistMeta({ ...meta, theme });
 
-  const setLabelBg = (show: boolean) =>
-    persistMeta({...meta, useLabelBg: show});
+  const setLabelBg = (show: boolean) => persistMeta({ ...meta, useLabelBg: show });
 
   const importChrl = (file: ChrlFile, mode: "append" | "override") => {
-    const data = chrlToGraphData(file);
+    const data = chrlToProject(file);
+
     if (mode === "override") {
-      saveActiveData(data);
-      persistMeta({
-        ...meta,
-        projects: meta.projects.map((p) =>
-          p.id === meta.activeProjectId ? { ...p, name: file.name, updatedAt: Date.now() } : p
-        ),
-      });
-    } else {
-      const id = uuidv4();
-      setDataCache((prev) => ({ ...prev, [id]: data }));
-      saveProjectData(id, data);
-      persistMeta({
-        ...meta,
-        projects: [...meta.projects, { id, name: file.name, createdAt: Date.now(), updatedAt: Date.now() }],
-        activeProjectId: id,
-      });
+      if (!activeProject) return;
+
+      const updated: Project = {
+        ...activeProject,
+        name: file.name,
+        characters: data.characters,
+        connections: data.connections,
+        connectionTypes: data.connectionTypes,
+        updatedAt: Date.now(),
+      };
+
+      saveProject(updated);
+      return;
     }
+
+    const id = uuidv4();
+    const now = Date.now();
+    const project: Project = {
+      id,
+      name: file.name,
+      createdAt: now,
+      updatedAt: now,
+      characters: data.characters,
+      connections: data.connections,
+      connectionTypes: data.connectionTypes,
+    };
+
+    saveProjectData(id, project);
+    setProjects((prev) => [project, ...prev]);
+
+    persistMeta({
+      ...meta,
+      projectIds: [id, ...meta.projectIds],
+      activeProjectId: id,
+    });
   };
 
-  // Build AppState shape expected by components that read state.projects etc.
   const state: AppState = {
-    projects: meta.projects,
-    activeProjectId: meta.activeProjectId,
-    projectData: dataCache,
+    projects,
+    activeProjectId: activeProject?.id ?? meta.activeProjectId,
+    projectData: Object.fromEntries(
+      projects.map((p) => [
+        p.id,
+        {
+          characters: p.characters,
+          connections: p.connections,
+          connectionTypes: p.connectionTypes,
+        },
+      ])
+    ),
     theme: meta.theme,
-    useLabelBg: meta.useLabelBg
+    useLabelBg: meta.useLabelBg ?? true,
   };
 
   return {
-    state, loaded,
-    activeData, saveActiveData, resetActiveProject,
-    createProject, renameProject, deleteProject, switchProject, setTheme, setLabelBg, importChrl,
-    activeProject: meta.projects.find((p) => p.id === meta.activeProjectId)!,
+    state,
+    loaded,
+    activeData,
+    saveActiveData,
+    resetActiveProject,
+    createProject,
+    renameProject,
+    deleteProject,
+    switchProject,
+    setTheme,
+    setLabelBg,
+    importChrl,
+    activeProject,
   };
 }

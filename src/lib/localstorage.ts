@@ -1,16 +1,3 @@
-// storage.ts
-/**
- * localStorage layout
- *
- * cl:meta    → compressed or plain JSON string of Meta
- * cl:p:{id}  → compressed or plain JSON string of StoredProject
- *
- * Transition support:
- * - old plain JSON localStorage values still load
- * - new values are saved compressed
- * - .chrl files may be plain JSON or compressed base64-gzip text
- */
-
 import { gzipSync, gunzipSync, strToU8, strFromU8 } from "fflate";
 import { DEFAULT_CONNECTION_TYPES } from "./constants";
 import { GraphData, Project, ConnectionType, ChrlFile, Meta, Connection, Character } from "./types";
@@ -63,6 +50,9 @@ export function decompressData<T = unknown>(compressed: string): T {
   const json = strFromU8(gunzipSync(bytes));
   return JSON.parse(json) as T;
 }
+if (typeof window !== "undefined") {
+  (window as any).decompress = decompressData;
+}
 
 // ── low-level storage helpers ─────────────────────────────
 function lsGetRaw(key: string): string | null {
@@ -85,11 +75,6 @@ function lsDel(key: string): void {
   } catch { }
 }
 
-/**
- * Transition-aware read:
- * - if compressed => decompress + parse
- * - otherwise => parse as plain JSON
- */
 function lsGet<T>(key: string): T | null {
   try {
     const raw = lsGetRaw(key);
@@ -110,13 +95,68 @@ function lsSet(key: string, val: unknown): void {
     const compressed = compressData(val);
     lsSetRaw(key, compressed);
   } catch {
-    // Fallback to plain JSON if compression fails
     try {
       lsSetRaw(key, JSON.stringify(val));
     } catch { }
   }
 }
+// --- dehydration helpers ----------------------------------
+export function dehydrateCharacter(c: Character): Partial<Character> & Pick<Character, "id" | "name"> {
+  const cleanString = (value?: string): string | undefined => {
+    if (typeof value !== "string") return undefined;
+    const trimmed = value.trim();
+    return trimmed ? trimmed : undefined;
+  };
 
+  const cleanStringArray = (value?: string[]): string[] | undefined => {
+    if (!Array.isArray(value)) return undefined;
+    const cleaned = value.map((s) => s.trim()).filter(Boolean);
+    return cleaned.length ? cleaned : undefined;
+  };
+
+  const fullName = cleanString(c.fullName);
+  const birthDate = cleanString(c.birthDate);
+  const physicalDescription = cleanString(c.physicalDescription);
+  const hobbies = cleanStringArray(c.hobbies);
+  const address = cleanString(c.address);
+  const workplace = cleanString(c.workplace);
+  const education = cleanString(c.education);
+  const additionalInfo = cleanString(c.additionalInfo);
+  const color = cleanString(c.color);
+
+  return {
+    id: c.id,
+    name: c.name,
+    ...(fullName && fullName !== c.name ? { fullName } : {}),
+    ...(typeof c.age === "number" ? { age: c.age } : {}),
+    ...(birthDate ? { birthDate } : {}),
+    ...(physicalDescription ? { physicalDescription } : {}),
+    ...(hobbies ? { hobbies } : {}),
+    ...(address ? { address } : {}),
+    ...(workplace ? { workplace } : {}),
+    ...(education ? { education } : {}),
+    ...(additionalInfo ? { additionalInfo } : {}),
+    ...(color ? { color } : {}),
+  };
+}
+
+export function dehydrateProject(p: Project): Project {
+  return {
+    ...p,
+    characters: p.characters.map(dehydrateCharacter) as Character[],
+    connections: p.connections.map((c) => ({
+      id: c.id,
+      source: c.source,
+      target: c.target,
+      label: c.label,
+      type: c.type,
+      ...(c.mutual ? {} : { mutual: false }),
+    })),
+    connectionTypes: p.connectionTypes.filter((t) => !t.isDefault),
+  };
+}
+
+// ── validation helpers ────────────────────────────────────
 function isValidChrlFile(obj: unknown): obj is ChrlFile {
   const isPlainObject = (v: unknown): v is Record<string, unknown> =>
     typeof v === "object" && v !== null && !Array.isArray(v);
@@ -197,33 +237,35 @@ function isValidChrlFile(obj: unknown): obj is ChrlFile {
   if (!isPlainObject(obj)) return false;
 
   const allowedTopLevel = [
-    "version",
+    "id",
     "name",
-    "exportedAt",
+    "createdAt",
+    "updatedAt",
     "characters",
     "connections",
-    "customTypes",
+    "connectionTypes",
+    "version",
+    "exportedAt",
   ] as const;
 
   if (!hasOnlyKeys(obj, allowedTopLevel)) return false;
 
   if (obj.version !== 1) return false;
+  if (typeof obj.id !== "string") return false;
   if (typeof obj.name !== "string") return false;
+  if (typeof obj.createdAt !== "number" || !Number.isFinite(obj.createdAt)) return false;
+  if (typeof obj.updatedAt !== "number" || !Number.isFinite(obj.updatedAt)) return false;
   if (typeof obj.exportedAt !== "number" || !Number.isFinite(obj.exportedAt)) return false;
+
   if (!Array.isArray(obj.characters) || !obj.characters.every(isCharacter)) return false;
   if (!Array.isArray(obj.connections) || !obj.connections.every(isConnection)) return false;
-  if (!Array.isArray(obj.customTypes) || !obj.customTypes.every(isConnectionType)) return false;
+  if (!Array.isArray(obj.connectionTypes) || !obj.connectionTypes.every(isConnectionType)) return false;
 
   const characterIds = new Set(obj.characters.map((c) => c.id));
   if (characterIds.size !== obj.characters.length) return false;
 
-  const customTypeIds = new Set(obj.customTypes.map((t) => t.id));
-  if (customTypeIds.size !== obj.customTypes.length) return false;
-
-  const typeIds = new Set([
-    ...DEFAULT_CONNECTION_TYPES.map((t) => t.id),
-    ...obj.customTypes.map((t) => t.id),
-  ]);
+  const typeIds = new Set(obj.connectionTypes.map((t) => t.id));
+  if (typeIds.size !== obj.connectionTypes.length) return false;
 
   for (const conn of obj.connections) {
     if (!characterIds.has(conn.source) || !characterIds.has(conn.target)) return false;
@@ -233,39 +275,154 @@ function isValidChrlFile(obj: unknown): obj is ChrlFile {
   return true;
 }
 
+export async function isValidCompressedFile(file: File): Promise<boolean> {
+  try {
+    const raw = (await file.text()).trim();
+    if (!raw) return false;
+
+    const binary = atob(raw);
+    if (binary.length < 3) return false;
+
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    if (bytes[0] !== 0x1f || bytes[1] !== 0x8b) return false;
+
+    gunzipSync(bytes);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ── project normalization ─────────────────────────────────
+function normalizeProject(project: Project): Project {
+  const customTypes: ConnectionType[] = project.connectionTypes ?? [];
+
+  return {
+    ...project,
+    connectionTypes: [
+      ...DEFAULT_CONNECTION_TYPES,
+      ...customTypes.filter((t) => !DEFAULT_CONNECTION_TYPES.some((d) => d.id === t.id)),
+    ],
+  };
+}
+
 // ── public API ────────────────────────────────────────────
+export function makeEmptyProject(id: string, name: string): Project {
+  const now = Date.now();
+  return {
+    id,
+    name,
+    createdAt: now,
+    updatedAt: now,
+    characters: [],
+    connections: [],
+    connectionTypes: [...DEFAULT_CONNECTION_TYPES],
+  };
+}
+
+export function makeMeta(projectId: string): Meta {
+  return {
+    projectIds: [projectId],
+    activeProjectId: projectId,
+    theme: "dark",
+    useLabelBg: true,
+  };
+}
 
 export function saveMeta(meta: Meta): void {
   lsSet(K.meta, meta);
 }
 
-export function loadMeta(): Meta | null {
-  return lsGet<Meta>(K.meta);
+export function loadMeta(): Meta {
+  const existing = lsGet<Meta>(K.meta);
+
+  // No meta at all -> create meta + default project
+  if (!existing) {
+    const id = crypto.randomUUID();
+    const project = makeEmptyProject(id, "My Story");
+    const meta = makeMeta(id);
+
+    saveProjectData(id, project);
+    saveMeta(meta);
+    return meta;
+  }
+
+  const projectIds = Array.isArray(existing.projectIds) ? existing.projectIds : [];
+  const loadedProjects = loadProjects(projectIds);
+
+  // Meta exists but points to nothing -> recreate a default project
+  if (loadedProjects.length === 0) {
+    const id = crypto.randomUUID();
+    const project = makeEmptyProject(id, "My Story");
+    const meta: Meta = {
+      theme: existing.theme ?? "dark",
+      useLabelBg: existing.useLabelBg ?? true,
+      projectIds: [id],
+      activeProjectId: id,
+    };
+
+    saveProjectData(id, project);
+    saveMeta(meta);
+    return meta;
+  }
+
+  // Meta exists but active project is missing -> repair it
+  if (!loadedProjects.some((p) => p.id === existing.activeProjectId)) {
+    const repaired: Meta = {
+      theme: existing.theme ?? "dark",
+      useLabelBg: existing.useLabelBg ?? true,
+      projectIds: loadedProjects.map((p) => p.id),
+      activeProjectId: loadedProjects[0].id,
+    };
+
+    saveMeta(repaired);
+    return repaired;
+  }
+
+  // Also normalize optional settings if missing
+  const normalized: Meta = {
+    theme: existing.theme ?? "dark",
+    useLabelBg: existing.useLabelBg ?? true,
+    projectIds: loadedProjects.map((p) => p.id),
+    activeProjectId: existing.activeProjectId,
+  };
+
+  // Persist only if something changed
+  if (
+    normalized.theme !== existing.theme ||
+    normalized.useLabelBg !== existing.useLabelBg ||
+    normalized.activeProjectId !== existing.activeProjectId ||
+    normalized.projectIds.length !== projectIds.length ||
+    normalized.projectIds.some((id, i) => id !== projectIds[i])
+  ) {
+    saveMeta(normalized);
+  }
+
+  return normalized;
 }
 
-export function saveProjectData(id: string, data: GraphData): void {
-  const stored: GraphData = {
-    characters: data.characters,
-    connections: data.connections,
-    connectionTypes: data.connectionTypes.filter((t) => !t.isDefault), // custom only
-  };
-  lsSet(K.proj(id), stored);
+export function saveProjectData(id: string, project: Project): void {
+  lsSet(K.proj(id), dehydrateProject(project));
 }
 
-export function loadProjectData(id: string): GraphData {
-  const stored = lsGet<GraphData>(K.proj(id));
-  const customTypes: ConnectionType[] = stored?.connectionTypes ?? [];
+export function loadProjectData(id: string): Project | null {
+  const stored = lsGet<Project>(K.proj(id));
+  if (!stored) return null;
+  return normalizeProject({ ...stored, id });
+}
 
-  const connectionTypes = [
-    ...DEFAULT_CONNECTION_TYPES,
-    ...customTypes.filter((t) => !DEFAULT_CONNECTION_TYPES.some((d) => d.id === t.id)),
-  ];
-
-  return {
-    characters: (stored?.characters ?? []),
-    connections: (stored?.connections ?? []),
-    connectionTypes,
-  };
+export function loadProjects(projectIds: string[]): Project[] {
+  if (!projectIds) {
+    return [];
+  }
+  return projectIds
+    .map((id) => loadProjectData(id))
+    .filter((p): p is Project => p !== null)
+    .sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
 export function deleteProjectData(id: string): void {
@@ -273,14 +430,11 @@ export function deleteProjectData(id: string): void {
 }
 
 // ── .chrl export / import ────────────────────────────────
-export function downloadChrl(project: Project, data: GraphData): void {
+export function downloadChrl(project: Project): void {
   const payload: ChrlFile = {
+    ...dehydrateProject(project),
     version: 1,
-    name: project.name,
     exportedAt: Date.now(),
-    characters: data.characters,
-    connections: data.connections,
-    customTypes: data.connectionTypes.filter((t) => !t.isDefault).map(ct => { ct.isDefault = undefined; return ct }),
   };
 
   let fileText: string;
@@ -304,53 +458,26 @@ export function parseChrlFile(text: string): ChrlFile | null {
     const raw = text.trim();
     if (!raw) return null;
 
-    if (isCompressed(raw)) {
-      const obj = decompressData<ChrlFile>(raw);
-      if (!isValidChrlFile(obj)) return null;
-      return obj;
-    }
+    const obj = isCompressed(raw)
+      ? decompressData<ChrlFile>(raw)
+      : (JSON.parse(raw) as unknown);
 
-    const obj = JSON.parse(raw);
     if (!isValidChrlFile(obj)) return null;
-    return obj as ChrlFile;
+    return obj;
   } catch {
     return null;
   }
 }
 
-/** Reconstruct a full GraphData from an imported .chrl file */
-export function chrlToGraphData(file: ChrlFile): GraphData {
-  const customTypes: ConnectionType[] = file.customTypes ?? [];
+/** Reconstruct a full Project from an imported .chrl file */
+export function chrlToProject(file: ChrlFile): Project {
   return {
+    id: file.id,
+    name: file.name,
+    createdAt: file.createdAt,
+    updatedAt: file.updatedAt,
     characters: file.characters,
     connections: file.connections,
-    connectionTypes: [
-      ...DEFAULT_CONNECTION_TYPES,
-      ...customTypes.filter((t) => !DEFAULT_CONNECTION_TYPES.some((d) => d.id === t.id)),
-    ],
+    connectionTypes: file.connectionTypes,
   };
-}
-
-export async function isValidCompressedFile(file: File): Promise<boolean> {
-  try {
-    const raw = (await file.text()).trim();
-    if (!raw) return false;
-
-    const binary = atob(raw);
-    if (binary.length < 3) return false;
-
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-
-    // gzip magic bytes
-    if (bytes[0] !== 0x1f || bytes[1] !== 0x8b) return false;
-
-    // try full decompression
-    gunzipSync(bytes);
-    return true;
-  } catch {
-    return false;
-  }
 }

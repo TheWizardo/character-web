@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { X, Moon, Sun, Upload, AlertTriangle } from "lucide-react";
-import { isValidCompressedFile, parseChrlFile } from "../lib/storage";
+import { isValidCompressedFile, parseChrlFile } from "../lib/localstorage";
 import { CRIT_COLOR } from "../lib/constants";
 import { ChrlFile } from "../lib/types";
 

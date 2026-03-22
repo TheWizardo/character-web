@@ -38,18 +38,18 @@ export interface GraphData {
   connectionTypes: ConnectionType[];
 }
 
-export interface Meta {
-  projects: Project[];
-  activeProjectId: string;
-  theme?: "dark" | "light";
-  useLabelBg?: boolean;
-}
-
-export interface Project {
+export interface Project extends GraphData {
   id: string;
   name: string;
   createdAt: number;
   updatedAt: number;
+}
+
+export interface Meta {
+  projectIds: string[];
+  activeProjectId: string;
+  theme?: "dark" | "light";
+  useLabelBg?: boolean;
 }
 
 export interface AppState {
@@ -60,13 +60,9 @@ export interface AppState {
   useLabelBg: boolean;
 }
 
-export interface ChrlFile {
+export interface ChrlFile extends Project {
   version: 1;
-  name: string;
   exportedAt: number;
-  characters: Character[];
-  connections: Connection[];
-  customTypes: ConnectionType[]; // custom only — defaults reconstructed on import
 }
 
 export interface AuthProps {

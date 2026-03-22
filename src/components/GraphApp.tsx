@@ -446,7 +446,6 @@ export default function GraphApp({ user, authStatus, onSignIn, onSignOut }: Auth
           connectionTypes={activeData.connectionTypes}
           characterCount={activeData.characters.length}
           connectionCount={activeData.connections.length}
-          projectData={activeData}
           onRename={(name) => renameProject(activeProject.id, name)}
           onReset={() => {
             resetActiveProject();
