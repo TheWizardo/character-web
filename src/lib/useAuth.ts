@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
+import { User, onAuthStateChanged, signInWithPopup, signOut, setPersistence, browserLocalPersistence, } from "firebase/auth";
 import { auth, provider } from "./firebase";
 
 export type AuthState = "loading" | "signed-out" | "signed-in";
@@ -12,17 +12,17 @@ export interface AuthUser {
 }
 
 export function useAuth() {
-  const [user, setUser]   = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthState>("loading");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser: User | null) => {
       if (firebaseUser) {
         setUser({
-          uid:         firebaseUser.uid,
+          uid: firebaseUser.uid,
           displayName: firebaseUser.displayName,
-          email:       firebaseUser.email,
-          photoURL:    firebaseUser.photoURL,
+          email: firebaseUser.email,
+          photoURL: firebaseUser.photoURL,
         });
         setStatus("signed-in");
       } else {
@@ -33,7 +33,11 @@ export function useAuth() {
     return unsub;
   }, []);
 
-  const signIn = () => signInWithPopup(auth, provider);
+  const signIn = async () => {
+    await setPersistence(auth, browserLocalPersistence);
+    return signInWithPopup(auth, provider);
+  };
+
   const logOut = () => signOut(auth);
 
   return { user, status, signIn, logOut };
