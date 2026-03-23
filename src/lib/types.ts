@@ -1,4 +1,4 @@
-import { AuthUser, AuthState } from "./useAuth";
+import { AuthUser, AuthState } from "../hooks/useAuth";
 
 export interface Character {
   id: string;
