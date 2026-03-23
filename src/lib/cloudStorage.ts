@@ -1,26 +1,72 @@
-import { updateProject } from "./api";
-import { decompressData, getRawProject, saveProject } from "./localstorage";
+/**
+ * cloudStorage.ts
+ *
+ * Sync logic between localStorage and the backend.
+ * No compression/decompression — operates on raw blobs opaquely where possible.
+ *
+ * Temp slot strategy:
+ *   When the server has a newer version of a project, it is written to
+ *   cl:p:{id}:temp rather than overwriting the user's current work.
+ *   The app then prompts the user to confirm before calling promoteTempProject().
+ */
+
+import { updateProject, deleteRemoteProject } from "./api";
+import { decompressData } from "./compress";
+import {
+  getRawProject,
+  saveRawProject,
+  tempProjectExists,
+} from "./localstorage";
 import { Project, ProjectServer } from "./types";
 
-export function uploadProject(id: string): Promise<boolean> {
-    const zippedProject = getRawProject(id, false);
-    const project = decompressData<Project>(zippedProject);
-    return updateProject(id, { zippedProject, updatedAt: project.updatedAt });
+/**
+ * Uploads the current local version of a project to the backend.
+ * Reads the raw compressed blob directly — no full decompression needed
+ * except to extract updatedAt for the server payload.
+ */
+export async function uploadProject(id: string): Promise<boolean> {
+  const zippedProject = getRawProject(id, false);
+  if (!zippedProject) return false;
+
+  const { updatedAt } = decompressData<Pick<Project, "updatedAt">>(zippedProject);
+  return updateProject(id, { zippedProject, updatedAt });
 }
 
-export function syncProjects(remoteProjects: (ProjectServer & { id: string })[], localProjects: Project[]) {
-    remoteProjects.forEach(rp => {
-        const localProject = localProjects.find(lp => lp.id === rp.id);
-        if (localProject && rp.updatedAt < localProject.updatedAt) {
-            saveProject(rp.id, rp.zippedProject, true);
-        }
-        else {
-            saveProject(rp.id, rp.zippedProject, false);
-        }
-    })
+/**
+ * Compares remote projects against local ones and stages newer server
+ * versions in the temp slot for user confirmation.
+ *
+ * - Remote newer than local → write to temp slot (pending user confirmation)
+ * - Local newer than remote → no action (upload is triggered separately on button press)
+ *
+ * Returns the IDs of projects that were staged in temp (i.e. need user confirmation).
+ */
+export function stageNewerRemoteProjects(
+  remoteProjects: (ProjectServer & { id: string })[],
+  localProjects: Project[]
+): string[] {
+  const staged: string[] = [];
+
+  for (const remote of remoteProjects) {
+    const local = localProjects.find((lp) => lp.id === remote.id);
+    const remoteIsNewer = !local || remote.updatedAt > local.updatedAt;
+
+    if (remoteIsNewer) {
+      saveRawProject(remote.id, remote.zippedProject, true);
+      staged.push(remote.id);
+    }
+    // If local is newer, do nothing — local data is current.
+  }
+
+  return staged;
 }
 
-export function tempExists(id: string): boolean {
-    const temp = getRawProject(id, true);
-    return temp !== null;
+/** Returns true if there is a staged (temp) version waiting for this project. */
+export function hasPendingSync(id: string): boolean {
+  return tempProjectExists(id);
+}
+
+/** Deletes a project from the backend. */
+export async function removeProject(id: string): Promise<boolean> {
+  return deleteRemoteProject(id);
 }
