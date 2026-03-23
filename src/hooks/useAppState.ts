@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { AppState, GraphData, Meta, Project, ChrlFile, ProjectServer } from "../lib/types";
-import { DEFAULT_CONNECTION_TYPES } from "../lib/constants";
+import { DEFAULT_CONNECTION_TYPES, GUEST_KEY } from "../lib/constants";
 import {
   saveMeta,
   loadMeta,
@@ -15,15 +15,13 @@ import { stageNewerRemoteProjects } from "../lib/cloudStorage";
 import { chrlToProject } from "../lib/chrl";
 
 export function useAppState() {
-  const [meta, setMeta] = useState<Meta | null>(() => loadMeta());
+  const [meta, setMeta] = useState<Meta | null>({} as Meta);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [user, setUser] = useState<string>(GUEST_KEY);
 
   useEffect(() => {
     const loadedProjects = loadProjects(meta.projectIds);
-
-    // loadMeta already guarantees a valid meta+project setup,
-    // so this effect only keeps the in-memory projects in sync.
     setProjects(loadedProjects);
     setLoaded(true);
   }, [meta.projectIds]);
@@ -32,9 +30,9 @@ export function useAppState() {
     document.documentElement.setAttribute("data-theme", meta.theme ?? "dark");
   }, [meta.theme]);
 
-  const persistMeta = useCallback((next: Meta) => {
+  const persistMeta = useCallback((next: Meta, uid: string) => {
     setMeta(next);
-    saveMeta(next);
+    saveMeta(next, uid);
   }, []);
 
   const activeProject = useMemo(
@@ -103,6 +101,14 @@ export function useAppState() {
     saveProject(reset);
   };
 
+  const updateUser = (uid: string) => {
+    setUser(uid);
+    const newMeta = loadMeta(uid);
+    const loadedProjects = loadProjects(newMeta.projectIds);
+    setMeta(newMeta);
+    setProjects(loadedProjects);
+  };
+
   const createProject = (name: string) => {
     const id = uuidv4();
     const project = makeEmptyProject(id, name);
@@ -114,7 +120,7 @@ export function useAppState() {
       ...meta,
       projectIds: [id, ...meta.projectIds],
       activeProjectId: id,
-    });
+    }, user);
   };
 
   const renameProject = (id: string, name: string) => {
@@ -143,7 +149,7 @@ export function useAppState() {
       ...meta,
       projectIds: remaining.map((p) => p.id),
       activeProjectId: meta.activeProjectId === id ? remaining[0].id : meta.activeProjectId,
-    });
+    }, user);
   };
 
   const syncWithRemote = useCallback(
@@ -177,7 +183,7 @@ export function useAppState() {
         ...meta,
         projectIds: nextProjectIds,
         activeProjectId: nextActiveId,
-      });
+      }, user);
 
       // 6. Return local-only projects if you still need to upload them
       return localOnlyProjects;
@@ -195,12 +201,12 @@ export function useAppState() {
       }
     }
 
-    persistMeta({ ...meta, activeProjectId: id });
+    persistMeta({ ...meta, activeProjectId: id }, user);
   };
 
-  const setTheme = (theme: "dark" | "light") => persistMeta({ ...meta, theme });
+  const setTheme = (theme: "dark" | "light") => persistMeta({ ...meta, theme }, user);
 
-  const setLabelBg = (show: boolean) => persistMeta({ ...meta, useLabelBg: show });
+  const setLabelBg = (show: boolean) => persistMeta({ ...meta, useLabelBg: show }, user);
 
   const importChrl = (file: ChrlFile, mode: "append" | "override") => {
     const project = chrlToProject(file);
@@ -210,7 +216,7 @@ export function useAppState() {
       persistMeta({
         ...meta,
         activeProjectId: project.id,
-      });
+      }, user);
       return;
     }
 
@@ -229,7 +235,7 @@ export function useAppState() {
       ...meta,
       projectIds: [id, ...meta.projectIds],
       activeProjectId: id,
-    });
+    }, user);
   };
 
   const state: AppState = {
@@ -253,6 +259,7 @@ export function useAppState() {
     state,
     loaded,
     activeData,
+    updateUser,
     saveActiveData,
     resetActiveProject,
     createProject,

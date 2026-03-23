@@ -29,3 +29,6 @@ export const DEFAULT_CONNECTION_TYPES: ConnectionType[] = [
 ];
 
 export const RADIUS = 24
+
+export const GUEST_KEY = "guest";
+export const DEF_PROJECT_NAME = "My Story"; 

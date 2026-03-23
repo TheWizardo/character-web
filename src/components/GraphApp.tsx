@@ -19,6 +19,7 @@ import { purgeAllTempProjects } from "../lib/localstorage";
 import { deleteActiveProject, handleActiveProjConfirmation } from "../lib/abstractStorage";
 import Loading from "./Loading";
 import TopBar from "./interface/TopBar";
+import { GUEST_KEY } from "../lib/constants";
 
 export default function GraphApp() {
   const notify = useNotifications();
@@ -27,7 +28,7 @@ export default function GraphApp() {
     state, loaded,
     activeData, saveActiveData, resetActiveProject,
     activeProject, createProject, renameProject, reloadActiveProject, syncWithRemote, deleteProject, switchProject,
-    setTheme, setLabelBg, importChrl,
+    setTheme, setLabelBg, importChrl, updateUser
   } = useAppState();
 
   const isMobile = useIsMobile();
@@ -49,6 +50,7 @@ export default function GraphApp() {
   useEffect(() => {
     if (status === "signed-in") {
       notify.success(`Logged in as: ${user.displayName}`)
+      updateUser(user.uid);
       fetchUserProjects().then(p => {
         const unsavedProjects = syncWithRemote(p);
         handleActiveProjConfirmation(activeProject, notify, reloadActiveProject, deleteProject);
@@ -61,6 +63,9 @@ export default function GraphApp() {
           )
         });
       }).catch(err => notify.error("Failed to contact server.\nShowing only local projects"));
+    }
+    else {
+      updateUser(GUEST_KEY);
     }
   }, [status])
 

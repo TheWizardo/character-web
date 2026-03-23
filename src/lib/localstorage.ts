@@ -2,23 +2,21 @@
  * localstorage.ts
  *
  * Single responsibility: read and write application data to localStorage.
- * Also owns normalization (merging defaults in) and dehydration (stripping
- * empty fields before write) since those are serialization concerns.
  *
  * Keys:
- *   cl:meta       → Meta
- *   cl:p:{id}     → Project (compressed, dehydrated)
+ *   cl:meta:{uid}  → Metadata for specific user
+ *   cl:p:{id}      → Project (compressed, dehydrated)
  *   cl:p:{id}:temp → Project (compressed, server version pending confirmation)
  */
 
-import { compressData, decompressData, dehydrateProject, isCompressed } from "./compress";
-import { DEFAULT_CONNECTION_TYPES } from "./constants";
-import { Character, Connection, ConnectionType, Meta, Project } from "./types";
+import { compressData, decompressData, dehydrateProject, isCompressed, normalizeProject } from "./compress";
+import { DEF_PROJECT_NAME, DEFAULT_CONNECTION_TYPES } from "./constants";
+import { Meta, Project } from "./types";
 
 // ── keys ─────────────────────────────────────────────────
 
 const K = {
-  meta: "cl:meta",
+  meta: (uid: string) => `cl:meta:${uid}`,
   proj: (id: string, isTemp: boolean) => `cl:p:${id}${isTemp ? ":temp" : ""}`,
 };
 
@@ -54,19 +52,6 @@ function lsSet(key: string, val: unknown): void {
   }
 }
 
-// ── normalization ─────────────────────────────────────────
-// Re-merge hard-coded defaults after reading from storage.
-
-function normalizeProject(project: Project): Project {
-  const custom: ConnectionType[] = project.connectionTypes ?? [];
-  return {
-    ...project,
-    connectionTypes: [
-      ...DEFAULT_CONNECTION_TYPES,
-      ...custom.filter((t) => !DEFAULT_CONNECTION_TYPES.some((d) => d.id === t.id)),
-    ],
-  };
-}
 
 // ── factory functions ─────────────────────────────────────
 
@@ -86,18 +71,20 @@ export function makeMeta(projectId: string): Meta {
 
 // ── meta ──────────────────────────────────────────────────
 
-export function saveMeta(meta: Meta): void {
-  lsSet(K.meta, meta);
+export function saveMeta(meta: Meta, uid: string): void {
+  if (!uid) return;
+  lsSet(K.meta(uid), meta);
 }
 
-export function loadMeta(): Meta {
-  const existing = lsGet<Meta>(K.meta);
+export function loadMeta(uid: string): Meta {
+  if (!uid) return;
+  const existing = lsGet<Meta>(K.meta(uid));
 
   if (!existing) {
     const id = crypto.randomUUID();
     const meta = makeMeta(id);
-    saveProjectData(id, makeEmptyProject(id, "My Story"));
-    saveMeta(meta);
+    saveProjectData(id, makeEmptyProject(id, DEF_PROJECT_NAME));
+    saveMeta(meta, uid);
     return meta;
   }
 
@@ -106,8 +93,8 @@ export function loadMeta(): Meta {
   if (loaded.length === 0) {
     const id = crypto.randomUUID();
     const meta: Meta = { ...existing, projectIds: [id], activeProjectId: id };
-    saveProjectData(id, makeEmptyProject(id, "My Story"));
-    saveMeta(meta);
+    saveProjectData(id, makeEmptyProject(id, DEF_PROJECT_NAME));
+    saveMeta(meta, uid);
     return meta;
   }
 
@@ -127,7 +114,7 @@ export function loadMeta(): Meta {
     repaired.projectIds.length !== (existing.projectIds ?? []).length ||
     repaired.projectIds.some((id, i) => id !== existing.projectIds?.[i]);
 
-  if (changed) saveMeta(repaired);
+  if (changed) saveMeta(repaired, uid);
   return repaired;
 }
 

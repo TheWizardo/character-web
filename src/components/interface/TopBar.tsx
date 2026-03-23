@@ -107,11 +107,11 @@ export default function TopBar({
         {status !== "signed-out" && <ChevronDown size={12} style={{ flexShrink: 0 }} />}
       </button>
 
-      {!isMobile && (
+      {!isMobile && <>
         <span className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
           {charNum} chars · {connNum} connections
         </span>
-      )}
+      </>}
     </div>
 
     <Menu

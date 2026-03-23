@@ -5,7 +5,8 @@
  */
 
 import { gzipSync, gunzipSync, strToU8, strFromU8 } from "fflate";
-import { Character, Connection, Project } from "./types";
+import { Character, Connection, ConnectionType, Project } from "./types";
+import { DEFAULT_CONNECTION_TYPES } from "./constants";
 
 export function compressData(data: unknown): string {
   const json = JSON.stringify(data);
@@ -103,5 +104,20 @@ export function dehydrateProject(p: Project): Project {
     characters: p.characters.map(dehydrateCharacter) as Character[],
     connections: p.connections.map(dehydrateConnection) as Connection[],
     connectionTypes: p.connectionTypes.filter((t) => !t.isDefault),
+  };
+}
+
+
+// ── normalization ─────────────────────────────────────────
+// Re-merge hard-coded defaults after reading from storage.
+
+export function normalizeProject(project: Project): Project {
+  const custom: ConnectionType[] = project.connectionTypes ?? [];
+  return {
+    ...project,
+    connectionTypes: [
+      ...DEFAULT_CONNECTION_TYPES,
+      ...custom.filter((t) => !DEFAULT_CONNECTION_TYPES.some((d) => d.id === t.id)),
+    ],
   };
 }
