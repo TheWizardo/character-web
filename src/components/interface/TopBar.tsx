@@ -1,6 +1,7 @@
 import { ChevronDown } from "lucide-react";
 import Menu from "./Menu";
 import { useIsMobile } from "../../hooks/useIsMobile";
+import { useAuth } from "../../hooks/useAuth";
 
 const topBarH = 56;
 
@@ -32,6 +33,8 @@ export default function TopBar({
   setSelectedId
 }: Props) {
   const isMobile = useIsMobile();
+  const { status } = useAuth();
+
   return <div
     style={{
       position: "absolute",
@@ -72,13 +75,14 @@ export default function TopBar({
           setSelectedId(null);
           setShowAddMenu(false);
         }}
+        disabled={status === "signed-out"}
         style={{
           display: "flex",
           alignItems: "center",
           gap: 4,
           padding: "4px 10px",
           borderRadius: 6,
-          cursor: "pointer",
+          cursor: status === "signed-out" ? "" : "pointer",
           background: showProjectsList ? "var(--gold-dim)" : "var(--bg-surface)",
           border: `1px solid ${showProjectsList ? "var(--gold-border)" : "var(--border-subtle)"}`,
           color: showProjectsList ? "var(--gold)" : "var(--text-muted)",
@@ -100,7 +104,7 @@ export default function TopBar({
         >
           {activeProjectName ?? "My Story"}
         </span>
-        <ChevronDown size={12} style={{ flexShrink: 0 }} />
+        {status !== "signed-out" && <ChevronDown size={12} style={{ flexShrink: 0 }} />}
       </button>
 
       {!isMobile && (
