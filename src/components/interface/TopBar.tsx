@@ -75,7 +75,7 @@ export default function TopBar({
           setSelectedId(null);
           setShowAddMenu(false);
         }}
-        // disabled={status === "signed-out"}
+        disabled={status === "signed-out"}
         style={{
           display: "flex",
           alignItems: "center",
