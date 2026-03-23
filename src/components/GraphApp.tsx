@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { Character, Connection, ConnectionType } from "../lib/types";
-import { useAppState } from "../lib/useAppState";
-import { useIsMobile } from "../lib/useIsMobile";
-import { useAuth } from "../lib/useAuth";
+import { useAppState } from "../hooks/useAppState";
+import { useIsMobile } from "../hooks/useIsMobile";
+import { useAuth } from "../hooks/useAuth";
 import ForceGraph from "./ForceGraph";
 import CharacterPanel from "./CharacterPanel";
 import AddCharacterModal from "./AddCharacterModal";
@@ -11,22 +11,19 @@ import ProjectSettingsModal from "./ProjectSettingsModal";
 import ProjectsSidebar from "./ProjectsSidebar";
 import SiteSettingsModal from "./SiteSettingsModal";
 import Legend from "./Legend";
-import { UserPlus, Link, SlidersHorizontal, Cog, Plus, ChevronDown } from "lucide-react";
 import GraphNavigation from "./GraphNavigation";
-import ToolBtn from "./ToolBtn";
-import UserMenu from "./UserMenu";
-import IconBtn from "./IconBtn";
-import { deleteRemoteProject, fetchUserProjects } from "../lib/api";
-import { syncProjects, tempExists, uploadProject } from "../lib/cloudStorage";
-import { NotificationService } from "../lib/useNotifications";
-import { overwriteProject, purgeTemp } from "../lib/localstorage";
+import { fetchUserProjects } from "../lib/api";
+import { uploadProject } from "../lib/cloudStorage";
+import { useNotifications } from "../hooks/useNotifications";
+import { purgeAllTempProjects } from "../lib/localstorage";
+import { deleteActiveProject, handleActiveProjConfirmation } from "../lib/abstractStorage";
+import Loading from "./Loading";
+import TopBar from "./TopBar";
 
 
-interface Props {
-  notify: NotificationService
-}
+export default function GraphApp() {
+  const notify = useNotifications();
 
-export default function GraphApp({ notify }: Props) {
   const {
     state, loaded,
     activeData, saveActiveData, resetActiveProject,
@@ -35,7 +32,7 @@ export default function GraphApp({ notify }: Props) {
   } = useAppState();
 
   const isMobile = useIsMobile();
-  const { user, status, signIn, logOut } = useAuth();
+  const { user, status } = useAuth();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [highlightTypeId, setHighlightTypeId] = useState<string | null>(null);
@@ -50,22 +47,12 @@ export default function GraphApp({ notify }: Props) {
   const theme = state.theme ?? "dark";
   const useLabelBg = state.useLabelBg ?? true;
 
-  const handleActiveProjConfimation = () => {
-    if (tempExists(activeProject.id)) {
-      notify.confirmation(`"${activeProject.name}" was not synced. Showing local project.\nOverwrite local data?`,
-        "confirm",
-        () => { overwriteProject(activeProject.id); reloadActiveProject() }, "Overwrite",
-        () => deleteProject(activeProject.id, true)
-      )
-    }
-  };
-
   useEffect(() => {
     if (status === "signed-in") {
       notify.success(`Logged in as: ${user.displayName}`)
       fetchUserProjects().then(p => {
         const unsavedProjects = syncWithRemote(p);
-        handleActiveProjConfimation()
+        handleActiveProjConfirmation(activeProject, notify, reloadActiveProject, deleteProject);
         unsavedProjects.forEach(up => {
           notify.confirmation(`"${up.name}" was not saved to the cloud.\nUpload?`,
             "dismiss",
@@ -74,16 +61,16 @@ export default function GraphApp({ notify }: Props) {
             1000 * 60 * 60 * 10
           )
         });
-      });
+      }).catch(err => notify.error("Failed to contact server.\nShowing only local projects"));
     }
   }, [status])
 
   useEffect(() => {
     if (!activeProject) {
-      purgeTemp();
+      purgeAllTempProjects();
       return;
     }
-    handleActiveProjConfimation();
+    handleActiveProjConfirmation(activeProject, notify, reloadActiveProject, deleteProject);
   }, [activeProject?.id])
 
   const handleUpdatePositions = useCallback(() => { }, []);
@@ -135,26 +122,9 @@ export default function GraphApp({ notify }: Props) {
   const handleSaveConnectionTypes = (types: ConnectionType[]) =>
     saveActiveData({ ...activeData, connectionTypes: types });
 
-  if (!loaded) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          width: "100vw",
-          height: "100dvh",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "var(--bg-base)",
-        }}
-      >
-        <p className="font-display text-2xl" style={{ color: "var(--text-muted)" }}>
-          Loading…
-        </p>
-      </div>
-    );
+  if (!loaded || status === "loading") {
+    return <Loading />
   }
-
-  const topBarH = 56;
 
   return (
     <div
@@ -179,172 +149,20 @@ export default function GraphApp({ notify }: Props) {
       />
 
       {/* ── TOP BAR ────────────────────────────────────── */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 20,
-          height: `calc(${topBarH}px + env(safe-area-inset-top, 0px))`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingTop: "env(safe-area-inset-top, 0px)",
-          paddingLeft: "16px",
-          paddingRight: "16px",
-          background: "var(--topbar-gradient)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <img
-            src="/logo.svg"
-            alt="Logo"
-            style={{
-              width: 30,
-              height: 30,
-              flexShrink: 0,
-            }}
-            className="logo-theme"
-          />
-
-          {!isMobile && (
-            <span className="font-display text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
-              Character Loom
-            </span>
-          )}
-
-          <button
-            onClick={() => {
-              setShowProjects(!showProjects);
-              setSelectedId(null);
-              setShowAddMenu(false);
-            }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              padding: "4px 10px",
-              borderRadius: 6,
-              cursor: "pointer",
-              background: showProjects ? "var(--gold-dim)" : "var(--bg-surface)",
-              border: `1px solid ${showProjects ? "var(--gold-border)" : "var(--border-subtle)"}`,
-              color: showProjects ? "var(--gold)" : "var(--text-muted)",
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 12,
-              maxWidth: isMobile ? 130 : 220,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            <span
-              style={{
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                maxWidth: isMobile ? 90 : 170,
-              }}
-            >
-              {activeProject?.name ?? "My Story"}
-            </span>
-            <ChevronDown size={12} style={{ flexShrink: 0 }} />
-          </button>
-
-          {!isMobile && (
-            <span className="font-mono text-xs" style={{ color: "var(--text-muted)" }}>
-              {activeData.characters.length} chars · {activeData.connections.length} connections
-            </span>
-          )}
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8 }}>
-          {!isMobile && (
-            <>
-              <ToolBtn onClick={() => setShowAddChar(true)} gold>
-                <UserPlus size={14} /> Character
-              </ToolBtn>
-              <ToolBtn onClick={() => setShowAddConn(true)}>
-                <Link size={14} /> Connection
-              </ToolBtn>
-              <IconBtn onClick={() => setShowProjSettings(true)} title="Story settings">
-                <SlidersHorizontal size={15} />
-              </IconBtn>
-              <IconBtn onClick={() => setShowSiteSettings(true)} title="Site settings">
-                <Cog size={18} />
-              </IconBtn>
-              {/* User avatar + sign out */}
-              <UserMenu user={user} authStatus={status} onSignIn={signIn} onSignOut={logOut} />
-            </>
-          )}
-
-          {isMobile && (
-            <>
-              <div style={{ position: "relative" }}>
-                <IconBtn
-                  onClick={() => setShowAddMenu(!showAddMenu)}
-                  title="Add"
-                  active={showAddMenu}
-                >
-                  <Plus size={18} />
-                </IconBtn>
-
-                {showAddMenu && (
-                  <>
-                    <div
-                      onClick={() => setShowAddMenu(false)}
-                      style={{ position: "fixed", inset: 0, zIndex: 38 }}
-                    />
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "calc(100% + 8px)",
-                        right: 0,
-                        zIndex: 39,
-                        background: "var(--panel-gradient)",
-                        border: "1px solid var(--border-medium)",
-                        borderRadius: 10,
-                        overflow: "hidden",
-                        minWidth: 170,
-                        boxShadow: "0 8px 32px var(--shadow-lg)",
-                      }}
-                    >
-                      <button
-                        onClick={() => {
-                          setShowAddChar(true);
-                          setShowAddMenu(false);
-                        }}
-                        style={dropdownItemStyle(true)}
-                      >
-                        <UserPlus size={14} /> Add Character
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowAddConn(true);
-                          setShowAddMenu(false);
-                        }}
-                        style={dropdownItemStyle(false)}
-                      >
-                        <Link size={14} /> Add Connection
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <IconBtn onClick={() => setShowProjSettings(true)} title="Story settings">
-                <SlidersHorizontal size={18} />
-              </IconBtn>
-
-              <IconBtn onClick={() => setShowSiteSettings(true)} title="Site settings">
-                <Cog size={20} />
-              </IconBtn>
-
-              <UserMenu isMobile user={user} authStatus={status} onSignIn={signIn} onSignOut={logOut} />
-            </>
-          )}
-        </div>
-      </div>
+      <TopBar
+        showProjectsList={showProjects}
+        activeProjectName={activeProject?.name}
+        connNum={activeData.connections.length}
+        charNum={activeData.characters.length}
+        setShowAddChar={setShowAddChar}
+        setShowAddConn={setShowAddConn}
+        setShowAddMenu={setShowAddMenu}
+        setShowProjSettings={setShowProjSettings}
+        setShowSiteSettings={setShowSiteSettings}
+        setShowProjects={setShowProjects}
+        setSelectedId={setSelectedId}
+        showAddMenu={showAddMenu}
+      />
 
       <ForceGraph
         data={activeData}
@@ -497,16 +315,7 @@ export default function GraphApp({ notify }: Props) {
             setSelectedId(null);
             setHighlightTypeId(null);
           }}
-          onDelete={() => {
-            const name = activeProject.name;
-            deleteProject(activeProject.id, false);
-            if (deleteRemoteProject(activeProject.id)) {
-              notify.success(`Deleted "${name}"`);
-            }
-            else {
-              notify.error(`Unable to delete "${name}" from the cloud`)
-            }
-          }}
+          onDelete={() => deleteActiveProject(activeProject, notify, deleteProject)}
           onSaveConnectionTypes={handleSaveConnectionTypes}
           onClose={() => setShowProjSettings(false)}
           notify={notify}
@@ -526,19 +335,3 @@ export default function GraphApp({ notify }: Props) {
     </div>
   );
 }
-
-const dropdownItemStyle = (gold: boolean): React.CSSProperties => ({
-  display: "flex",
-  alignItems: "center",
-  gap: 10,
-  width: "100%",
-  padding: "12px 16px",
-  textAlign: "left",
-  background: "transparent",
-  border: "none",
-  cursor: "pointer",
-  fontFamily: "'DM Mono', monospace",
-  fontSize: 13,
-  color: gold ? "var(--gold)" : "var(--text-secondary)",
-  borderBottom: gold ? "1px solid var(--border-subtle)" : "none",
-});
