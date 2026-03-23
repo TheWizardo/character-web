@@ -15,7 +15,7 @@ import { decompressData } from "./compress";
 import {
   getRawProject,
   saveRawProject,
-  tempProjectExists,
+  projectExists,
 } from "./localstorage";
 import { Project, ProjectServer } from "./types";
 
@@ -63,7 +63,7 @@ export function stageNewerRemoteProjects(
 
 /** Returns true if there is a staged (temp) version waiting for this project. */
 export function hasPendingSync(id: string): boolean {
-  return tempProjectExists(id);
+  return projectExists(id, true);
 }
 
 /** Deletes a project from the backend. */

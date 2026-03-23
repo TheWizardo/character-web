@@ -221,8 +221,8 @@ export function promoteTempProject(id: string): Project {
   return decompressData<Project>(tempData);
 }
 
-export function tempProjectExists(id: string): boolean {
-  return lsGetRaw(K.proj(id, true)) !== null;
+export function projectExists(id: string, isTemp: boolean): boolean {
+  return lsGetRaw(K.proj(id, isTemp)) !== null;
 }
 
 export function purgeAllTempProjects(): void {

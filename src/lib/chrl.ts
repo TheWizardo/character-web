@@ -8,6 +8,7 @@
 
 import { compressData, decompressData, isCompressed } from "./compress";
 import { DEFAULT_CONNECTION_TYPES } from "./constants";
+import { projectExists } from "./localstorage";
 import { Character, ChrlFile, Connection, ConnectionType, Project } from "./types";
 
 // ── validation ────────────────────────────────────────────
@@ -27,7 +28,7 @@ function isStringArray(v: unknown): v is string[] {
 function isConnectionType(v: unknown): v is ConnectionType {
   if (!isPlainObject(v)) return false;
   if (!hasOnlyKeys(v, ["id", "label", "emoji", "color", "isDefault"])) return false;
-  if (typeof v.id !== "string")    return false;
+  if (typeof v.id !== "string") return false;
   if (typeof v.label !== "string") return false;
   if (typeof v.emoji !== "string") return false;
   if (typeof v.color !== "string") return false;
@@ -37,59 +38,59 @@ function isConnectionType(v: unknown): v is ConnectionType {
 
 function isCharacter(v: unknown): v is Character {
   if (!isPlainObject(v)) return false;
-  if (!hasOnlyKeys(v, ["id","name","fullName","age","birthDate","physicalDescription","hobbies","address","workplace","education","additionalInfo","color"])) return false;
-  if (typeof v.id !== "string")   return false;
+  if (!hasOnlyKeys(v, ["id", "name", "fullName", "age", "birthDate", "physicalDescription", "hobbies", "address", "workplace", "education", "additionalInfo", "color"])) return false;
+  if (typeof v.id !== "string") return false;
   if (typeof v.name !== "string") return false;
-  if ("fullName"            in v && typeof v.fullName !== "string")            return false;
-  if ("age"                 in v && typeof v.age !== "number")                  return false;
-  if ("birthDate"           in v && typeof v.birthDate !== "string")            return false;
-  if ("physicalDescription" in v && typeof v.physicalDescription !== "string")  return false;
-  if ("hobbies"             in v && !isStringArray(v.hobbies))                  return false;
-  if ("address"             in v && typeof v.address !== "string")              return false;
-  if ("workplace"           in v && typeof v.workplace !== "string")            return false;
-  if ("education"           in v && typeof v.education !== "string")            return false;
-  if ("additionalInfo"      in v && typeof v.additionalInfo !== "string")       return false;
-  if ("color"               in v && typeof v.color !== "string")                return false;
+  if ("fullName" in v && typeof v.fullName !== "string") return false;
+  if ("age" in v && typeof v.age !== "number") return false;
+  if ("birthDate" in v && typeof v.birthDate !== "string") return false;
+  if ("physicalDescription" in v && typeof v.physicalDescription !== "string") return false;
+  if ("hobbies" in v && !isStringArray(v.hobbies)) return false;
+  if ("address" in v && typeof v.address !== "string") return false;
+  if ("workplace" in v && typeof v.workplace !== "string") return false;
+  if ("education" in v && typeof v.education !== "string") return false;
+  if ("additionalInfo" in v && typeof v.additionalInfo !== "string") return false;
+  if ("color" in v && typeof v.color !== "string") return false;
   return true;
 }
 
 function isConnection(v: unknown): v is Connection {
   if (!isPlainObject(v)) return false;
-  if (!hasOnlyKeys(v, ["id","source","target","label","type","mutual"])) return false;
-  if (typeof v.id     !== "string") return false;
+  if (!hasOnlyKeys(v, ["id", "source", "target", "label", "type", "mutual"])) return false;
+  if (typeof v.id !== "string") return false;
   if (typeof v.source !== "string") return false;
   if (typeof v.target !== "string") return false;
-  if (typeof v.label  !== "string") return false;
-  if (typeof v.type   !== "string") return false;
+  if (typeof v.label !== "string") return false;
+  if (typeof v.type !== "string") return false;
   if ("mutual" in v && typeof v.mutual !== "boolean") return false;
   return true;
 }
 
 function isValidChrlFile(obj: unknown): obj is ChrlFile {
   if (!isPlainObject(obj)) return false;
-  if (!hasOnlyKeys(obj, ["id","name","createdAt","updatedAt","characters","connections","connectionTypes","version","exportedAt"])) return false;
+  if (!hasOnlyKeys(obj, ["id", "name", "createdAt", "updatedAt", "characters", "connections", "connectionTypes", "version", "exportedAt"])) return false;
 
-  if (obj.version !== 1)                                                        return false;
-  if (typeof obj.id        !== "string")                                        return false;
-  if (typeof obj.name      !== "string")                                        return false;
-  if (typeof obj.createdAt !== "number" || !Number.isFinite(obj.createdAt))    return false;
-  if (typeof obj.updatedAt !== "number" || !Number.isFinite(obj.updatedAt))    return false;
-  if (typeof obj.exportedAt !== "number" || !Number.isFinite(obj.exportedAt))  return false;
+  if (obj.version !== 1) return false;
+  if (typeof obj.id !== "string") return false;
+  if (typeof obj.name !== "string") return false;
+  if (typeof obj.createdAt !== "number" || !Number.isFinite(obj.createdAt)) return false;
+  if (typeof obj.updatedAt !== "number" || !Number.isFinite(obj.updatedAt)) return false;
+  if (typeof obj.exportedAt !== "number" || !Number.isFinite(obj.exportedAt)) return false;
 
-  if (!Array.isArray(obj.characters)     || !obj.characters.every(isCharacter))      return false;
-  if (!Array.isArray(obj.connections)    || !obj.connections.every(isConnection))     return false;
-  if (!Array.isArray(obj.connectionTypes)|| !obj.connectionTypes.every(isConnectionType)) return false;
+  if (!Array.isArray(obj.characters) || !obj.characters.every(isCharacter)) return false;
+  if (!Array.isArray(obj.connections) || !obj.connections.every(isConnection)) return false;
+  if (!Array.isArray(obj.connectionTypes) || !obj.connectionTypes.every(isConnectionType)) return false;
 
   // Referential integrity
-  const charIds    = new Set(obj.characters.map((c) => c.id));
-  const typeIds    = new Set(obj.connectionTypes.map((t) => t.id));
+  const charIds = new Set(obj.characters.map((c) => c.id));
+  const typeIds = new Set(obj.connectionTypes.map((t) => t.id));
   const allTypeIds = new Set([...DEFAULT_CONNECTION_TYPES.map((t) => t.id), ...typeIds]);
 
-  if (charIds.size !== obj.characters.length)      return false;
+  if (charIds.size !== obj.characters.length) return false;
   if (typeIds.size !== obj.connectionTypes.length) return false;
   for (const c of obj.connections) {
     if (!charIds.has(c.source) || !charIds.has(c.target)) return false;
-    if (!allTypeIds.has(c.type))                           return false;
+    if (!allTypeIds.has(c.type)) return false;
   }
   return true;
 }
@@ -100,25 +101,25 @@ function isValidChrlFile(obj: unknown): obj is ChrlFile {
 function dehydrateForExport(p: Project): Project {
   return {
     ...p,
-    characters:      p.characters.map((c) => {
+    characters: p.characters.map((c) => {
       const str = (v?: string) => { const t = v?.trim(); return t || undefined; };
       const arr = (v?: string[]) => { const a = v?.map((s) => s.trim()).filter(Boolean); return a?.length ? a : undefined; };
       const fullName = str(c.fullName);
       return {
         id: c.id, name: c.name,
         ...(fullName && fullName !== c.name ? { fullName } : {}),
-        ...(typeof c.age === "number"  ? { age: c.age }                           : {}),
-        ...(str(c.birthDate)           ? { birthDate: str(c.birthDate) }          : {}),
+        ...(typeof c.age === "number" ? { age: c.age } : {}),
+        ...(str(c.birthDate) ? { birthDate: str(c.birthDate) } : {}),
         ...(str(c.physicalDescription) ? { physicalDescription: str(c.physicalDescription) } : {}),
-        ...(arr(c.hobbies)             ? { hobbies: arr(c.hobbies) }              : {}),
-        ...(str(c.address)             ? { address: str(c.address) }              : {}),
-        ...(str(c.workplace)           ? { workplace: str(c.workplace) }          : {}),
-        ...(str(c.education)           ? { education: str(c.education) }          : {}),
-        ...(str(c.additionalInfo)      ? { additionalInfo: str(c.additionalInfo) }: {}),
-        ...(str(c.color)               ? { color: str(c.color) }                  : {}),
+        ...(arr(c.hobbies) ? { hobbies: arr(c.hobbies) } : {}),
+        ...(str(c.address) ? { address: str(c.address) } : {}),
+        ...(str(c.workplace) ? { workplace: str(c.workplace) } : {}),
+        ...(str(c.education) ? { education: str(c.education) } : {}),
+        ...(str(c.additionalInfo) ? { additionalInfo: str(c.additionalInfo) } : {}),
+        ...(str(c.color) ? { color: str(c.color) } : {}),
       } as Character;
     }),
-    connections:     p.connections.map((c) => ({
+    connections: p.connections.map((c) => ({
       id: c.id, source: c.source, target: c.target, label: c.label, type: c.type,
       ...(c.mutual ? {} : { mutual: false }),
     })),
@@ -132,7 +133,7 @@ function dehydrateForExport(p: Project): Project {
 export function downloadChrl(project: Project): void {
   const payload: ChrlFile = {
     ...dehydrateForExport(project),
-    version:    1,
+    version: 1,
     exportedAt: Date.now(),
   };
 
@@ -140,8 +141,8 @@ export function downloadChrl(project: Project): void {
   try { content = compressData(payload); }
   catch { content = JSON.stringify(payload, null, 2); }
 
-  const a    = document.createElement("a");
-  a.href     = URL.createObjectURL(new Blob([content], { type: "text/plain;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([content], { type: "text/plain;charset=utf-8" }));
   a.download = `${project.name.replaceAll(/[^a-z0-9_\-.]+/gi, "_")}.chrl`;
   a.click();
   URL.revokeObjectURL(a.href);
@@ -160,15 +161,42 @@ export function parseChrlFile(text: string): ChrlFile | null {
 export function chrlToProject(file: ChrlFile): Project {
   const custom = file.connectionTypes ?? [];
   return {
-    id:         file.id,
-    name:       file.name,
-    createdAt:  file.createdAt,
-    updatedAt:  file.updatedAt,
+    id: file.id,
+    name: file.name,
+    createdAt: file.createdAt,
+    updatedAt: file.updatedAt,
     characters: file.characters,
-    connections:file.connections,
+    connections: file.connections,
     connectionTypes: [
       ...DEFAULT_CONNECTION_TYPES,
       ...custom.filter((t) => !DEFAULT_CONNECTION_TYPES.some((d) => d.id === t.id)),
     ],
   };
+}
+
+export function importFile(file: File): Promise<{ file: ChrlFile, collision: boolean } | null> {
+  return new Promise((resolve) => {
+    if (!file) {
+      resolve(null);
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      const parsed = parseChrlFile(text);
+      const exists = projectExists(parsed.id, false);
+      if (!parsed) {
+        resolve(null);
+      }
+      else {
+        resolve({ file: parsed, collision: exists });
+      }
+    };
+
+    reader.onerror = () => resolve(null);
+
+    reader.readAsText(file);
+  });
 }
