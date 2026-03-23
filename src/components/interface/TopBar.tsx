@@ -75,7 +75,7 @@ export default function TopBar({
           setSelectedId(null);
           setShowAddMenu(false);
         }}
-        disabled={status === "signed-out"}
+        // disabled={status === "signed-out"}
         style={{
           display: "flex",
           alignItems: "center",
@@ -121,6 +121,7 @@ export default function TopBar({
       setShowProjSettings={setShowProjSettings}
       setShowSiteSettings={setShowSiteSettings}
       showAddMenu={showAddMenu}
+      disableAddConnection={charNum < 2}
     />
   </div>
 }

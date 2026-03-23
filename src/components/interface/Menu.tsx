@@ -6,11 +6,12 @@ import { useIsMobile } from "../../hooks/useIsMobile";
 
 export interface MenuProps {
   showAddMenu: boolean,
-  setShowAddMenu: React.Dispatch<React.SetStateAction<boolean>>
-  setShowAddChar: React.Dispatch<React.SetStateAction<boolean>>
-  setShowAddConn: React.Dispatch<React.SetStateAction<boolean>>
-  setShowProjSettings: React.Dispatch<React.SetStateAction<boolean>>
-  setShowSiteSettings: React.Dispatch<React.SetStateAction<boolean>>
+  setShowAddMenu: (b: boolean) => void,
+  setShowAddChar: (b: boolean) => void,
+  setShowAddConn: (b: boolean) => void,
+  setShowProjSettings: (b: boolean) => void,
+  setShowSiteSettings: (b: boolean) => void,
+  disableAddConnection: boolean
 }
 
 export default function Menu({
@@ -19,7 +20,8 @@ export default function Menu({
   setShowAddChar,
   setShowAddConn,
   setShowProjSettings,
-  setShowSiteSettings
+  setShowSiteSettings,
+  disableAddConnection
 }: MenuProps) {
 
   const isMobile = useIsMobile();
@@ -29,7 +31,7 @@ export default function Menu({
         <ToolBtn onClick={() => setShowAddChar(true)} gold>
           <UserPlus size={14} /> Character
         </ToolBtn>
-        <ToolBtn onClick={() => setShowAddConn(true)}>
+        <ToolBtn disabled={disableAddConnection} gold={!disableAddConnection} onClick={() => setShowAddConn(true)}>
           <Link size={14} /> Connection
         </ToolBtn>
         <IconBtn onClick={() => setShowProjSettings(true)} title="Story settings">
@@ -82,11 +84,12 @@ export default function Menu({
                   <UserPlus size={14} /> Add Character
                 </button>
                 <button
+                  disabled={disableAddConnection}
                   onClick={() => {
                     setShowAddConn(true);
                     setShowAddMenu(false);
                   }}
-                  style={dropdownItemStyle(false)}
+                  style={dropdownItemStyle(!disableAddConnection)}
                 >
                   <Link size={14} /> Add Connection
                 </button>
@@ -106,7 +109,7 @@ export default function Menu({
       </>
     )}
     {/* User avatar + sign out */}
-    <UserMenu/>
+    <UserMenu />
   </div>
 }
 
