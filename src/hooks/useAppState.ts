@@ -9,6 +9,7 @@ import {
   loadProjects,
   deleteProjectData,
   makeEmptyProject,
+  userExists,
 } from "../lib/localstorage";
 import { v4 as uuidv4 } from "uuid";
 import { stageNewerRemoteProjects } from "../lib/cloudStorage";
@@ -101,12 +102,14 @@ export function useAppState() {
     saveProject(reset);
   };
 
-  const updateUser = (uid: string) => {
+  const updateUser = (uid: string): boolean => {
+    const exist = userExists(uid);
     setUser(uid);
     const newMeta = loadMeta(uid);
     const loadedProjects = loadProjects(newMeta.projectIds);
     setMeta(newMeta);
     setProjects(loadedProjects);
+    return exist;
   };
 
   const createProject = (name: string) => {

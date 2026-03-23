@@ -50,9 +50,11 @@ export default function GraphApp() {
   useEffect(() => {
     if (status === "signed-in") {
       notify.success(`Logged in as: ${user.displayName}`)
-      updateUser(user.uid);
+      const existingUser = updateUser(user.uid);
       fetchUserProjects().then(p => {
         const unsavedProjects = syncWithRemote(p);
+        console.log(user.uid, existingUser);
+        if (!existingUser) return;
         handleActiveProjConfirmation(activeProject, notify, reloadActiveProject, deleteProject);
         unsavedProjects.forEach(up => {
           notify.confirmation(`"${up.name}" was not saved to the cloud.\nUpload?`,
