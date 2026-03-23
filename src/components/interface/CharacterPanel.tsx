@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Character, Connection, ConnectionType } from "../lib/types";
+import { Character, Connection, ConnectionType } from "../../lib/types";
 import {
   X, MapPin, Briefcase, GraduationCap, Heart, Edit3, Check,
   Trash2, User, ArrowLeftRight, ArrowRight, Calendar, FileText, AlertTriangle
 } from "lucide-react";
-import { CHAR_PALLETE, CRIT_COLOR, DEF_COLOR, OK_COLOR } from "../lib/constants";
+import { CHAR_PALLETE, CRIT_COLOR, DEF_COLOR, OK_COLOR } from "../../lib/constants";
 
 interface Props {
   character: Character;
