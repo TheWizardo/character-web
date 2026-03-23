@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { AppState, GraphData, Meta, Project, ChrlFile, ProjectServer } from "./types";
-import { DEFAULT_CONNECTION_TYPES } from "./constants";
+import { AppState, GraphData, Meta, Project, ChrlFile, ProjectServer } from "../lib/types";
+import { DEFAULT_CONNECTION_TYPES } from "../lib/constants";
 import {
   saveMeta,
   loadMeta,
@@ -8,11 +8,11 @@ import {
   loadProjectData,
   loadProjects,
   deleteProjectData,
-  chrlToProject,
   makeEmptyProject,
-} from "./localstorage";
+} from "../lib/localstorage";
 import { v4 as uuidv4 } from "uuid";
-import { syncProjects } from "./cloudStorage";
+import { stageNewerRemoteProjects } from "../lib/cloudStorage";
+import { chrlToProject } from "../lib/chrl";
 
 export function useAppState() {
   const [meta, setMeta] = useState<Meta | null>(() => loadMeta());
@@ -134,7 +134,7 @@ export function useAppState() {
     if (projects.length === 1) return;
 
     const remaining = projects.filter((p) => p.id !== id);
-    deleteProjectData(id, isTemp);
+    deleteProjectData(id);
     if (isTemp) return;
 
     setProjects(remaining);
@@ -149,7 +149,7 @@ export function useAppState() {
 const syncWithRemote = useCallback(
   (remoteProjects: (ProjectServer & { id: string })[]) => {
     // 1. Write remote projects into local storage
-    syncProjects(remoteProjects, projects);
+    stageNewerRemoteProjects(remoteProjects, projects);
 
     // 2. Reload all synced projects from local storage
     const syncedProjects = remoteProjects

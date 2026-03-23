@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { User, onAuthStateChanged, signInWithPopup, signOut, setPersistence, browserLocalPersistence, } from "firebase/auth";
-import { auth, provider } from "./firebase";
+import { auth, provider } from "../lib/firebase";
 
 export type AuthState = "loading" | "signed-out" | "signed-in";
 
@@ -34,8 +34,13 @@ export function useAuth() {
   }, []);
 
   const signIn = async () => {
-    await setPersistence(auth, browserLocalPersistence);
-    return signInWithPopup(auth, provider);
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+      return await signInWithPopup(auth, provider);
+    } catch (err: any) {
+      if (err?.code === "auth/user-cancelled") return null;
+      throw err;
+    }
   };
 
   const logOut = () => signOut(auth);
