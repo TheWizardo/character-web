@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Character } from "../../lib/types";
 import { X, Plus } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
-import { CHAR_PALLETE } from "../../lib/constants";
+import { CHAR_PALLETTE } from "../../lib/constants";
 
 interface Props {
   onAdd: (character: Character) => void;
@@ -11,11 +11,11 @@ interface Props {
 
 export default function AddCharacterModal({ onAdd, onClose }: Props) {
   const [form, setForm] = useState<Partial<Character>>({
-    color: CHAR_PALLETE[Math.floor(Math.random() * CHAR_PALLETE.length)],
+    color: CHAR_PALLETTE[Math.floor(Math.random() * CHAR_PALLETTE.length)],
     hobbies: [],
   });
   const [hobbiesText, setHobbiesText] = useState("");
-  const [newColor, setNewColor] = useState(CHAR_PALLETE[0]);
+  const [newColor, setNewColor] = useState(CHAR_PALLETTE[0]);
 
   const submit = () => {
     if (!form.name?.trim()) return;
@@ -105,7 +105,7 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
           <div>
             <label className="cl-label">Color</label>
             <div className="flex gap-2 flex-wrap mt-1">
-              {CHAR_PALLETE.map((col) => (
+              {CHAR_PALLETTE.map((col) => (
                 <button key={col} onClick={() => { setForm({ ...form, color: col }); setNewColor(col); }}
                   className="w-7 h-7 rounded-full transition-transform hover:scale-110"
                   style={{ background: col, border: form.color === col ? "2px solid var(--text-primary)" : "2px solid transparent", boxShadow: form.color === col ? `0 0 8px ${col}` : "none" }} />

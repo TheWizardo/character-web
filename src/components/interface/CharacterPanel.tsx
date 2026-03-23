@@ -4,7 +4,7 @@ import {
   X, MapPin, Briefcase, GraduationCap, Heart, Edit3, Check,
   Trash2, User, ArrowLeftRight, ArrowRight, Calendar, FileText, AlertTriangle
 } from "lucide-react";
-import { CHAR_PALLETE, CRIT_COLOR, DEF_COLOR, OK_COLOR } from "../../lib/constants";
+import { CHAR_PALLETTE, CRIT_COLOR, DEF_COLOR, OK_COLOR } from "../../lib/constants";
 
 interface Props {
   character: Character;
@@ -26,7 +26,7 @@ export default function CharacterPanel({
   const [draft, setDraft] = useState<Character>(character);
   const [confirmDelete, setConfirm] = useState(false);
   const [pendingConnDel, setPendingConn] = useState<string | null>(null);
-  const [newColor, setNewColor] = useState(CHAR_PALLETE[0]);
+  const [newColor, setNewColor] = useState(CHAR_PALLETTE[0]);
   const [intermidiateHobbies, setIntermidiateHobbies] = useState<string>(draft.hobbies?.join(", ") || "");
 
   useEffect(() => {
@@ -153,7 +153,7 @@ export default function CharacterPanel({
           <div className="mb-5">
             <label className="cl-label">Color</label>
             <div className="flex gap-2 flex-wrap mt-1">
-              {CHAR_PALLETE.map((col) => (
+              {CHAR_PALLETTE.map((col) => (
                 <button key={col} onClick={() => { setDraft({ ...draft, color: col }); setNewColor(col); }}
                   className="w-7 h-7 rounded-full transition-transform hover:scale-110"
                   style={{ background: col, border: draft.color === col ? "2px solid var(--text-primary)" : "2px solid transparent", boxShadow: draft.color === col ? `0 0 8px ${col}` : "none" }} />

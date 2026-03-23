@@ -1,6 +1,6 @@
 import { ConnectionType } from "./types";
 
-export const CHAR_PALLETE = [
+export const CHAR_PALLETTE = [
     "#c0392b", "#2980b9", "#16a085", "#8e44ad", "#e67e22",
     "#27ae60", "#d4a843", "#8b6f47", "#2c3e50", "#e84393"
 ];
