@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import { X, Moon, Sun, Upload, AlertTriangle } from "lucide-react";
-import { parseChrlFile } from "../../lib/chrl";
-import { isCompressed } from "../../lib/compress";
+import { importFile } from "../../lib/chrl";
 import { CRIT_COLOR } from "../../lib/constants";
 import { ChrlFile } from "../../lib/types";
+import { useNotifications } from "../../hooks/useNotifications";
 
 interface Props {
   theme: "dark" | "light";
@@ -18,33 +18,31 @@ export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLab
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<ChrlFile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const notify = useNotifications();
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!isCompressed(file)) {
-      setError("Invalid .chrl file. Please check the file and try again.");
-      return;
-    }
-    setError(null);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string;
-      const parsed = parseChrlFile(text);
+    importFile(file).then(parsed => {
       if (!parsed) {
         setError("Invalid .chrl file. Please check the file and try again.");
-        return;
       }
-      setPending(parsed);
-    };
-    reader.readAsText(file);
-    // reset so same file can be re-selected
+      else {
+        if (parsed.collision) setPending(parsed.file);
+        else {
+          setPending(null);
+          confirm("append", parsed.file);
+        }
+      }
+    });
     e.target.value = "";
   };
 
-  const confirm = (mode: "append" | "override") => {
-    if (!pending) return;
-    onImport(pending, mode);
+  const confirm = (mode: "append" | "override", file?: ChrlFile) => {
+    if (!pending && !file) return;
+    const fileToImport = pending ?? file;
+    onImport(fileToImport, mode);
+    notify.success(`Imported ${fileToImport.name}`)
     setPending(null);
     onClose();
   };
