@@ -2,13 +2,10 @@ import { CheckCircle, XCircle, CloudOff, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Notification } from "../lib/types";
 import { CRIT_COLOR } from "../lib/constants";
+import { useNotifications } from "../hooks/useNotifications";
 
-interface Props {
-  notifications: Notification[];
-  dismiss: (id: number) => void;
-}
-
-export default function Notifications({ notifications, dismiss }: Props) {
+export default function Notifications() {
+  const { notifications, dismiss } = useNotifications();
   return (
     <AnimatePresence>
       {notifications.length > 0 && (
