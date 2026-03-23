@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { AppState, GraphData, Meta, Project, ChrlFile } from "./types";
+import { AppState, GraphData, Meta, Project, ChrlFile, ProjectServer } from "./types";
 import { DEFAULT_CONNECTION_TYPES } from "./constants";
 import {
   saveMeta,
@@ -12,6 +12,7 @@ import {
   makeEmptyProject,
 } from "./localstorage";
 import { v4 as uuidv4 } from "uuid";
+import { syncProjects } from "./cloudStorage";
 
 export function useAppState() {
   const [meta, setMeta] = useState<Meta | null>(() => loadMeta());
@@ -80,6 +81,16 @@ export function useAppState() {
     [activeProject, saveProject]
   );
 
+  const reloadActiveProject = useCallback(() => {
+    if (!meta?.activeProjectId) return;
+    const fresh = loadProjectData(meta.activeProjectId);
+    if (!fresh) return;
+
+    setProjects((prev) =>
+      prev.map((p) => (p.id === meta.activeProjectId ? fresh : p))
+    );
+  }, [meta?.activeProjectId]);
+
   const resetActiveProject = () => {
     if (!activeProject) return;
     const reset: Project = {
@@ -119,11 +130,13 @@ export function useAppState() {
     saveProject(updated);
   };
 
-  const deleteProject = (id: string) => {
+  const deleteProject = (id: string, isTemp: boolean) => {
     if (projects.length === 1) return;
 
     const remaining = projects.filter((p) => p.id !== id);
-    deleteProjectData(id);
+    deleteProjectData(id, isTemp);
+    if (isTemp) return;
+
     setProjects(remaining);
 
     persistMeta({
@@ -132,6 +145,45 @@ export function useAppState() {
       activeProjectId: meta.activeProjectId === id ? remaining[0].id : meta.activeProjectId,
     });
   };
+
+const syncWithRemote = useCallback(
+  (remoteProjects: (ProjectServer & { id: string })[]) => {
+    // 1. Write remote projects into local storage
+    syncProjects(remoteProjects, projects);
+
+    // 2. Reload all synced projects from local storage
+    const syncedProjects = remoteProjects
+      .map((rp) => loadProjectData(rp.id))
+      .filter((p): p is Project => p !== null);
+
+    // 3. Keep local-only projects too
+    const remoteIds = new Set(remoteProjects.map((p) => p.id));
+    const localOnlyProjects = projects.filter((p) => !remoteIds.has(p.id));
+
+    const nextProjects = [...syncedProjects, ...localOnlyProjects].sort(
+      (a, b) => b.updatedAt - a.updatedAt
+    );
+
+    // 4. Update React state
+    setProjects(nextProjects);
+
+    // 5. Repair meta.projectIds and activeProjectId
+    const nextProjectIds = nextProjects.map((p) => p.id);
+    const nextActiveId = nextProjectIds.includes(meta.activeProjectId)
+      ? meta.activeProjectId
+      : nextProjectIds[0];
+
+    persistMeta({
+      ...meta,
+      projectIds: nextProjectIds,
+      activeProjectId: nextActiveId,
+    });
+
+    // 6. Return local-only projects if you still need to upload them
+    return localOnlyProjects;
+  },
+  [projects, meta, persistMeta]
+);
 
   const switchProject = (id: string) => {
     if (!projects.some((p) => p.id === id)) {
@@ -216,6 +268,8 @@ export function useAppState() {
     resetActiveProject,
     createProject,
     renameProject,
+    reloadActiveProject,
+    syncWithRemote,
     deleteProject,
     switchProject,
     setTheme,

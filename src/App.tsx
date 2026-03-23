@@ -1,7 +1,12 @@
-import { useAuth } from "./lib/useAuth";
 import GraphApp from "./components/GraphApp";
+import Notifications from "./components/Notifications";
+import { useNotifications } from "./lib/useNotifications";
 
 export default function App() {
-  const { user, status, signIn, logOut } = useAuth();
-  return <GraphApp user={user} authStatus={status} onSignIn={signIn} onSignOut={logOut} />;
+  const notify = useNotifications();
+
+  return <>
+    <GraphApp notify={notify} />
+    <Notifications dismiss={notify.dismiss} notifications={notify.notifications} />
+  </>;
 }

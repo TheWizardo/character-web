@@ -9,11 +9,10 @@ interface Props {
   onSwitch: (id: string) => void;
   onCreate: (name: string) => void;
   onRename: (id: string, name: string) => void;
-  onDelete: (id: string) => void;
   onClose: () => void;
 }
 
-export default function ProjectsSidebar({ projects, activeId, onSwitch, onCreate, onRename, onDelete, onClose }: Props) {
+export default function ProjectsSidebar({ projects, activeId, onSwitch, onCreate, onRename, onClose }: Props) {
   const [creatingName, setCreatingName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);

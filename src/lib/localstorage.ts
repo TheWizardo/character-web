@@ -5,7 +5,7 @@ import { GraphData, Project, ConnectionType, ChrlFile, Meta, Connection, Charact
 // ── keys ─────────────────────────────────────────────────
 const K = {
   meta: "cl:meta",
-  proj: (id: string) => `cl:p:${id}`,
+  proj: (id: string, isTemp: boolean) => `cl:p:${id}${isTemp ? ":temp" : ""}`,
 };
 
 // ── compression helpers ───────────────────────────────────
@@ -72,7 +72,9 @@ function lsSetRaw(key: string, val: string): void {
 function lsDel(key: string): void {
   try {
     localStorage.removeItem(key);
-  } catch { }
+  } catch {
+    console.warn(`Unable to remove ${key} from ls`)
+  }
 }
 
 function lsGet<T>(key: string): T | null {
@@ -406,11 +408,27 @@ export function loadMeta(): Meta {
 }
 
 export function saveProjectData(id: string, project: Project): void {
-  lsSet(K.proj(id), dehydrateProject(project));
+  lsSet(K.proj(id, false), dehydrateProject(project));
+}
+
+export function getRawProject(id: string, isTemp: boolean): string {
+  return lsGetRaw(K.proj(id, isTemp));
+}
+
+export function saveProject(id: string, zip: string, isTemp: boolean): void {
+  lsSetRaw(K.proj(id, isTemp), zip);
+}
+
+export function overwriteProject(id: string): Project {
+  const tempKey = K.proj(id, true);
+  const tempData = lsGetRaw(tempKey);
+  lsSetRaw(K.proj(id, false), tempData);
+  lsDel(tempKey);
+  return decompressData<Project>(tempData);
 }
 
 export function loadProjectData(id: string): Project | null {
-  const stored = lsGet<Project>(K.proj(id));
+  const stored = lsGet<Project>(K.proj(id, false));
   if (!stored) return null;
   return normalizeProject({ ...stored, id });
 }
@@ -425,8 +443,24 @@ export function loadProjects(projectIds: string[]): Project[] {
     .sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
-export function deleteProjectData(id: string): void {
-  lsDel(K.proj(id));
+export function deleteProjectData(id: string, isTemp: boolean): void {
+  lsDel(K.proj(id, isTemp));
+}
+
+export function purgeTemp(): void {
+  console.log("purging")
+  const keysToDelete: string[] = [];
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.includes("temp")) {
+      keysToDelete.push(key);
+    }
+  }
+
+  for (const key of keysToDelete) {
+    localStorage.removeItem(key);
+  }
 }
 
 // ── .chrl export / import ────────────────────────────────

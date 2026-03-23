@@ -178,7 +178,7 @@ export default function GraphNavigation({
             className="flex flex-col items-end gap-3"
             style={compact ? {} : { width: "30ch" }}>
             <button
-                onClick={() => { setExpanded(true); console.log("click") }}
+                onClick={() => setExpanded(true)}
                 title="Navigation"
                 style={{
                     ...btnStyle,

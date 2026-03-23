@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Project, ConnectionType, GraphData } from "../lib/types";
-import { X, Check, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download } from "lucide-react";
+import { Project, ConnectionType } from "../lib/types";
+import { X, Check, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download, CloudUpload } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { downloadChrl } from "../lib/localstorage";
 import { CON_PALETTE, CRIT_COLOR, EMOJIS } from "../lib/constants";
+import { uploadProject } from "../lib/cloudStorage";
+import { NotificationService } from "../lib/useNotifications";
 
 type Tab = "general" | "connections";
 
@@ -18,11 +20,12 @@ interface Props {
   onDelete: () => void;
   onSaveConnectionTypes: (types: ConnectionType[]) => void;
   onClose: () => void;
+  notify: NotificationService
 }
 
 export default function ProjectSettingsModal({
   project, canDelete, connectionTypes, characterCount, connectionCount,
-  onRename, onReset, onDelete, onSaveConnectionTypes, onClose,
+  onRename, onReset, onDelete, onSaveConnectionTypes, onClose, notify
 }: Props) {
   const [tab, setTab] = useState<Tab>("general");
   const [name, setName] = useState(project.name);
@@ -124,6 +127,27 @@ export default function ProjectSettingsModal({
                   </button>
                 </div>
               </div>
+              {/* Upload */}
+              <button
+                onClick={() => uploadProject(project.id).then(ok => {
+                  if (ok) {
+                    notify.success(`Uploaded "${project.name}"`);
+                  }
+                  else {
+                    notify.error(`Unable to uploaded "${project.name}"`);
+                  }
+                })}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-mono transition-all hover:scale-[1.01]"
+                style={{
+                  background: "linear-gradient(135deg, var(--text-muted), var(--gold))",
+                  color: "var(--bg-deep)",
+                  border: "1px solid var(--gold-border)",
+                  fontWeight: 600,
+                }}
+              >
+                <CloudUpload size={18} />
+                Save Project
+              </button>
 
               {/* Export */}
               <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 16 }}>

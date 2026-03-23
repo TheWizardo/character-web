@@ -1,8 +1,8 @@
-import { useState, useCallback } from "react";
-import { AuthProps, Character, Connection, ConnectionType } from "../lib/types";
+import { useState, useCallback, useEffect } from "react";
+import { Character, Connection, ConnectionType } from "../lib/types";
 import { useAppState } from "../lib/useAppState";
 import { useIsMobile } from "../lib/useIsMobile";
-import { AuthUser, AuthState } from "../lib/useAuth";
+import { useAuth } from "../lib/useAuth";
 import ForceGraph from "./ForceGraph";
 import CharacterPanel from "./CharacterPanel";
 import AddCharacterModal from "./AddCharacterModal";
@@ -16,16 +16,26 @@ import GraphNavigation from "./GraphNavigation";
 import ToolBtn from "./ToolBtn";
 import UserMenu from "./UserMenu";
 import IconBtn from "./IconBtn";
+import { deleteRemoteProject, fetchUserProjects } from "../lib/api";
+import { syncProjects, tempExists, uploadProject } from "../lib/cloudStorage";
+import { NotificationService } from "../lib/useNotifications";
+import { overwriteProject, purgeTemp } from "../lib/localstorage";
 
 
-export default function GraphApp({ user, authStatus, onSignIn, onSignOut }: AuthProps) {
+interface Props {
+  notify: NotificationService
+}
+
+export default function GraphApp({ notify }: Props) {
   const {
     state, loaded,
     activeData, saveActiveData, resetActiveProject,
-    activeProject, createProject, renameProject, deleteProject, switchProject, setTheme, setLabelBg, importChrl,
+    activeProject, createProject, renameProject, reloadActiveProject, syncWithRemote, deleteProject, switchProject,
+    setTheme, setLabelBg, importChrl,
   } = useAppState();
 
   const isMobile = useIsMobile();
+  const { user, status, signIn, logOut } = useAuth();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [highlightTypeId, setHighlightTypeId] = useState<string | null>(null);
@@ -39,6 +49,42 @@ export default function GraphApp({ user, authStatus, onSignIn, onSignOut }: Auth
   const selectedCharacter = activeData.characters.find((c) => c.id === selectedId) ?? null;
   const theme = state.theme ?? "dark";
   const useLabelBg = state.useLabelBg ?? true;
+
+  const handleActiveProjConfimation = () => {
+    if (tempExists(activeProject.id)) {
+      notify.confirmation(`"${activeProject.name}" was not synced. Showing local project.\nOverwrite local data?`,
+        "confirm",
+        () => { overwriteProject(activeProject.id); reloadActiveProject() }, "Overwrite",
+        () => deleteProject(activeProject.id, true)
+      )
+    }
+  };
+
+  useEffect(() => {
+    if (status === "signed-in") {
+      notify.success(`Logged in as: ${user.displayName}`)
+      fetchUserProjects().then(p => {
+        const unsavedProjects = syncWithRemote(p);
+        handleActiveProjConfimation()
+        unsavedProjects.forEach(up => {
+          notify.confirmation(`"${up.name}" was not saved to the cloud.\nUpload?`,
+            "dismiss",
+            () => uploadProject(up.id), "Upload",
+            () => { }, "Local only",
+            1000 * 60 * 60 * 10
+          )
+        });
+      });
+    }
+  }, [status])
+
+  useEffect(() => {
+    if (!activeProject) {
+      purgeTemp();
+      return;
+    }
+    handleActiveProjConfimation();
+  }, [activeProject?.id])
 
   const handleUpdatePositions = useCallback(() => { }, []);
 
@@ -228,7 +274,7 @@ export default function GraphApp({ user, authStatus, onSignIn, onSignOut }: Auth
                 <Cog size={18} />
               </IconBtn>
               {/* User avatar + sign out */}
-              <UserMenu user={user} authStatus={authStatus} onSignIn={onSignIn} onSignOut={onSignOut} />
+              <UserMenu user={user} authStatus={status} onSignIn={signIn} onSignOut={logOut} />
             </>
           )}
 
@@ -294,7 +340,7 @@ export default function GraphApp({ user, authStatus, onSignIn, onSignOut }: Auth
                 <Cog size={20} />
               </IconBtn>
 
-              <UserMenu isMobile user={user} authStatus={authStatus} onSignIn={onSignIn} onSignOut={onSignOut} />
+              <UserMenu isMobile user={user} authStatus={status} onSignIn={signIn} onSignOut={logOut} />
             </>
           )}
         </div>
@@ -396,7 +442,6 @@ export default function GraphApp({ user, authStatus, onSignIn, onSignOut }: Auth
           }}
           onCreate={createProject}
           onRename={renameProject}
-          onDelete={deleteProject}
           onClose={() => setShowProjects(false)}
         />
       )}
@@ -452,9 +497,19 @@ export default function GraphApp({ user, authStatus, onSignIn, onSignOut }: Auth
             setSelectedId(null);
             setHighlightTypeId(null);
           }}
-          onDelete={() => deleteProject(activeProject.id)}
+          onDelete={() => {
+            const name = activeProject.name;
+            deleteProject(activeProject.id, false);
+            if (deleteRemoteProject(activeProject.id)) {
+              notify.success(`Deleted "${name}"`);
+            }
+            else {
+              notify.error(`Unable to delete "${name}" from the cloud`)
+            }
+          }}
           onSaveConnectionTypes={handleSaveConnectionTypes}
           onClose={() => setShowProjSettings(false)}
+          notify={notify}
         />
       )}
 

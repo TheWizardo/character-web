@@ -45,6 +45,11 @@ export interface Project extends GraphData {
   updatedAt: number;
 }
 
+export interface ProjectServer {
+  zippedProject: string;
+  updatedAt: number;
+}
+
 export interface Meta {
   projectIds: string[];
   activeProjectId: string;
@@ -66,8 +71,30 @@ export interface ChrlFile extends Project {
 }
 
 export interface AuthProps {
-    user: AuthUser | null;
-    authStatus: AuthState;
-    onSignIn: () => Promise<any>;
-    onSignOut: () => void;
+  user: AuthUser | null;
+  authStatus: AuthState;
+  onSignIn: () => Promise<any>;
+  onSignOut: () => void;
 }
+
+export type NotificationKind = "success" | "error" | "confirmation";
+
+interface BaseNotification {
+  id: number;
+  message: string;
+}
+
+interface SimpleNotification extends BaseNotification {
+  kind: "success" | "error";
+}
+
+interface ConfirmationNotification extends BaseNotification {
+  kind: "confirmation";
+  danger: "confirm" | "dismiss";
+  onConfirm: () => void; // user clicked "Sync now"
+  confirmText?: string;
+  onDismiss?: () => void; // user clicked "Keep local"
+  dismissText?: string;
+}
+
+export type Notification = SimpleNotification | ConfirmationNotification;
