@@ -261,7 +261,7 @@ export default function ForceGraph({
       .attr("stroke-width", 1.25)
       .attr("opacity", 0.55)
       .attr("marker-end", (d: any) => `url(#ae-${d.type})`)
-      .attr("marker-start", (d: any) => (d.mutual ? `url(#as-${d.type})` : null));
+      .attr("marker-start", (d: any) => (d.unmutual ? null : `url(#as-${d.type})`));
 
     const labelGs = container.append("g").selectAll("g").data(links).join("g");
 

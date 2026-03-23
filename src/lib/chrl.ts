@@ -6,7 +6,7 @@
  * No localStorage reads or writes happen here.
  */
 
-import { compressData, decompressData, isCompressed } from "./compress";
+import { compressData, decompressData, dehydrateProject, isCompressed } from "./compress";
 import { DEFAULT_CONNECTION_TYPES } from "./constants";
 import { projectExists } from "./localstorage";
 import { Character, ChrlFile, Connection, ConnectionType, Project } from "./types";
@@ -95,44 +95,12 @@ function isValidChrlFile(obj: unknown): obj is ChrlFile {
   return true;
 }
 
-// ── dehydration for export ────────────────────────────────
-// Strip empty optional fields and custom-type flag before writing to file.
-
-function dehydrateForExport(p: Project): Project {
-  return {
-    ...p,
-    characters: p.characters.map((c) => {
-      const str = (v?: string) => { const t = v?.trim(); return t || undefined; };
-      const arr = (v?: string[]) => { const a = v?.map((s) => s.trim()).filter(Boolean); return a?.length ? a : undefined; };
-      const fullName = str(c.fullName);
-      return {
-        id: c.id, name: c.name,
-        ...(fullName && fullName !== c.name ? { fullName } : {}),
-        ...(typeof c.age === "number" ? { age: c.age } : {}),
-        ...(str(c.birthDate) ? { birthDate: str(c.birthDate) } : {}),
-        ...(str(c.physicalDescription) ? { physicalDescription: str(c.physicalDescription) } : {}),
-        ...(arr(c.hobbies) ? { hobbies: arr(c.hobbies) } : {}),
-        ...(str(c.address) ? { address: str(c.address) } : {}),
-        ...(str(c.workplace) ? { workplace: str(c.workplace) } : {}),
-        ...(str(c.education) ? { education: str(c.education) } : {}),
-        ...(str(c.additionalInfo) ? { additionalInfo: str(c.additionalInfo) } : {}),
-        ...(str(c.color) ? { color: str(c.color) } : {}),
-      } as Character;
-    }),
-    connections: p.connections.map((c) => ({
-      id: c.id, source: c.source, target: c.target, label: c.label, type: c.type,
-      ...(c.mutual ? {} : { mutual: false }),
-    })),
-    connectionTypes: p.connectionTypes.filter((t) => !t.isDefault)
-      .map(({ isDefault: _, ...rest }) => rest as ConnectionType),
-  };
-}
 
 // ── public API ────────────────────────────────────────────
 
 export function downloadChrl(project: Project): void {
   const payload: ChrlFile = {
-    ...dehydrateForExport(project),
+    ...dehydrateProject(project),
     version: 1,
     exportedAt: Date.now(),
   };

@@ -21,7 +21,7 @@ export interface Connection {
   target: string;
   label: string;
   type: string;
-  mutual?: false;
+  unmutual?: true;
 }
 
 export interface ConnectionType {

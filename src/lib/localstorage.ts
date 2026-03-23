@@ -11,7 +11,7 @@
  *   cl:p:{id}:temp → Project (compressed, server version pending confirmation)
  */
 
-import { compressData, decompressData, isCompressed } from "./compress";
+import { compressData, decompressData, dehydrateProject, isCompressed } from "./compress";
 import { DEFAULT_CONNECTION_TYPES } from "./constants";
 import { Character, Connection, ConnectionType, Meta, Project } from "./types";
 
@@ -30,7 +30,7 @@ function lsGetRaw(key: string): string | null {
 }
 
 function lsSetRaw(key: string, val: string): void {
-  try { localStorage.setItem(key, val); } catch {}
+  try { localStorage.setItem(key, val); } catch { }
 }
 
 function lsDel(key: string): void {
@@ -50,48 +50,8 @@ function lsSet(key: string, val: unknown): void {
   try {
     lsSetRaw(key, compressData(val));
   } catch {
-    try { lsSetRaw(key, JSON.stringify(val)); } catch {}
+    try { lsSetRaw(key, JSON.stringify(val)); } catch { }
   }
-}
-
-// ── dehydration ───────────────────────────────────────────
-// Strip empty strings and default values before writing to save space.
-
-function dehydrateCharacter(
-  c: Character
-): Partial<Character> & Pick<Character, "id" | "name"> {
-  const str = (v?: string) => { const t = v?.trim(); return t || undefined; };
-  const arr = (v?: string[]) => {
-    const a = v?.map((s) => s.trim()).filter(Boolean);
-    return a?.length ? a : undefined;
-  };
-  const fullName = str(c.fullName);
-  return {
-    id: c.id,
-    name: c.name,
-    ...(fullName && fullName !== c.name ? { fullName } : {}),
-    ...(typeof c.age === "number"        ? { age: c.age }                          : {}),
-    ...(str(c.birthDate)                 ? { birthDate: str(c.birthDate) }         : {}),
-    ...(str(c.physicalDescription)       ? { physicalDescription: str(c.physicalDescription) } : {}),
-    ...(arr(c.hobbies)                   ? { hobbies: arr(c.hobbies) }             : {}),
-    ...(str(c.address)                   ? { address: str(c.address) }             : {}),
-    ...(str(c.workplace)                 ? { workplace: str(c.workplace) }         : {}),
-    ...(str(c.education)                 ? { education: str(c.education) }         : {}),
-    ...(str(c.additionalInfo)            ? { additionalInfo: str(c.additionalInfo) } : {}),
-    ...(str(c.color)                     ? { color: str(c.color) }                 : {}),
-  };
-}
-
-function dehydrateProject(p: Project): Project {
-  return {
-    ...p,
-    characters:      p.characters.map(dehydrateCharacter) as Character[],
-    connections:     p.connections.map((c: Connection) => ({
-      id: c.id, source: c.source, target: c.target, label: c.label, type: c.type,
-      ...(c.mutual ? {} : { mutual: false }),
-    })),
-    connectionTypes: p.connectionTypes.filter((t) => !t.isDefault),
-  };
 }
 
 // ── normalization ─────────────────────────────────────────
@@ -152,17 +112,17 @@ export function loadMeta(): Meta {
   }
 
   const repaired: Meta = {
-    theme:           existing.theme ?? "dark",
-    useLabelBg:      existing.useLabelBg ?? true,
-    projectIds:      loaded.map((p) => p.id),
+    theme: existing.theme ?? "dark",
+    useLabelBg: existing.useLabelBg ?? true,
+    projectIds: loaded.map((p) => p.id),
     activeProjectId: loaded.some((p) => p.id === existing.activeProjectId)
       ? existing.activeProjectId
       : loaded[0].id,
   };
 
   const changed =
-    repaired.theme           !== existing.theme           ||
-    repaired.useLabelBg      !== existing.useLabelBg      ||
+    repaired.theme !== existing.theme ||
+    repaired.useLabelBg !== existing.useLabelBg ||
     repaired.activeProjectId !== existing.activeProjectId ||
     repaired.projectIds.length !== (existing.projectIds ?? []).length ||
     repaired.projectIds.some((id, i) => id !== existing.projectIds?.[i]);

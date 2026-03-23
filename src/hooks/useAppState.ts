@@ -146,44 +146,44 @@ export function useAppState() {
     });
   };
 
-const syncWithRemote = useCallback(
-  (remoteProjects: (ProjectServer & { id: string })[]) => {
-    // 1. Write remote projects into local storage
-    stageNewerRemoteProjects(remoteProjects, projects);
+  const syncWithRemote = useCallback(
+    (remoteProjects: (ProjectServer & { id: string })[]) => {
+      // 1. Write remote projects into local storage
+      stageNewerRemoteProjects(remoteProjects, projects);
 
-    // 2. Reload all synced projects from local storage
-    const syncedProjects = remoteProjects
-      .map((rp) => loadProjectData(rp.id))
-      .filter((p): p is Project => p !== null);
+      // 2. Reload all synced projects from local storage
+      const syncedProjects = remoteProjects
+        .map((rp) => loadProjectData(rp.id))
+        .filter((p): p is Project => p !== null);
 
-    // 3. Keep local-only projects too
-    const remoteIds = new Set(remoteProjects.map((p) => p.id));
-    const localOnlyProjects = projects.filter((p) => !remoteIds.has(p.id));
+      // 3. Keep local-only projects too
+      const remoteIds = new Set(remoteProjects.map((p) => p.id));
+      const localOnlyProjects = projects.filter((p) => !remoteIds.has(p.id));
 
-    const nextProjects = [...syncedProjects, ...localOnlyProjects].sort(
-      (a, b) => b.updatedAt - a.updatedAt
-    );
+      const nextProjects = [...syncedProjects, ...localOnlyProjects].sort(
+        (a, b) => b.updatedAt - a.updatedAt
+      );
 
-    // 4. Update React state
-    setProjects(nextProjects);
+      // 4. Update React state
+      setProjects(nextProjects);
 
-    // 5. Repair meta.projectIds and activeProjectId
-    const nextProjectIds = nextProjects.map((p) => p.id);
-    const nextActiveId = nextProjectIds.includes(meta.activeProjectId)
-      ? meta.activeProjectId
-      : nextProjectIds[0];
+      // 5. Repair meta.projectIds and activeProjectId
+      const nextProjectIds = nextProjects.map((p) => p.id);
+      const nextActiveId = nextProjectIds.includes(meta.activeProjectId)
+        ? meta.activeProjectId
+        : nextProjectIds[0];
 
-    persistMeta({
-      ...meta,
-      projectIds: nextProjectIds,
-      activeProjectId: nextActiveId,
-    });
+      persistMeta({
+        ...meta,
+        projectIds: nextProjectIds,
+        activeProjectId: nextActiveId,
+      });
 
-    // 6. Return local-only projects if you still need to upload them
-    return localOnlyProjects;
-  },
-  [projects, meta, persistMeta]
-);
+      // 6. Return local-only projects if you still need to upload them
+      return localOnlyProjects;
+    },
+    [projects, meta, persistMeta]
+  );
 
   const switchProject = (id: string) => {
     if (!projects.some((p) => p.id === id)) {
@@ -203,38 +203,27 @@ const syncWithRemote = useCallback(
   const setLabelBg = (show: boolean) => persistMeta({ ...meta, useLabelBg: show });
 
   const importChrl = (file: ChrlFile, mode: "append" | "override") => {
-    const data = chrlToProject(file);
+    const project = chrlToProject(file);
 
     if (mode === "override") {
-      if (!activeProject) return;
-
-      const updated: Project = {
-        ...activeProject,
-        name: file.name,
-        characters: data.characters,
-        connections: data.connections,
-        connectionTypes: data.connectionTypes,
-        updatedAt: Date.now(),
-      };
-
-      saveProject(updated);
+      saveProject(project);
+      persistMeta({
+        ...meta,
+        activeProjectId: project.id,
+      });
       return;
     }
 
     const id = uuidv4();
-    const now = Date.now();
-    const project: Project = {
+    const newProject: Project = {
+      ...project,
       id,
-      name: file.name,
-      createdAt: now,
-      updatedAt: now,
-      characters: data.characters,
-      connections: data.connections,
-      connectionTypes: data.connectionTypes,
+      createdAt: file.createdAt,
+      updatedAt: file.updatedAt,
     };
 
-    saveProjectData(id, project);
-    setProjects((prev) => [project, ...prev]);
+    saveProjectData(id, newProject);
+    setProjects((prev) => [newProject, ...prev]);
 
     persistMeta({
       ...meta,

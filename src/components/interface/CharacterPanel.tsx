@@ -275,12 +275,12 @@ export default function CharacterPanel({
                       paddingLeft: "1ch",
                       paddingRight: "0.33ch"
                     }}>
-                    <span style={{ color: "var(--text-muted)" }} title={conn.mutual ? "Mutual" : isSource ? "Outgoing" : "Incoming"}>
-                      {conn.mutual
-                        ? <ArrowLeftRight size={15} />
-                        : isSource
+                    <span style={{ color: "var(--text-muted)" }} title={conn.unmutual ? (isSource ? "Outgoing" : "Incoming") : "Mutual"}>
+                      {conn.unmutual
+                        ? (isSource
                           ? <ArrowRight size={15} />
-                          : <ArrowRight size={15} style={{ transform: "rotate(180deg)" }} />}
+                          : <ArrowRight size={15} style={{ transform: "rotate(180deg)" }} />)
+                        : <ArrowLeftRight size={15} />}
                     </span>
                     <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-display font-semibold flex-shrink-0"
                       style={{ background: `${other.color || DEF_COLOR}22`, border: `1.5px solid ${other.color || DEF_COLOR}`, color: other.color || "var(--gold)" }}>

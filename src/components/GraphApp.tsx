@@ -94,8 +94,9 @@ export default function GraphApp() {
     setHighlightTypeId(null);
   };
 
-  const handleAddConnection = (conn: Connection) =>
+  const handleAddConnection = (conn: Connection) => {
     saveActiveData({ ...activeData, connections: [...activeData.connections, conn] });
+  }
 
   const handleUpdateCharacter = (updated: Character) =>
     saveActiveData({
