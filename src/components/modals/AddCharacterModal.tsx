@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Character } from "../lib/types";
+import { Character } from "../../lib/types";
 import { X, Plus } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
-import { CHAR_PALLETE } from "../lib/constants";
+import { CHAR_PALLETE } from "../../lib/constants";
 
 interface Props {
   onAdd: (character: Character) => void;

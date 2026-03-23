@@ -2,7 +2,7 @@ import { UserPlus, Link, SlidersHorizontal, Cog, Plus } from "lucide-react";
 import IconBtn from "./IconBtn";
 import ToolBtn from "./ToolBtn";
 import UserMenu from "./UserMenu";
-import { useIsMobile } from "../hooks/useIsMobile";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 export interface MenuProps {
   showAddMenu: boolean,

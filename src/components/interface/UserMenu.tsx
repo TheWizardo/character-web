@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { LogIn, LogOut } from 'lucide-react';
 import IconBtn from "./IconBtn";
-import { useAuth } from "../hooks/useAuth";
-import { useIsMobile } from "../hooks/useIsMobile";
-import { useNotifications } from "../hooks/useNotifications";
+import { useAuth } from "../../hooks/useAuth";
+import { useIsMobile } from "../../hooks/useIsMobile";
+import { useNotifications } from "../../hooks/useNotifications";
 
 
 export default function UserMenu() {

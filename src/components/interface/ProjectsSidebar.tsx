@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Project } from "../lib/types";
+import { Project } from "../../lib/types";
 import { BookOpen, Plus, Pencil, Check, X, ChevronRight } from "lucide-react";
-import { CRIT_COLOR, OK_COLOR } from "../lib/constants";
+import { CRIT_COLOR, OK_COLOR } from "../../lib/constants";
 
 interface Props {
   projects: Project[];

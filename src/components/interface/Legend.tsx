@@ -1,4 +1,4 @@
-import { ConnectionType } from "../lib/types";
+import { ConnectionType } from "../../lib/types";
 
 interface Props {
   types: ConnectionType[];

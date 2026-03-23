@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Character, Connection, ConnectionType } from "../lib/types";
+import { Character, Connection, ConnectionType } from "../../lib/types";
 import { X, Link, ArrowLeftRight, ArrowRight } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 

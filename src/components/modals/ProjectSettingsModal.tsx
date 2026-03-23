@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Project, ConnectionType } from "../lib/types";
+import { Project, ConnectionType } from "../../lib/types";
 import { X, Check, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download, CloudUpload } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
-import { downloadChrl } from "../lib/chrl";
-import { CON_PALETTE, CRIT_COLOR, EMOJIS } from "../lib/constants";
-import { uploadProject } from "../lib/cloudStorage";
-import { NotificationService } from "../hooks/useNotifications";
+import { downloadChrl } from "../../lib/chrl";
+import { CON_PALETTE, CRIT_COLOR, EMOJIS } from "../../lib/constants";
+import { uploadProject } from "../../lib/cloudStorage";
+import { NotificationService } from "../../hooks/useNotifications";
 
 type Tab = "general" | "connections";
 

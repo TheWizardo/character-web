@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import { X, Moon, Sun, Upload, AlertTriangle } from "lucide-react";
-import { parseChrlFile } from "../lib/chrl";
-import { isCompressed } from "../lib/compress";
-import { CRIT_COLOR } from "../lib/constants";
-import { ChrlFile } from "../lib/types";
+import { parseChrlFile } from "../../lib/chrl";
+import { isCompressed } from "../../lib/compress";
+import { CRIT_COLOR } from "../../lib/constants";
+import { ChrlFile } from "../../lib/types";
 
 interface Props {
   theme: "dark" | "light";

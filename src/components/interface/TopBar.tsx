@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import Menu from "./Menu";
-import { useIsMobile } from "../hooks/useIsMobile";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 const topBarH = 56;
 

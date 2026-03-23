@@ -4,21 +4,21 @@ import { useAppState } from "../hooks/useAppState";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useAuth } from "../hooks/useAuth";
 import ForceGraph from "./ForceGraph";
-import CharacterPanel from "./CharacterPanel";
-import AddCharacterModal from "./AddCharacterModal";
-import AddConnectionModal from "./AddConnectionModal";
-import ProjectSettingsModal from "./ProjectSettingsModal";
-import ProjectsSidebar from "./ProjectsSidebar";
-import SiteSettingsModal from "./SiteSettingsModal";
-import Legend from "./Legend";
-import GraphNavigation from "./GraphNavigation";
+import CharacterPanel from "./interface/CharacterPanel";
+import AddCharacterModal from "./modals/AddCharacterModal";
+import AddConnectionModal from "./modals/AddConnectionModal";
+import ProjectSettingsModal from "./modals/ProjectSettingsModal";
+import ProjectsSidebar from "./interface/ProjectsSidebar";
+import SiteSettingsModal from "./modals/SiteSettingsModal";
+import Legend from "./interface/Legend";
+import GraphNavigation from "./interface/GraphNavigation";
 import { fetchUserProjects } from "../lib/api";
 import { uploadProject } from "../lib/cloudStorage";
 import { useNotifications } from "../hooks/useNotifications";
 import { purgeAllTempProjects } from "../lib/localstorage";
 import { deleteActiveProject, handleActiveProjConfirmation } from "../lib/abstractStorage";
 import Loading from "./Loading";
-import TopBar from "./TopBar";
+import TopBar from "./interface/TopBar";
 
 
 export default function GraphApp() {

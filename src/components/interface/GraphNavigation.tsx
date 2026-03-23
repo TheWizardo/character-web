@@ -1,8 +1,8 @@
 // GraphNavigation.tsx
 import { MoveLeft, MoveRight, MoveUp, MoveDown, Plus, Minus, LocateFixed, Compass } from "lucide-react";
 import { useState } from "react";
-import { useIsMobile } from "../hooks/useIsMobile";
-import { CRIT_COLOR } from "../lib/constants";
+import { useIsMobile } from "../../hooks/useIsMobile";
+import { CRIT_COLOR } from "../../lib/constants";
 import ToolBtn from "./ToolBtn";
 
 interface Props {
