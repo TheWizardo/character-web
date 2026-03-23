@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Project, ConnectionType } from "../../lib/types";
 import { X, Check, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download, CloudUpload } from "lucide-react";
-import { v4 as uuidv4 } from "uuid";
 import { downloadChrl } from "../../lib/chrl";
 import { CON_PALETTE, CRIT_COLOR, EMOJIS } from "../../lib/constants";
 import { uploadProject } from "../../lib/cloudStorage";
-import { NotificationService } from "../../hooks/useNotifications";
+import { useNotifications } from "../../hooks/useNotifications";
+import { v4 as uuidv4 } from "uuid";
 
 type Tab = "general" | "connections";
 
@@ -18,27 +18,29 @@ interface Props {
   onRename: (name: string) => void;
   onReset: () => void;
   onDelete: () => void;
-  onSaveConnectionTypes: (types: ConnectionType[]) => void;
+  onAddConnectionType: (types: ConnectionType) => void;
+  onRemoveConnectionType: (id: string) => void;
   onClose: () => void;
-  notify: NotificationService
 }
 
 export default function ProjectSettingsModal({
   project, canDelete, connectionTypes, characterCount, connectionCount,
-  onRename, onReset, onDelete, onSaveConnectionTypes, onClose, notify
+  onRename, onReset, onDelete, onAddConnectionType, onRemoveConnectionType, onClose
 }: Props) {
   const [tab, setTab] = useState<Tab>("general");
   const [name, setName] = useState(project.name);
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmDel, setConfirmDel] = useState(false);
+  const [pendingTypeDel, setPendingTypeDel] = useState<string | null>(null);
 
   // Connection types state
-  const [ctDraft, setCtDraft] = useState<ConnectionType[]>(connectionTypes);
+  // const [ctDraft, setCtDraft] = useState<ConnectionType[]>(connectionTypes);
   const [newLabel, setNewLabel] = useState("");
   const [newEmoji, setNewEmoji] = useState("🔗");
   const [newColor, setNewColor] = useState(CON_PALETTE[0]);
   const [showEmoji, setShowEmoji] = useState(false);
-  const [ctDirty, setCtDirty] = useState(false);
+
+  const notify = useNotifications();
 
   const saveRename = () => {
     if (name.trim() && name.trim() !== project.name) onRename(name.trim());
@@ -46,24 +48,22 @@ export default function ProjectSettingsModal({
 
   const addType = () => {
     if (!newLabel.trim()) return;
+    
     const id = "custom-" + uuidv4().slice(0, 8);
-    const next = [...ctDraft, { id, label: newLabel.trim(), emoji: newEmoji, color: newColor, isDefault: false }];
-    setCtDraft(next);
-    setCtDirty(true);
-    setNewLabel(""); setNewEmoji("🔗");
+    const newConnection: ConnectionType = {
+      id,
+      label: newLabel.trim(),
+      emoji: newEmoji,
+      color: newColor,
+      isDefault: false
+    }
+    onAddConnectionType(newConnection);
+    setNewLabel("");
+    setNewEmoji("🔗");
     setNewColor(CON_PALETTE[Math.floor(Math.random() * CON_PALETTE.length)]);
     setShowEmoji(false);
   };
 
-  const removeType = (id: string) => {
-    setCtDraft(ctDraft.filter((t) => t.id !== id));
-    setCtDirty(true);
-  };
-
-  const saveTypes = () => {
-    onSaveConnectionTypes(ctDraft);
-    setCtDirty(false);
-  };
 
   const btnBase = "flex items-center gap-1.5 px-4 py-2 text-sm font-mono rounded-lg transition-all";
 
@@ -241,7 +241,7 @@ export default function ProjectSettingsModal({
           {tab === "connections" && (
             <div className="space-y-3">
               {/* Existing types */}
-              {ctDraft.map((t) => (
+              {connectionTypes.map((t) => (
                 <div key={t.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
                   style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}>
                   <span className="text-lg w-6 text-center flex-shrink-0">{t.emoji}</span>
@@ -256,13 +256,73 @@ export default function ProjectSettingsModal({
                       default
                     </span>
                   ) : (
-                    <button onClick={() => removeType(t.id)}
-                      className="p-1 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
-                      style={{ color: "var(--text-muted)" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = CRIT_COLOR)}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}>
-                      <Trash2 size={13} />
-                    </button>
+                    <div className="relative">
+                      {t.isDefault ? (
+                        <span
+                          className="text-xs font-mono px-2 py-0.5 rounded"
+                          style={{
+                            background: "var(--bg-surface)",
+                            border: "1px solid var(--border-subtle)",
+                            color: "var(--text-muted)",
+                          }}
+                        >
+                          default
+                        </span>
+                      ) : (
+                        <>
+                          {pendingTypeDel !== t.id && (<button
+                            onClick={() => setPendingTypeDel(t.id)}
+                            className="p-1 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
+                            style={{ color: "var(--text-muted)" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = CRIT_COLOR)}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+                          >
+                            <Trash2 size={13} />
+                          </button>)}
+
+                          {pendingTypeDel === t.id && (
+                            <div
+                              className="flex items-center gap-1 px-2 py-1 rounded-lg"
+                              style={{
+                                background: "var(--bg-deep)",
+                                border: "1px solid rgba(192,57,43,0.35)",
+                                zIndex: 10,
+                              }}
+                            >
+                              <span className="text-xs font-mono whitespace-nowrap" style={{ color: CRIT_COLOR }}>
+                                Remove connections?
+                              </span>
+
+                              <button
+                                onClick={() => {
+                                  onRemoveConnectionType(t.id);
+                                  setPendingTypeDel(null);
+                                }}
+                                className="inline-block text-xs font-mono rounded appearance-none outline-none p-1"
+                                style={{
+                                  background: "rgba(192,57,43,0.15)",
+                                  color: CRIT_COLOR,
+                                  borderColor: CRIT_COLOR,
+                                }}
+                              >
+                                Yes
+                              </button>
+
+                              <button
+                                onClick={() => setPendingTypeDel(null)}
+                                className="inline-block text-xs font-mono rounded bg-transparent appearance-none outline-none p-1"
+                                style={{
+                                  color: "var(--text-muted)",
+                                  borderColor: "var(--text-muted)",
+                                }}
+                              >
+                                No
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
@@ -334,23 +394,6 @@ export default function ProjectSettingsModal({
             </div>
           )}
         </div>
-
-        {/* Footer — save button only on connections tab when dirty */}
-        {tab === "connections" && ctDirty && (
-          <div className="px-6 py-4 flex justify-end flex-shrink-0"
-            style={{ borderTop: "1px solid var(--border-subtle)" }}>
-            <button onClick={saveTypes}
-              className="px-5 py-2 rounded-lg text-sm font-mono flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-40"
-              style={{
-                background: "linear-gradient(135deg, var(--text-muted), var(--gold))",
-                color: "var(--bg-deep)",
-                border: "1px solid var(--gold-border)",
-                fontWeight: 600,
-              }}>
-              <Check size={14} /> Save Types
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

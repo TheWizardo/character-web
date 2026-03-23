@@ -20,7 +20,6 @@ import { deleteActiveProject, handleActiveProjConfirmation } from "../lib/abstra
 import Loading from "./Loading";
 import TopBar from "./interface/TopBar";
 
-
 export default function GraphApp() {
   const notify = useNotifications();
 
@@ -119,8 +118,19 @@ export default function GraphApp() {
       connections: activeData.connections.filter((c) => c.id !== connId),
     });
 
-  const handleSaveConnectionTypes = (types: ConnectionType[]) =>
-    saveActiveData({ ...activeData, connectionTypes: types });
+  const handleAddConnectionType = (type: ConnectionType) => {
+    const next = [...activeData.connectionTypes, type];
+    saveActiveData({ ...activeData, connectionTypes: next });
+    notify.success(`Added "${type.label.trim()}" connection`)
+  }
+
+  const handleRemoveConnectionType = (id: string) => {
+    const conn = activeData.connectionTypes.find(t => t.id === id);
+    const remainingConnections = activeData.connections.filter(c => c.type !== id);
+    const remainingTypes = activeData.connectionTypes.filter(c => c.id !== id);
+    saveActiveData({ ...activeData, connectionTypes: remainingTypes, connections: remainingConnections });
+    notify.success(`Removed "${conn.label}" connection`)
+  }
 
   if (!loaded || status === "loading") {
     return <Loading />
@@ -316,9 +326,9 @@ export default function GraphApp() {
             setHighlightTypeId(null);
           }}
           onDelete={() => deleteActiveProject(activeProject, notify, deleteProject)}
-          onSaveConnectionTypes={handleSaveConnectionTypes}
+          onAddConnectionType={handleAddConnectionType}
+          onRemoveConnectionType={handleRemoveConnectionType}
           onClose={() => setShowProjSettings(false)}
-          notify={notify}
         />
       )}
 
