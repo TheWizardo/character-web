@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import { Project } from "../../lib/types";
-import { BookOpen, Plus, Pencil, Check, X, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { BookOpen, Plus, Check, X } from "lucide-react";
 import { CRIT_COLOR, OK_COLOR } from "../../lib/constants";
 import { useAppState } from "../../hooks/useAppState";
 
