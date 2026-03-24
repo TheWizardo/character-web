@@ -49,27 +49,31 @@ export default function GraphApp() {
 
   useEffect(() => {
     if (status === "signed-in") {
-      notify.success(`Logged in as: ${user.displayName}`)
-      const existingUser = updateUser(user.uid);
-      fetchUserProjects().then(p => {
-        const unsavedProjects = syncWithRemote(p);
-        console.log(user.uid, existingUser);
-        if (!existingUser) return;
-        handleActiveProjConfirmation(activeProject, notify, reloadActiveProject, deleteProject);
-        unsavedProjects.forEach(up => {
-          notify.confirmation(`"${up.name}" was not saved to the cloud.\nUpload?`,
-            "dismiss",
-            () => uploadProject(up.id), "Upload",
-            () => { }, "Local only",
-            1000 * 60 * 60 * 10
-          )
-        });
-      }).catch(err => notify.error("Failed to contact server.\nShowing only local projects"));
-    }
-    else {
+      notify.success(`Logged in as: ${user.displayName}`);
+      const result = updateUser(user.uid);
+      if (!result) return;
+      const { existed, meta: freshMeta, projects: freshProjects } = result;
+
+      fetchUserProjects()
+        .then((remoteProjects) => {
+          const unsaved = syncWithRemote(remoteProjects, freshProjects, freshMeta, user.uid);
+          if (!existed) return;
+          handleActiveProjConfirmation(activeProject, notify, reloadActiveProject, deleteProject);
+          unsaved.forEach((up) => {
+            notify.confirmation(
+              `"${up.name}" was not saved to the cloud.\nUpload?`,
+              "dismiss",
+              () => uploadProject(up.id), "Upload",
+              () => { }, "Local only",
+              1000 * 60 * 60 * 10
+            );
+          });
+        })
+        .catch(() => notify.error("Failed to contact server.\nShowing only local projects"));
+    } else {
       updateUser(GUEST_KEY);
     }
-  }, [status])
+  }, [status]);
 
   useEffect(() => {
     if (!activeProject) {
@@ -269,8 +273,6 @@ export default function GraphApp() {
 
       {showProjects && (
         <ProjectsSidebar
-          projects={state.projects}
-          activeId={state.activeProjectId}
           onSwitch={(id) => {
             switchProject(id);
             setSelectedId(null);
