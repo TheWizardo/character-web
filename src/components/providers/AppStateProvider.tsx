@@ -204,7 +204,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       persistMeta(nextMeta, currentUser);
       return localOnlyProjects;
     },
-    [persistMeta]
+    [persistMeta, deleteProject]
   );
 
   const switchProject = useCallback(

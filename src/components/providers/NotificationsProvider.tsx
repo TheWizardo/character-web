@@ -10,7 +10,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
 
-  const dismissAll = () => notifications.forEach(n => dismiss(n.id));
+  const dismissAll = useCallback(() => notifications.forEach(n => dismiss(n.id)), [notifications, dismiss]);
 
   const success = useCallback((message: string, duration = 3000) => {
     const id = ++nextIdRef.current;

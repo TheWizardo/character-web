@@ -36,9 +36,9 @@ export function deleteActiveProject(
 
 export function isEmptyProject(p: Project): boolean {
   const hasRealName = p.name?.trim() && p.name.trim() !== DEF_PROJECT_NAME;
-  const uniqueTypes = p.connectionTypes.filter(pt => {
+  const uniqueTypes = p.connectionTypes.filter(pt =>
     DEFAULT_CONNECTION_TYPES.find(dt => dt.id === pt.id)
-  })
+  )
 
   return (
     !hasRealName &&
