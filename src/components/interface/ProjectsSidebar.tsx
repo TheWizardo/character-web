@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BookOpen, Plus, Check, X } from "lucide-react";
 import { CRIT_COLOR, OK_COLOR } from "../../lib/constants";
 import { useAppState } from "../../hooks/useAppState";
@@ -13,7 +13,27 @@ interface Props {
 export default function ProjectsSidebar({ onSwitch, onCreate, onRename, onClose }: Props) {
   const [creatingName, setCreatingName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const { state } = useAppState()
+  const { state } = useAppState();
+  const sidebarRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+
+      if (sidebarRef.current && !sidebarRef.current.contains(target)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, [onClose]);
 
   const submitCreate = () => {
     if (!creatingName.trim()) return;
@@ -24,36 +44,78 @@ export default function ProjectsSidebar({ onSwitch, onCreate, onRename, onClose 
   };
 
   return (
-    <div className="panel-in-left projects-sidebar-responsive absolute left-0 top-0 h-full w-72 z-30 flex flex-col"
-      style={{ background: "var(--panel-gradient)", borderRight: "1px solid var(--border-medium)", boxShadow: "20px 0 60px var(--shadow-lg)" }}>
-
-      <div className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-        style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+    <div
+      ref={sidebarRef}
+      className="panel-in-left projects-sidebar-responsive absolute left-0 top-0 h-full w-72 z-30 flex flex-col"
+      style={{
+        background: "var(--panel-gradient)",
+        borderRight: "1px solid var(--border-medium)",
+        boxShadow: "20px 0 60px var(--shadow-lg)",
+      }}
+    >
+      <div
+        className="flex items-center justify-between px-5 py-4 flex-shrink-0"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
         <div className="flex items-center gap-2">
           <BookOpen size={16} style={{ color: "var(--gold)" }} />
-          <span className="font-display text-base font-semibold" style={{ color: "var(--text-primary)" }}>Your Stories</span>
+          <span
+            className="font-display text-base font-semibold"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Your Stories
+          </span>
         </div>
-        <button onClick={onClose} style={{ color: "var(--text-muted)" }} className="p-1 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={16} /></button>
+        <button
+          onClick={onClose}
+          style={{ color: "var(--text-muted)" }}
+          className="p-1 appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
+        >
+          <X size={16} />
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto py-3">
         {state?.projects.map((p) => (
           <div key={p.id} className="group px-3 mb-1">
-
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all"
+            <div
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all"
               style={{
                 background: p.id === state?.activeProjectId ? "var(--gold-dim)" : "transparent",
-                border: p.id === state?.activeProjectId ? "1px solid var(--gold-border)" : "1px solid transparent",
+                border:
+                  p.id === state?.activeProjectId
+                    ? "1px solid var(--gold-border)"
+                    : "1px solid transparent",
               }}
-              onClick={() => { onSwitch(p.id); onClose(); }}>
-              <div className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{ background: p.id === state?.activeProjectId ? "var(--gold)" : "var(--gold-border)" }} />
+              onClick={() => {
+                onSwitch(p.id);
+                onClose();
+              }}
+            >
+              <div
+                className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{
+                  background:
+                    p.id === state?.activeProjectId ? "var(--gold)" : "var(--gold-border)",
+                }}
+              />
               <div className="flex-1 min-w-0">
-                <p className="text-sm truncate" style={{ color: p.id === state?.activeProjectId ? "var(--text-primary)" : "var(--text-secondary)" }}>
+                <p
+                  className="text-sm truncate"
+                  style={{
+                    color:
+                      p.id === state?.activeProjectId
+                        ? "var(--text-primary)"
+                        : "var(--text-secondary)",
+                  }}
+                >
                   {p.name}
                 </p>
                 <p className="text-xs font-mono mt-0.5" style={{ color: "var(--text-muted)" }}>
-                  {new Date(p.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  {new Date(p.updatedAt).toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                  })}
                 </p>
               </div>
             </div>
@@ -63,9 +125,12 @@ export default function ProjectsSidebar({ onSwitch, onCreate, onRename, onClose 
 
       <div className="px-4 py-4 flex-shrink-0" style={{ borderTop: "1px solid var(--border-subtle)" }}>
         {isCreating ? (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
-            style={{ background: "var(--bg-surface)", border: "1px solid var(--border-medium)" }}>
-            <input autoFocus
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded-lg"
+            style={{ background: "var(--bg-surface)", border: "1px solid var(--border-medium)" }}
+          >
+            <input
+              autoFocus
               className="flex-1 text-sm rounded-lg px-3 py-2 transition-all"
               style={{
                 background: "var(--bg-surface)",
@@ -75,16 +140,42 @@ export default function ProjectsSidebar({ onSwitch, onCreate, onRename, onClose 
                 outline: "none",
                 boxShadow: "none",
               }}
-              placeholder="Story name…" value={creatingName}
+              placeholder="Story name…"
+              value={creatingName}
               onChange={(e) => setCreatingName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") submitCreate(); if (e.key === "Escape") setIsCreating(false); }} />
-            <button onClick={submitCreate} style={{ color: OK_COLOR }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><Check size={14} /></button>
-            <button onClick={() => { setIsCreating(false); setCreatingName("") }} style={{ color: CRIT_COLOR }} className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"><X size={14} /></button>
+              onKeyDown={(e) => {
+                if (e.key === "Enter") submitCreate();
+                if (e.key === "Escape") setIsCreating(false);
+              }}
+            />
+            <button
+              onClick={submitCreate}
+              style={{ color: OK_COLOR }}
+              className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
+            >
+              <Check size={14} />
+            </button>
+            <button
+              onClick={() => {
+                setIsCreating(false);
+                setCreatingName("");
+              }}
+              style={{ color: CRIT_COLOR }}
+              className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
+            >
+              <X size={14} />
+            </button>
           </div>
         ) : (
-          <button onClick={() => setIsCreating(true)}
+          <button
+            onClick={() => setIsCreating(true)}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg font-mono text-sm transition-all hover:scale-[1.02]"
-            style={{ background: "var(--gold-dim)", border: "1px dashed var(--gold-border)", color: "var(--gold)" }}>
+            style={{
+              background: "var(--gold-dim)",
+              border: "1px dashed var(--gold-border)",
+              color: "var(--gold)",
+            }}
+          >
             <Plus size={14} /> New Story
           </button>
         )}

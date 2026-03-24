@@ -48,7 +48,7 @@ export function stageNewerRemoteProjects(
   const staged: string[] = [];
   for (const remote of remoteProjects) {
     const local = localProjects.find((lp) => lp.id === remote.id);
-    if (remote.updatedAt > local?.updatedAt) {
+    if (remote.updatedAt < local?.updatedAt) {
       saveRawProject(remote.id, remote.zippedProject, true);
       staged.push(remote.id);
     }

@@ -1,22 +1,12 @@
 import { deleteRemoteProject } from "./api";
-import { projectExists, promoteTempProject } from "./localstorage";
+import { projectExists } from "./localstorage";
 import { Project } from "./types";
 import { NotificationService } from "../hooks/useNotifications";
 import { DEF_PROJECT_NAME, DEFAULT_CONNECTION_TYPES } from "./constants";
 
-export function handleActiveProjConfirmation(
-  activeProject: Project,
-  notify: NotificationService,
-  reloadCb: () => void,
-  deleteCb: (id: string, isTemp: boolean) => void
-) {
-  if (projectExists(activeProject.id, true)) {
-    notify.confirmation(`"${activeProject.name}" was not synced. Showing local project.\nOverwrite local data?`,
-      "confirm",
-      () => { promoteTempProject(activeProject.id); reloadCb() }, "Overwrite",
-      () => deleteCb(activeProject.id, true)
-    )
-  }
+export function handleActiveProjConfirmation(activeProject: Project) {
+  if (!activeProject) return false;
+  return projectExists(activeProject.id, true);
 };
 
 export function deleteActiveProject(

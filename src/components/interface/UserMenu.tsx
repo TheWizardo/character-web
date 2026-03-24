@@ -4,6 +4,7 @@ import IconBtn from "./IconBtn";
 import { useAuth } from "../../hooks/useAuth";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { useNotifications } from "../../hooks/useNotifications";
+import { purgeAllTempProjects } from "../../lib/localstorage";
 
 
 export default function UserMenu() {
@@ -26,10 +27,11 @@ export default function UserMenu() {
     }
   }
 
-  const handleLogout = () => { 
-    setOpen(false); 
-    logOut(); 
+  const handleLogout = () => {
+    setOpen(false);
+    logOut();
     notify.dismissAll();
+    purgeAllTempProjects();
   }
 
 

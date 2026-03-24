@@ -15,7 +15,7 @@ import GraphNavigation from "./interface/GraphNavigation";
 import { fetchUserProjects } from "../lib/api";
 import { uploadProject } from "../lib/cloudStorage";
 import { useNotifications } from "../hooks/useNotifications";
-import { cleanRadicalProjects, purgeAllTempProjects } from "../lib/localstorage";
+import { cleanRadicalProjects, promoteTempProject } from "../lib/localstorage";
 import { deleteActiveProject, handleActiveProjConfirmation } from "../lib/abstractStorage";
 import Loading from "./Loading";
 import TopBar from "./interface/TopBar";
@@ -47,6 +47,15 @@ export default function GraphApp() {
   const theme = state.theme ?? "dark";
   const useLabelBg = state.useLabelBg ?? true;
 
+  const showActiveProjectConflictMessage = useCallback(() => {
+    if (!activeProject) return;
+    notify.confirmation(`"${activeProject.name}" was not synced. Showing local project.\nOverwrite local data?`,
+      "confirm",
+      () => { promoteTempProject(activeProject.id); reloadActiveProject() }, "Overwrite",
+      () => deleteProject(activeProject.id, true)
+    )
+  }, [activeProject, notify, deleteProject, reloadActiveProject]);
+
   useEffect(() => {
     if (status === "signed-in") {
       notify.success(`Logged in as: ${user.displayName}`);
@@ -58,7 +67,9 @@ export default function GraphApp() {
         .then((remoteProjects) => {
           const unsaved = syncWithRemote(remoteProjects, freshProjects, freshMeta, user.uid);
           if (!existed) return;
-          handleActiveProjConfirmation(activeProject, notify, reloadActiveProject, deleteProject);
+          if (handleActiveProjConfirmation(activeProject)) {
+            showActiveProjectConflictMessage();
+          }
           unsaved.forEach((up) => {
             notify.confirmation(
               `"${up.name}" was not saved to the cloud.\nUpload?`,
@@ -77,11 +88,9 @@ export default function GraphApp() {
   }, [status]);
 
   useEffect(() => {
-    if (!activeProject) {
-      purgeAllTempProjects();
-      return;
+    if (handleActiveProjConfirmation(activeProject)) {
+      showActiveProjectConflictMessage();
     }
-    handleActiveProjConfirmation(activeProject, notify, reloadActiveProject, deleteProject);
   }, [activeProject?.id])
 
   const handleUpdatePositions = useCallback(() => { }, []);
