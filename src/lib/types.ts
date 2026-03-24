@@ -1,5 +1,3 @@
-import { AuthUser, AuthState } from "../hooks/useAuth";
-
 export interface Character {
   id: string;
   name: string;
@@ -70,11 +68,14 @@ export interface ChrlFile extends Project {
   exportedAt: number;
 }
 
-export interface AuthProps {
+type AuthState = "loading" | "signed-out" | "signed-in";
+interface AuthUser { uid: string; displayName: string | null; email: string | null; photoURL: string | null; }
+
+export interface AuthService {
   user: AuthUser | null;
-  authStatus: AuthState;
-  onSignIn: () => Promise<any>;
-  onSignOut: () => void;
+  status: AuthState;
+  signIn: () => Promise<any>;
+  logOut: () => void;
 }
 
 export type NotificationKind = "success" | "error" | "confirmation";

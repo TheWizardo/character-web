@@ -57,7 +57,7 @@ export default function GraphApp() {
   }, [activeProject, notify, deleteProject, reloadActiveProject]);
 
   useEffect(() => {
-    if (status === "signed-in") {
+    if (status === "signed-in" && user) {
       notify.success(`Logged in as: ${user.displayName}`);
       const result = updateUser(user.uid);
       if (!result) return;
@@ -81,11 +81,11 @@ export default function GraphApp() {
           });
         })
         .catch(() => notify.error("Failed to contact server.\nShowing only local projects"));
-    } else {
+    } else if (status === "signed-out") {
       updateUser(GUEST_KEY);
     }
     cleanRadicalProjects();
-  }, [status]);
+  }, [status, user]);
 
   useEffect(() => {
     if (handleActiveProjConfirmation(activeProject)) {
