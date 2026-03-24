@@ -9,8 +9,9 @@
  *   cl:p:{id}:temp → Project (compressed, server version pending confirmation)
  */
 
+import { makeEmptyProject } from "./abstractStorage";
 import { compressData, decompressData, dehydrateProject, isCompressed, normalizeProject } from "./compress";
-import { DEF_PROJECT_NAME, DEFAULT_CONNECTION_TYPES } from "./constants";
+import { DEF_PROJECT_NAME } from "./constants";
 import { Meta, Project } from "./types";
 
 // ── keys ─────────────────────────────────────────────────
@@ -54,16 +55,6 @@ function lsSet(key: string, val: unknown): void {
 
 
 // ── factory functions ─────────────────────────────────────
-
-export function makeEmptyProject(id: string, name: string): Project {
-  const now = Date.now();
-  return {
-    id, name,
-    createdAt: now, updatedAt: now,
-    characters: [], connections: [],
-    connectionTypes: [...DEFAULT_CONNECTION_TYPES],
-  };
-}
 
 export function makeMeta(projectId: string): Meta {
   return { projectIds: [projectId], activeProjectId: projectId, theme: "dark", useLabelBg: true };

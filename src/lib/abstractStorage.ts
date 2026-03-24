@@ -37,3 +37,15 @@ export function isEmptyProject(p: Project): boolean {
     (uniqueTypes.length === 0)
   );
 }
+
+// ── factory functions ─────────────────────────────────────
+export function makeEmptyProject(id: string, name: string): Project {
+  const now = Date.now();
+  return {
+    id, name,
+    createdAt: now, updatedAt: now,
+    characters: [], connections: [],
+    connectionTypes: [...DEFAULT_CONNECTION_TYPES],
+    isPublic: undefined
+  };
+}
