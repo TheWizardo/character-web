@@ -26,6 +26,12 @@ export default function UserMenu() {
     }
   }
 
+  const handleLogout = () => { 
+    setOpen(false); 
+    logOut(); 
+    notify.dismissAll();
+  }
+
 
   if (!user) {
     if (isMobile) {
@@ -101,7 +107,7 @@ export default function UserMenu() {
               </p>
             </div>
             <button
-              onClick={() => { setOpen(false); logOut(); }}
+              onClick={handleLogout}
               style={{
                 width: "100%", display: "flex", alignItems: "center", gap: 10,
                 padding: "12px 16px", cursor: "pointer", background: "transparent", border: "none",

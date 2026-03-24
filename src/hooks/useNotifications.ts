@@ -4,6 +4,7 @@ import { Notification } from "../lib/types";
 export type NotificationService = {
   notifications: Notification[];
   dismiss: (id: number) => void;
+  dismissAll: () => void;
   success: (message: string, duration?: number) => void;
   error: (message: string, duration?: number) => void;
   confirmation: (

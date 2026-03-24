@@ -39,6 +39,7 @@ export function useAuth() {
       return await signInWithPopup(auth, provider);
     } catch (err: any) {
       if (err?.code === "auth/user-cancelled") return null;
+      if (err?.code === "auth/popup-closed-by-user") return null;
       throw err;
     }
   };
