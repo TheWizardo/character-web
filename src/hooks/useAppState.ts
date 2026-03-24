@@ -23,6 +23,7 @@ export interface AppStateContextValue {
   setTheme: (theme: "dark" | "light") => void;
   setLabelBg: (show: boolean) => void;
   importChrl: (file: ChrlFile, mode: "append" | "override") => void;
+  userId: string;
 }
 
 export const AppStateContext = createContext<AppStateContextValue | null>(null);

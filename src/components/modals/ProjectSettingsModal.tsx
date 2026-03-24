@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Project, ConnectionType } from "../../lib/types";
 import { X, Check, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download, CloudUpload } from "lucide-react";
 import { downloadChrl } from "../../lib/chrl";
-import { CON_PALETTE, CRIT_COLOR, EMOJIS } from "../../lib/constants";
+import { CON_PALETTE, CRIT_COLOR, EMOJIS, GUEST_KEY } from "../../lib/constants";
 import { uploadProject } from "../../lib/cloudStorage";
 import { useNotifications } from "../../hooks/useNotifications";
 import { v4 as uuidv4 } from "uuid";
+import { useAppState } from "../../hooks/useAppState";
 
 type Tab = "general" | "connections";
 
@@ -33,14 +34,13 @@ export default function ProjectSettingsModal({
   const [confirmDel, setConfirmDel] = useState(false);
   const [pendingTypeDel, setPendingTypeDel] = useState<string | null>(null);
 
-  // Connection types state
-  // const [ctDraft, setCtDraft] = useState<ConnectionType[]>(connectionTypes);
   const [newLabel, setNewLabel] = useState("");
   const [newEmoji, setNewEmoji] = useState("🔗");
   const [newColor, setNewColor] = useState(CON_PALETTE[0]);
   const [showEmoji, setShowEmoji] = useState(false);
 
   const notify = useNotifications();
+  const { userId } = useAppState();
 
   const saveRename = () => {
     if (name.trim() && name.trim() !== project.name) onRename(name.trim());
@@ -48,7 +48,7 @@ export default function ProjectSettingsModal({
 
   const addType = () => {
     if (!newLabel.trim()) return;
-    
+
     const id = "custom-" + uuidv4().slice(0, 8);
     const newConnection: ConnectionType = {
       id,
@@ -129,6 +129,7 @@ export default function ProjectSettingsModal({
               </div>
               {/* Upload */}
               <button
+                disabled={userId === GUEST_KEY}
                 onClick={() => uploadProject(project.id).then(ok => {
                   if (ok) {
                     notify.success(`Uploaded "${project.name}"`);
@@ -137,7 +138,7 @@ export default function ProjectSettingsModal({
                     notify.error(`Unable to uploaded "${project.name}"`);
                   }
                 })}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-mono transition-all hover:scale-[1.01]"
+                className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-mono transition-all ${userId === GUEST_KEY ? "" : "hover:scale-[1.01]"}`}
                 style={{
                   background: "linear-gradient(135deg, var(--text-muted), var(--gold))",
                   color: "var(--bg-deep)",
@@ -146,7 +147,7 @@ export default function ProjectSettingsModal({
                 }}
               >
                 <CloudUpload size={18} />
-                Save Project
+                {userId === GUEST_KEY ? "Login to upload" : "Save Project"}
               </button>
 
               {/* Export */}

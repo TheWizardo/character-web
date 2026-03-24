@@ -13,7 +13,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [meta, setMeta] = useState<Meta>(() => loadMeta(GUEST_KEY));
   const [projects, setProjects] = useState<Project[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [user, setUser] = useState<string>(GUEST_KEY);
+  const [userId, setUserId] = useState<string>(GUEST_KEY);
 
   useEffect(() => {
     const loadedProjects = loadProjects(meta.projectIds);
@@ -92,9 +92,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   }, [activeProject, saveProject]);
 
   const updateUser = useCallback((uid: string): { existed: boolean; meta: Meta; projects: Project[] } | null => {
-    if (uid === user) return null;
+    if (uid === userId) return null;
     const existed = userExists(uid);
-    setUser(uid);
+    setUserId(uid);
 
     const userMeta = loadMeta(uid);
     const loadedProjects = loadProjects(userMeta.projectIds);
@@ -103,7 +103,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setProjects(loadedProjects);
 
     return { existed, meta: userMeta, projects: loadedProjects };
-  }, [user]);
+  }, [userId]);
 
   const createProject = useCallback(
     (name: string) => {
@@ -119,10 +119,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           projectIds: [id, ...meta.projectIds],
           activeProjectId: id,
         },
-        user
+        userId
       );
     },
-    [meta, persistMeta, user]
+    [meta, persistMeta, userId]
   );
 
   const renameProject = useCallback(
@@ -157,10 +157,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           projectIds: remaining.map((p) => p.id),
           activeProjectId: meta.activeProjectId === id ? remaining[0].id : meta.activeProjectId,
         },
-        user
+        userId
       );
     },
-    [projects, meta, persistMeta, user]
+    [projects, meta, persistMeta, userId]
   );
 
   const syncWithRemote = useCallback(
@@ -218,23 +218,23 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      persistMeta({ ...meta, activeProjectId: id }, user);
+      persistMeta({ ...meta, activeProjectId: id }, userId);
     },
-    [projects, meta, persistMeta, user]
+    [projects, meta, persistMeta, userId]
   );
 
   const setTheme = useCallback(
     (theme: "dark" | "light") => {
-      persistMeta({ ...meta, theme }, user);
+      persistMeta({ ...meta, theme }, userId);
     },
-    [meta, persistMeta, user]
+    [meta, persistMeta, userId]
   );
 
   const setLabelBg = useCallback(
     (show: boolean) => {
-      persistMeta({ ...meta, useLabelBg: show }, user);
+      persistMeta({ ...meta, useLabelBg: show }, userId);
     },
-    [meta, persistMeta, user]
+    [meta, persistMeta, userId]
   );
 
   const importChrl = useCallback(
@@ -248,7 +248,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
             ...meta,
             activeProjectId: project.id,
           },
-          user
+          userId
         );
         return;
       }
@@ -270,10 +270,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           projectIds: [id, ...meta.projectIds],
           activeProjectId: id,
         },
-        user
+        userId
       );
     },
-    [meta, persistMeta, saveProject, user]
+    [meta, persistMeta, saveProject, userId]
   );
 
   const state: AppState = useMemo(
@@ -314,6 +314,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setTheme,
       setLabelBg,
       importChrl,
+      userId
     }),
     [
       state,
@@ -332,6 +333,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setTheme,
       setLabelBg,
       importChrl,
+      userId
     ]
   );
 
