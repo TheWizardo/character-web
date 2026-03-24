@@ -96,14 +96,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     const existed = userExists(uid);
     setUser(uid);
 
-    const newMeta = loadMeta(uid);
-    const loadedProjects = loadProjects(newMeta.projectIds);
+    const userMeta = loadMeta(uid);
+    const loadedProjects = loadProjects(userMeta.projectIds);
 
-    setMeta(newMeta);
+    setMeta(userMeta);
     setProjects(loadedProjects);
 
-    return { existed, meta: newMeta, projects: loadedProjects };
-  }, []);
+    return { existed, meta: userMeta, projects: loadedProjects };
+  }, [user]);
 
   const createProject = useCallback(
     (name: string) => {
