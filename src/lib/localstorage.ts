@@ -188,3 +188,24 @@ export function purgeAllTempProjects(): void {
   }
   toDelete.forEach((key) => localStorage.removeItem(key));
 }
+
+export function cleanRadicalProjects() {
+  const metaHeader = K.meta("");
+  const projectHeader = K.proj("", false);
+  const metaArr: string[] = [];
+  const projectsArr: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key?.startsWith(metaHeader)) metaArr.push(key);
+    if (key?.startsWith(projectHeader)) projectsArr.push(key);
+  }
+  const projectPointers = new Set<string>()
+  metaArr
+    .map(m => lsGet<Meta>(m))
+    .forEach(m => m.projectIds
+      .forEach(id => projectPointers.add(id))
+    );
+  projectsArr
+    .filter(p => !projectPointers.has(p))
+    .forEach(p => deleteProjectData(p));
+}

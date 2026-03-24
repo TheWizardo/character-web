@@ -15,7 +15,7 @@ import GraphNavigation from "./interface/GraphNavigation";
 import { fetchUserProjects } from "../lib/api";
 import { uploadProject } from "../lib/cloudStorage";
 import { useNotifications } from "../hooks/useNotifications";
-import { purgeAllTempProjects } from "../lib/localstorage";
+import { cleanRadicalProjects, purgeAllTempProjects } from "../lib/localstorage";
 import { deleteActiveProject, handleActiveProjConfirmation } from "../lib/abstractStorage";
 import Loading from "./Loading";
 import TopBar from "./interface/TopBar";
@@ -73,6 +73,7 @@ export default function GraphApp() {
     } else {
       updateUser(GUEST_KEY);
     }
+    cleanRadicalProjects();
   }, [status]);
 
   useEffect(() => {
