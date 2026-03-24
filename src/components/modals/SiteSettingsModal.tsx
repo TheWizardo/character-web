@@ -56,7 +56,7 @@ export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLab
         <div className="flex items-center justify-between px-6 py-4"
           style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <h3 className="font-display text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-            Settings
+            Site Settings
           </h3>
           <button onClick={onClose}
             className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
