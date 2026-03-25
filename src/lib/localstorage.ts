@@ -171,15 +171,6 @@ export function userExists(uid: string): boolean {
   return keyExists(K.meta(uid));
 }
 
-export function purgeAllTempProjects(): void {
-  const toDelete: string[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key?.endsWith(":temp")) toDelete.push(key);
-  }
-  toDelete.forEach((key) => localStorage.removeItem(key));
-}
-
 export function cleanRadicalProjects() {
   const metaHeader = K.meta("");
   const projectHeader = K.proj("", false);
@@ -190,13 +181,15 @@ export function cleanRadicalProjects() {
     if (key?.startsWith(metaHeader)) metaArr.push(key);
     if (key?.startsWith(projectHeader)) projectsArr.push(key);
   }
-  const projectPointers = new Set<string>()
   metaArr
     .map(m => lsGet<Meta>(m))
-    .forEach(m => m.projectIds
-      .forEach(id => projectPointers.add(id))
+    .forEach(m =>
+      m.projectIds.forEach(id => {
+        const index = projectsArr.indexOf(K.proj(id,false));
+        if (index !== -1) {
+          projectsArr.splice(index, 1);
+        }
+      })
     );
-  projectsArr
-    .filter(p => !projectPointers.has(p))
-    .forEach(p => deleteProjectData(p));
+  projectsArr.forEach(p => lsDel(p));
 }

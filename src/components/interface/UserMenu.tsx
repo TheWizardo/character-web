@@ -4,7 +4,6 @@ import IconBtn from "./IconBtn";
 import { useAuth } from "../../hooks/useAuth";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { useNotifications } from "../../hooks/useNotifications";
-import { purgeAllTempProjects } from "../../lib/localstorage";
 
 
 export default function UserMenu() {
@@ -31,7 +30,6 @@ export default function UserMenu() {
     setOpen(false);
     logOut();
     notify.dismissAll();
-    purgeAllTempProjects();
   }
 
 
