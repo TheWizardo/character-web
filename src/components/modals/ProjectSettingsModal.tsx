@@ -69,7 +69,7 @@ export default function ProjectSettingsModal({
 
   const publicUrl = useMemo(() => {
     return `https://character-loom.com/share/${userId}/${project.id}`;
-  }, [project.id]);
+  }, [project.id, userId]);
 
   const copyPublicUrl = async () => {
     try {
