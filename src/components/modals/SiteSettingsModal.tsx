@@ -4,6 +4,7 @@ import { importFile } from "../../lib/chrl";
 import { CRIT_COLOR } from "../../lib/constants";
 import { ChrlFile } from "../../lib/types";
 import { useNotifications } from "../../hooks/useNotifications";
+import ToggleBtn from "../interface/ToggleBtn";
 
 interface Props {
   theme: "dark" | "light";
@@ -55,9 +56,9 @@ export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLab
 
         <div className="flex items-center justify-between px-6 py-4"
           style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-          <h3 className="font-display text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+          <h2 className="font-display text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
             Site Settings
-          </h3>
+          </h2>
           <button onClick={onClose}
             className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
             style={{ color: "var(--text-muted)", cursor: "pointer", display: "flex" }}>
@@ -99,52 +100,7 @@ export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLab
           </div>
 
           {/* ── Label background ───────────────────────── */}
-          <div>
-            <label className="cl-label" style={{ marginBottom: 8 }}>Link Label Background</label>
-            <button
-              onClick={() => onSetLabelBg(!labelBg)}
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "12px 14px",
-                borderRadius: 10,
-                cursor: "pointer",
-                background: labelBg ? "var(--gold-dim)" : "var(--bg-surface)",
-                border: `1px solid ${labelBg ? "var(--gold-border)" : "var(--border-medium)"}`,
-                color: labelBg ? "var(--gold)" : "var(--text-muted)",
-                fontFamily: "'DM Mono', monospace",
-                fontSize: 13,
-                transition: "all 0.2s ease",
-              }}
-            >
-              <span>{labelBg ? "Enabled" : "Disabled"}</span>
-              <div
-                style={{
-                  width: 42,
-                  height: 24,
-                  borderRadius: 999,
-                  background: labelBg ? "var(--gold)" : "var(--border-medium)",
-                  position: "relative",
-                  transition: "all 0.2s ease",
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 3,
-                    left: labelBg ? 21 : 3,
-                    width: 18,
-                    height: 18,
-                    borderRadius: "50%",
-                    background: labelBg ? "var(--bg-deep)" : "var(--bg-base)",
-                    transition: "all 0.2s ease",
-                  }}
-                />
-              </div>
-            </button>
-          </div>
+          <ToggleBtn label="Link Label Background" state={labelBg} setState={onSetLabelBg} />
 
           {/* ── Donations for the poor ───────────────────────── */}
           <div>
