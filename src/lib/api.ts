@@ -19,7 +19,9 @@ async function token(): Promise<string> {
   return user.getIdToken();
 }
 
-async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
+type Method = 'GET' | 'DELETE' | 'POST' | 'PUT'
+
+async function req<T>(method: Method, path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method,
     headers: {
@@ -75,5 +77,15 @@ export async function deleteRemoteProject(id: string): Promise<boolean> {
     if (err?.message?.startsWith("404")) return true; // already gone — that's fine
     console.warn("[api] deleteRemoteProject failed", id, err);
     return false;
+  }
+}
+
+export async function getPublicProject(uid: string, pid: string): Promise<string> {
+  try {
+    const { data } = await req<{ data: string }>('GET', `/share/${uid}/${pid}`);
+    return data;
+  } catch (err: any) {
+    console.warn("[api] getPublicProject failed", uid, pid, err);
+    return "";
   }
 }

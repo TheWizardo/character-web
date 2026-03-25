@@ -18,7 +18,7 @@ import { Meta, Project } from "./types";
 
 const K = {
   meta: (uid: string) => `cl:meta:${uid}`,
-  proj: (id: string, isTemp: boolean) => `cl:p:${id}${isTemp ? ":temp" : ""}`,
+  proj: (uid: string, pid: string, isTemp: boolean) => !uid && !pid ? "cl:p:" : `cl:p:${uid}:${pid}${isTemp ? ":temp" : ""}`,
 };
 
 // ── low-level localStorage helpers ───────────────────────
@@ -74,17 +74,17 @@ export function loadMeta(uid: string): Meta {
   if (!existing) {
     const id = crypto.randomUUID();
     const meta = makeMeta(id);
-    saveProjectData(id, makeEmptyProject(id, DEF_PROJECT_NAME));
+    saveProjectData(uid, id, makeEmptyProject(id, DEF_PROJECT_NAME));
     saveMeta(meta, uid);
     return meta;
   }
 
-  const loaded = loadProjects(existing.projectIds ?? []);
+  const loaded = loadProjects(uid, existing.projectIds ?? []);
 
   if (loaded.length === 0) {
     const id = crypto.randomUUID();
     const meta: Meta = { ...existing, projectIds: [id], activeProjectId: id };
-    saveProjectData(id, makeEmptyProject(id, DEF_PROJECT_NAME));
+    saveProjectData(uid, id, makeEmptyProject(id, DEF_PROJECT_NAME));
     saveMeta(meta, uid);
     return meta;
   }
@@ -111,51 +111,51 @@ export function loadMeta(uid: string): Meta {
 
 // ── project CRUD ──────────────────────────────────────────
 
-export function saveProjectData(id: string, project: Project): void {
-  lsSet(K.proj(id, false), dehydrateProject(project));
+export function saveProjectData(uid: string, pid: string, project: Project): void {
+  lsSet(K.proj(uid, pid, false), dehydrateProject(project));
 }
 
-export function loadProjectData(id: string): Project | null {
-  const stored = lsGet<Project>(K.proj(id, false));
+export function loadProjectData(uid: string, pid: string): Project | null {
+  const stored = lsGet<Project>(K.proj(uid, pid, false));
   if (!stored) return null;
-  return normalizeProject({ ...stored, id });
+  return normalizeProject({ ...stored, id: pid });
 }
 
-export function loadProjects(projectIds: string[]): Project[] {
+export function loadProjects(uid: string, projectIds: string[]): Project[] {
   if (!projectIds?.length) return [];
   return projectIds
-    .map(loadProjectData)
+    .map((pid) => loadProjectData(uid, pid))
     .filter((p): p is Project => p !== null)
     .sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
-export function deleteProjectData(id: string): void {
-  lsDel(K.proj(id, false));
-  lsDel(K.proj(id, true)); // clean up temp too if present
+export function deleteProjectData(uid: string, pid: string): void {
+  lsDel(K.proj(uid, pid, false));
+  lsDel(K.proj(uid, pid, true)); // clean up temp too if present
 }
 
 // ── raw / temp project operations ────────────────────────
 // Used by cloudStorage for staging server versions before user confirms.
 
 /** Returns the raw compressed blob stored under a project key. */
-export function getRawProject(id: string, isTemp: boolean): string | null {
-  return lsGetRaw(K.proj(id, isTemp));
+export function getRawProject(uid: string, pid: string, isTemp: boolean): string | null {
+  return lsGetRaw(K.proj(uid, pid, isTemp));
 }
 
 /** Writes a raw compressed blob directly (no dehydration — used by sync). */
-export function saveRawProject(id: string, zip: string, isTemp: boolean): void {
-  lsSetRaw(K.proj(id, isTemp), zip);
+export function saveRawProject(uid: string, pid: string, zip: string, isTemp: boolean): void {
+  lsSetRaw(K.proj(uid, pid, isTemp), zip);
 }
 
 /**
  * Promotes a temp project to the canonical slot.
  * Deletes the temp key and returns the decoded project.
  */
-export function promoteTempProject(id: string): Project {
-  const tempData = lsGetRaw(K.proj(id, true));
-  if (!tempData) throw new Error(`No temp project found for id: ${id}`);
-  lsSetRaw(K.proj(id, false), tempData);
-  lsDel(K.proj(id, true));
+export function promoteTempProject(uid: string, pid: string): Project {
+  const tempData = lsGetRaw(K.proj(uid, pid, true));
+  if (!tempData) throw new Error(`No temp project found for id: ${pid}`);
+  lsSetRaw(K.proj(uid, pid, false), tempData);
+  lsDel(K.proj(uid, pid, true));
   return decompressData<Project>(tempData);
 }
 
@@ -163,8 +163,8 @@ function keyExists(k: string): boolean {
   return lsGetRaw(k) !== null;
 }
 
-export function projectExists(id: string, isTemp: boolean): boolean {
-  return keyExists(K.proj(id, isTemp));
+export function projectExists(uid: string, pid: string, isTemp: boolean): boolean {
+  return keyExists(K.proj(uid, pid, isTemp));
 }
 
 export function userExists(uid: string): boolean {
@@ -173,7 +173,7 @@ export function userExists(uid: string): boolean {
 
 export function cleanRadicalProjects() {
   const metaHeader = K.meta("");
-  const projectHeader = K.proj("", false);
+  const projectHeader = K.proj("", "", false);
   const metaArr: string[] = [];
   const projectsArr: string[] = [];
   for (let i = 0; i < localStorage.length; i++) {
@@ -182,10 +182,10 @@ export function cleanRadicalProjects() {
     if (key?.startsWith(projectHeader)) projectsArr.push(key);
   }
   metaArr
-    .map(m => lsGet<Meta>(m))
+    .map(m => { return { uid: m.replace(metaHeader, ""), meta: lsGet<Meta>(m) } })
     .forEach(m =>
-      m.projectIds.forEach(id => {
-        const index = projectsArr.indexOf(K.proj(id,false));
+      m.meta.projectIds.forEach(id => {
+        const index = projectsArr.indexOf(K.proj(m.uid, id, false));
         if (index !== -1) {
           projectsArr.splice(index, 1);
         }

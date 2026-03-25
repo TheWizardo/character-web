@@ -10,8 +10,9 @@
  *   The app then prompts the user to confirm before calling promoteTempProject().
  */
 
-import { updateProject, deleteRemoteProject } from "./api";
+import { updateProject } from "./api";
 import { compressData, decompressData, dehydrateProject } from "./compress";
+import { GUEST_KEY } from "./constants";
 import {
   getRawProject,
   saveRawProject,
@@ -24,7 +25,7 @@ import { Project, ProjectServer } from "./types";
  * Reads the raw compressed blob directly — no full decompression needed
  * except to extract updatedAt for the server payload.
  */
-export async function uploadProject({ p, id }: { p?: Project, id?: string }): Promise<boolean> {
+export async function uploadProject(uid: string, { p, id }: { p?: Project, id?: string }): Promise<boolean> {
   let zippedProject: string;
   let updatedAt: number;
   let isPublic: boolean;
@@ -36,7 +37,7 @@ export async function uploadProject({ p, id }: { p?: Project, id?: string }): Pr
     pid = p.id;
   }
   else {
-    zippedProject = getRawProject(id, false);
+    zippedProject = getRawProject(uid, id, false);
     const unzipped = decompressData<Project>(zippedProject);
     updatedAt = unzipped.updatedAt;
     isPublic = unzipped.isPublic === true;
@@ -56,7 +57,7 @@ export async function uploadProject({ p, id }: { p?: Project, id?: string }): Pr
  *
  * Returns the IDs of projects that were staged in temp (i.e. need user confirmation).
  */
-export function stageNewerRemoteProjects(
+export function stageNewerRemoteProjects(uid: string,
   remoteProjects: (ProjectServer & { id: string })[],
   localProjects: Project[]
 ): string[] {
@@ -64,11 +65,11 @@ export function stageNewerRemoteProjects(
   for (const remote of remoteProjects) {
     const local = localProjects.find((lp) => lp.id === remote.id);
     if (remote.updatedAt < local?.updatedAt) {
-      saveRawProject(remote.id, remote.zippedProject, true);
+      saveRawProject(uid, remote.id, remote.zippedProject, true);
       staged.push(remote.id);
     }
     if (!local || remote.updatedAt > local?.updatedAt) {
-      saveRawProject(remote.id, remote.zippedProject, false);
+      saveRawProject(uid, remote.id, remote.zippedProject, false);
     }
   }
 
@@ -76,11 +77,6 @@ export function stageNewerRemoteProjects(
 }
 
 /** Returns true if there is a staged (temp) version waiting for this project. */
-export function hasPendingSync(id: string): boolean {
-  return projectExists(id, true);
-}
-
-/** Deletes a project from the backend. */
-export async function removeProject(id: string): Promise<boolean> {
-  return deleteRemoteProject(id);
+export function hasPendingSync(uid: string, pid: string): boolean {
+  return projectExists(uid, pid, true);
 }

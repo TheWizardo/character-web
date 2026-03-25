@@ -5,6 +5,7 @@ import { CRIT_COLOR } from "../../lib/constants";
 import { ChrlFile } from "../../lib/types";
 import { useNotifications } from "../../hooks/useNotifications";
 import ToggleBtn from "../interface/ToggleBtn";
+import { useAppState } from "../../hooks/useAppState";
 
 interface Props {
   theme: "dark" | "light";
@@ -20,11 +21,12 @@ export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLab
   const [pending, setPending] = useState<ChrlFile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const notify = useNotifications();
+  const { userId } = useAppState();
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    importFile(file).then(parsed => {
+    importFile(userId, file).then(parsed => {
       if (!parsed) {
         setError("Invalid .chrl file. Please check the file and try again.");
       }

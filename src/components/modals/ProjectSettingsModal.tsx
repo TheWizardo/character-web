@@ -84,7 +84,7 @@ export default function ProjectSettingsModal({
   const saveDetails = () => {
     const updatedProject: Project = { ...project, name: name.trim(), isPublic: publicity ? true : undefined };
     onSaveCb(updatedProject);
-    uploadProject({ p: updatedProject })
+    uploadProject(userId, { p: updatedProject })
       .then(ok => {
         if (ok) {
           notify.success(`Uploaded "${project.name}"`);
@@ -467,71 +467,72 @@ export default function ProjectSettingsModal({
           )}
 
           {/* ── SHARE TAB ────────────────────────────────── */}
-          {project.isPublic === true ? (
-            <div className="space-y-3">
+          {tab === "share" && (
+            project.isPublic === true ? (
+              <div className="space-y-3">
 
-              {/* Share */}
-              <div>
-                <p className="cl-label mb-3">Share Link</p>
-                <div
-                  className="flex items-stretch"
-                >
-                  <input
-                    readOnly
-                    value={publicUrl}
-                    aria-label="Public link"
-                    className="flex-1 min-w-0 px-3 py-2.5 text-sm"
-                    style={{
-                      background: "var(--bg-input)",
-                      color: "var(--text-secondary)",
-                      border: "1px solid var(--border-subtle)",
-                      fontFamily: "'DM Mono', monospace",
-                      borderTopLeftRadius: 8,
-                      borderBottomLeftRadius: 8
-                    }}
-                  />
-
-                  <button
-                    onClick={copyPublicUrl}
-                    aria-label={copied ? "Copied" : "Copy link"}
-                    className="relative w-11 transition-all duration-200 active:scale-95"
-                    style={{
-                      background: copied ? "rgba(46, 204, 113, 0.14)" : "var(--gold-border)",
-                      border: copied
-                        ? "1px solid rgba(46, 204, 113, 0.35)"
-                        : "1px solid var(--gold-border)",
-                      color: copied ? OK_COLOR : "var(--gold)",
-                      borderTopRightRadius: 8,
-                      borderBottomRightRadius: 8
-                    }}
+                {/* Share */}
+                <div>
+                  <p className="cl-label mb-3">Share Link</p>
+                  <div
+                    className="flex items-stretch"
                   >
-                    <span
-                      className={`absolute inset-0 flex items-center justify-center transition-all duration-200 ${copied ? "opacity-0 scale-75" : "opacity-100 scale-100"
-                        }`}
-                    >
-                      <Copy size={16} />
-                    </span>
+                    <input
+                      readOnly
+                      value={publicUrl}
+                      aria-label="Public link"
+                      className="flex-1 min-w-0 px-3 py-2.5 text-sm"
+                      style={{
+                        background: "var(--bg-input)",
+                        color: "var(--text-secondary)",
+                        border: "1px solid var(--border-subtle)",
+                        fontFamily: "'DM Mono', monospace",
+                        borderTopLeftRadius: 8,
+                        borderBottomLeftRadius: 8
+                      }}
+                    />
 
-                    <span
-                      className={`absolute inset-0 flex items-center justify-center transition-all duration-200 ${copied ? "opacity-100 scale-100" : "opacity-0 scale-75"
-                        }`}
+                    <button
+                      onClick={copyPublicUrl}
+                      aria-label={copied ? "Copied" : "Copy link"}
+                      className="relative w-11 transition-all duration-200 active:scale-95"
+                      style={{
+                        background: copied ? "rgba(46, 204, 113, 0.14)" : "var(--gold-border)",
+                        border: copied
+                          ? "1px solid rgba(46, 204, 113, 0.35)"
+                          : "1px solid var(--gold-border)",
+                        color: copied ? OK_COLOR : "var(--gold)",
+                        borderTopRightRadius: 8,
+                        borderBottomRightRadius: 8
+                      }}
                     >
-                      <Check size={17} strokeWidth={2.5} />
-                    </span>
-                  </button>
+                      <span
+                        className={`absolute inset-0 flex items-center justify-center transition-all duration-200 ${copied ? "opacity-0 scale-75" : "opacity-100 scale-100"
+                          }`}
+                      >
+                        <Copy size={16} />
+                      </span>
+
+                      <span
+                        className={`absolute inset-0 flex items-center justify-center transition-all duration-200 ${copied ? "opacity-100 scale-100" : "opacity-0 scale-75"
+                          }`}
+                      >
+                        <Check size={17} strokeWidth={2.5} />
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <h4
-              className="font-display text-lg font-semibold"
-              style={{ color: "var(--text-primary)" }}
-            >
-              This project is not a public project.
-              <br />
-              If you wish to share it with others, set it to public on the 'General' tab
-            </h4>
-          )}
+            ) : (
+              <h4
+                className="font-display text-lg font-semibold"
+                style={{ color: "var(--text-primary)" }}
+              >
+                This project is not a public project.
+                <br />
+                If you wish to share it with others, set it to public on the 'General' tab
+              </h4>
+            ))}
         </div>
       </div>
     </div>

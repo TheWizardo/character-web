@@ -142,7 +142,7 @@ export function chrlToProject(file: ChrlFile): Project {
   };
 }
 
-export function importFile(file: File): Promise<{ file: ChrlFile, collision: boolean } | null> {
+export function importFile(uid:string, file: File): Promise<{ file: ChrlFile, collision: boolean } | null> {
   return new Promise((resolve) => {
     if (!file) {
       resolve(null);
@@ -154,7 +154,7 @@ export function importFile(file: File): Promise<{ file: ChrlFile, collision: boo
     reader.onload = (ev) => {
       const text = ev.target?.result as string;
       const parsed = parseChrlFile(text);
-      const exists = projectExists(parsed.id, false);
+      const exists = projectExists(uid, parsed.id, false);
       if (!parsed) {
         resolve(null);
       }

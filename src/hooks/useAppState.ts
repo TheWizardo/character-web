@@ -24,6 +24,7 @@ export interface AppStateContextValue {
   setLabelBg: (show: boolean) => void;
   importChrl: (file: ChrlFile, mode: "append" | "override") => void;
   userId: string;
+  getUserId: () => string;
 }
 
 export const AppStateContext = createContext<AppStateContextValue | null>(null);

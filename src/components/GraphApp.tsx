@@ -20,12 +20,13 @@ import { deleteActiveProject, handleActiveProjConfirmation } from "../lib/abstra
 import Loading from "./Loading";
 import TopBar from "./interface/TopBar";
 import { GUEST_KEY } from "../lib/constants";
+import ImportModal from "./modals/ImportModal";
 
 export default function GraphApp() {
   const notify = useNotifications();
 
   const {
-    state, loaded,
+    state, loaded, getUserId,
     activeData, saveActiveData, resetActiveProject,
     activeProject, createProject, saveProject, reloadActiveProject, syncWithRemote, deleteProject, switchProject,
     setTheme, setLabelBg, importChrl, updateUser
@@ -42,19 +43,24 @@ export default function GraphApp() {
   const [showProjSettings, setShowProjSettings] = useState(false);
   const [showSiteSettings, setShowSiteSettings] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const selectedCharacter = activeData.characters.find((c) => c.id === selectedId) ?? null;
   const theme = state.theme ?? "dark";
   const useLabelBg = state.useLabelBg ?? true;
 
   const showActiveProjectConflictMessage = useCallback((pid: string) => {
-    const project = loadProjectData(pid);
+    const project = loadProjectData(getUserId(), pid);
     notify.confirmation(`"${project.name}" was not synced. Showing local project.\nOverwrite local data?`,
       "confirm",
-      () => { promoteTempProject(project.id); reloadActiveProject() }, "Overwrite",
+      () => { promoteTempProject(getUserId(), project.id); reloadActiveProject() }, "Overwrite",
       () => deleteProject(project.id, true)
     )
-  }, [notify, deleteProject, reloadActiveProject]);
+  }, [notify, deleteProject, reloadActiveProject, getUserId]);
+
+  useEffect(() => {
+    if (window.location.pathname !== "/") setShowImport(true);
+  }, [])
 
   useEffect(() => {
     cleanRadicalProjects();
@@ -75,7 +81,7 @@ export default function GraphApp() {
             notify.confirmation(
               `"${up.name}" was not saved to the cloud.\nUpload?`,
               "dismiss",
-              () => uploadProject({ id: up.id }).then(() => notify.success(`Uploaded "${up.name}"`)), "Upload",
+              () => uploadProject(user.uid, { id: up.id }).then(() => notify.success(`Uploaded "${up.name}"`)), "Upload",
               () => { }, "Local only",
               1000 * 60 * 60 * 10
             );
@@ -88,8 +94,7 @@ export default function GraphApp() {
   }, [status, user]);
 
   useEffect(() => {
-    console.log(activeProject?.name);
-    if (handleActiveProjConfirmation(activeProject)) {
+    if (handleActiveProjConfirmation(getUserId(), activeProject)) {
       showActiveProjectConflictMessage(activeProject.id);
     }
   }, [activeProject?.id])
@@ -360,6 +365,17 @@ export default function GraphApp() {
           onSetLabelBg={setLabelBg}
           onImport={importChrl}
           onClose={() => setShowSiteSettings(false)}
+        />
+      )}
+
+      {showImport && (
+        <ImportModal
+          onImport={importChrl}
+          onClose={() => {
+            setShowImport(false);
+            const { origin } = window.location;
+            window.location.replace(origin);
+          }}
         />
       )}
     </div>

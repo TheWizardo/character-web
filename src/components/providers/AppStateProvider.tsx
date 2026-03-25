@@ -16,14 +16,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [userId, setUserId] = useState<string>(GUEST_KEY);
 
   useEffect(() => {
-    const loadedProjects = loadProjects(meta.projectIds);
+    const loadedProjects = loadProjects(userId, meta.projectIds);
     setProjects(loadedProjects);
     setLoaded(true);
-  }, [meta.projectIds]);
+  }, [meta.projectIds, userId]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", meta.theme ?? "dark");
-  }, [meta.theme]);
+  }, [meta.theme, userId]);
 
   const persistMeta = useCallback((next: Meta, uid: string) => {
     setMeta(next);
@@ -48,11 +48,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     };
 
   const saveProject = useCallback((project: Project) => {
-    saveProjectData(project.id, { ...project, updatedAt: Date.now() });
+    saveProjectData(userId, project.id, { ...project, updatedAt: Date.now() });
     setProjects((prev) =>
       prev.map((p) => (p.id === project.id ? project : p)).sort((a, b) => b.updatedAt - a.updatedAt)
     );
-  }, []);
+  }, [userId]);
 
   const saveActiveData = useCallback(
     (data: GraphData) => {
@@ -70,11 +70,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   const reloadActiveProject = useCallback(() => {
     if (!meta.activeProjectId) return;
-    const fresh = loadProjectData(meta.activeProjectId);
+    const fresh = loadProjectData(userId, meta.activeProjectId);
     if (!fresh) return;
 
     setProjects((prev) => prev.map((p) => (p.id === meta.activeProjectId ? fresh : p)));
-  }, [meta.activeProjectId]);
+  }, [meta.activeProjectId, userId]);
 
   const resetActiveProject = useCallback(() => {
     if (!activeProject) return;
@@ -95,7 +95,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setUserId(uid);
 
     const userMeta = loadMeta(uid);
-    const loadedProjects = loadProjects(userMeta.projectIds);
+    const loadedProjects = loadProjects(uid, userMeta.projectIds);
 
     setMeta(userMeta);
     setProjects(loadedProjects);
@@ -108,7 +108,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       const id = uuidv4();
       const project = makeEmptyProject(id, name);
 
-      saveProjectData(id, project);
+      saveProjectData(userId, id, project);
       setProjects((prev) => [project, ...prev]);
 
       persistMeta(
@@ -128,7 +128,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       if (projects.length === 1) return;
 
       const remaining = projects.filter((p) => p.id !== id);
-      deleteProjectData(id);
+      deleteProjectData(userId, id);
       if (isTemp) return;
 
       setProjects(remaining);
@@ -152,7 +152,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       currentMeta: Meta,
       currentUser: string
     ) => {
-      const stagedIds = stageNewerRemoteProjects(remoteProjects, currentProjects);
+      const stagedIds = stageNewerRemoteProjects(currentUser, remoteProjects, currentProjects);
 
       const syncedProjects = remoteProjects
         .map((rp) => {
@@ -192,7 +192,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const switchProject = useCallback(
     (id: string) => {
       if (!projects.some((p) => p.id === id)) {
-        const loadedProject = loadProjectData(id);
+        const loadedProject = loadProjectData(userId, id);
         if (loadedProject) {
           setProjects((prev) => [loadedProject, ...prev.filter((p) => p.id !== id)]);
         } else {
@@ -243,7 +243,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         updatedAt: file.updatedAt,
       };
 
-      saveProjectData(id, newProject);
+      saveProjectData(userId, id, newProject);
       setProjects((prev) => [newProject, ...prev]);
 
       persistMeta(
@@ -278,6 +278,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     [projects, activeProject, meta]
   );
 
+  const getUserId = useCallback(() => userId, [userId]);
+
   const value = useMemo<AppStateContextValue>(
     () => ({
       state,
@@ -296,7 +298,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setTheme,
       setLabelBg,
       importChrl,
-      userId
+      userId,
+      getUserId,
     }),
     [
       state,
@@ -315,7 +318,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setTheme,
       setLabelBg,
       importChrl,
-      userId
+      userId,
+      getUserId
     ]
   );
 
