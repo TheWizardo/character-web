@@ -25,32 +25,34 @@ import { Project, ProjectServer } from "./types";
  * except to extract updatedAt for the server payload.
  */
 export async function uploadProject({ p, id }: { p?: Project, id?: string }): Promise<boolean> {
-  console.log({ p, id });
   let zippedProject: string;
   let updatedAt: number;
   let isPublic: boolean;
+  let pid: string;
   if (p) {
     zippedProject = compressData(dehydrateProject(p));
     updatedAt = p.updatedAt;
     isPublic = p.isPublic === true;
+    pid = p.id;
   }
   else {
     zippedProject = getRawProject(id, false);
     const unzipped = decompressData<Project>(zippedProject);
     updatedAt = unzipped.updatedAt;
     isPublic = unzipped.isPublic === true;
+    pid = id;
   }
   if (!zippedProject) return false;
 
-  return updateProject(p.id, { zippedProject, updatedAt, isPublic });
+  return updateProject(pid, { zippedProject, updatedAt, isPublic });
 }
 
 /**
  * Compares remote projects against local ones and stages newer server
  * versions in the temp slot for user confirmation.
  *
- * - Remote newer than local → write to temp slot (pending user confirmation)
- * - Local newer than remote → no action (upload is triggered separately on button press)
+ * - Local newer than remote → write to temp slot (pending user confirmation)
+ * - Remote newer than local → updates local
  *
  * Returns the IDs of projects that were staged in temp (i.e. need user confirmation).
  */
@@ -65,7 +67,7 @@ export function stageNewerRemoteProjects(
       saveRawProject(remote.id, remote.zippedProject, true);
       staged.push(remote.id);
     }
-    if (!local) {
+    if (!local || remote.updatedAt > local?.updatedAt) {
       saveRawProject(remote.id, remote.zippedProject, false);
     }
   }

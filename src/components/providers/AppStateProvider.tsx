@@ -152,7 +152,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       currentMeta: Meta,
       currentUser: string
     ) => {
-      stageNewerRemoteProjects(remoteProjects, currentProjects);
+      const stagedIds = stageNewerRemoteProjects(remoteProjects, currentProjects);
 
       const syncedProjects = remoteProjects
         .map((rp) => {
@@ -184,7 +184,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       emptyLocals.forEach(e => deleteProject(e.id, false));
 
       persistMeta(nextMeta, currentUser);
-      return localOnlyProjects;
+      return { unsaved: localOnlyProjects, staged: stagedIds };
     },
     [persistMeta, deleteProject]
   );

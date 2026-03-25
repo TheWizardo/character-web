@@ -17,7 +17,7 @@ export interface AppStateContextValue {
     currentProjects: Project[],
     currentMeta: Meta,
     currentUser: string
-  ) => Project[];
+  ) => { unsaved: Project[], staged: string[] };
   deleteProject: (id: string, isTemp: boolean) => void;
   switchProject: (id: string) => void;
   setTheme: (theme: "dark" | "light") => void;

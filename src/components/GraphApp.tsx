@@ -13,9 +13,9 @@ import SiteSettingsModal from "./modals/SiteSettingsModal";
 import Legend from "./interface/Legend";
 import GraphNavigation from "./interface/GraphNavigation";
 import { fetchUserProjects } from "../lib/api";
-import { uploadProject } from "../lib/cloudStorage";
 import { useNotifications } from "../hooks/useNotifications";
-import { cleanRadicalProjects, getRawProject, promoteTempProject } from "../lib/localstorage";
+import { uploadProject } from "../lib/cloudStorage";
+import { cleanRadicalProjects, loadProjectData, promoteTempProject } from "../lib/localstorage";
 import { deleteActiveProject, handleActiveProjConfirmation } from "../lib/abstractStorage";
 import Loading from "./Loading";
 import TopBar from "./interface/TopBar";
@@ -47,16 +47,17 @@ export default function GraphApp() {
   const theme = state.theme ?? "dark";
   const useLabelBg = state.useLabelBg ?? true;
 
-  const showActiveProjectConflictMessage = useCallback(() => {
-    if (!activeProject) return;
-    notify.confirmation(`"${activeProject.name}" was not synced. Showing local project.\nOverwrite local data?`,
+  const showActiveProjectConflictMessage = useCallback((pid: string) => {
+    const project = loadProjectData(pid);
+    notify.confirmation(`"${project.name}" was not synced. Showing local project.\nOverwrite local data?`,
       "confirm",
-      () => { promoteTempProject(activeProject.id); reloadActiveProject() }, "Overwrite",
-      () => deleteProject(activeProject.id, true)
+      () => { promoteTempProject(project.id); reloadActiveProject() }, "Overwrite",
+      () => deleteProject(project.id, true)
     )
-  }, [activeProject, notify, deleteProject, reloadActiveProject]);
+  }, [notify, deleteProject, reloadActiveProject]);
 
   useEffect(() => {
+    cleanRadicalProjects();
     if (status === "signed-in" && user) {
       notify.success(`Logged in as: ${user.displayName}`);
       const result = updateUser(user.uid);
@@ -65,16 +66,16 @@ export default function GraphApp() {
 
       fetchUserProjects()
         .then((remoteProjects) => {
-          const unsaved = syncWithRemote(remoteProjects, freshProjects, freshMeta, user.uid);
+          const { unsaved, staged } = syncWithRemote(remoteProjects, freshProjects, freshMeta, user.uid);
           if (!existed) return;
-          if (handleActiveProjConfirmation(activeProject)) {
-            showActiveProjectConflictMessage();
+          if (staged.includes(freshMeta.activeProjectId)) {
+            showActiveProjectConflictMessage(freshMeta.activeProjectId);
           }
           unsaved.forEach((up) => {
             notify.confirmation(
               `"${up.name}" was not saved to the cloud.\nUpload?`,
               "dismiss",
-              () => uploadProject({ id: up.id }), "Upload",
+              () => uploadProject({ id: up.id }).then(() => notify.success(`Uploaded "${up.name}"`)), "Upload",
               () => { }, "Local only",
               1000 * 60 * 60 * 10
             );
@@ -84,12 +85,12 @@ export default function GraphApp() {
     } else if (status === "signed-out") {
       updateUser(GUEST_KEY);
     }
-    cleanRadicalProjects();
   }, [status, user]);
 
   useEffect(() => {
+    console.log(activeProject?.name);
     if (handleActiveProjConfirmation(activeProject)) {
-      showActiveProjectConflictMessage();
+      showActiveProjectConflictMessage(activeProject.id);
     }
   }, [activeProject?.id])
 
