@@ -160,10 +160,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       currentUser: string
     ) => {
       let projectsInMemory = currentProjects;
-      if (currentProjects.length === 1 && isEmptyProject(currentProjects[0]) && !remoteProjects) {
+      if (currentProjects.length === 1 && isEmptyProject(currentProjects[0]) && remoteProjects.length === 0) {
         return { unsaved: [], staged: [] };
       }
-      if (currentProjects.length > 1 || remoteProjects.length > 1) {
+      if (currentProjects.length > 1 || remoteProjects.length >= 1) {
         projectsInMemory = currentProjects.filter(p => !isEmptyProject(p));
         currentProjects.filter(p => isEmptyProject(p)).forEach(p => deleteProject(p.id, false));
       }
