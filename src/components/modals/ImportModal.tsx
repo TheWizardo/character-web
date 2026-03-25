@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { X, AlertTriangle, FileText, Link2 } from "lucide-react";
 import { importWithLink } from "../../lib/abstractStorage";
-import { CRIT_COLOR } from "../../lib/constants";
+import { CRIT_COLOR, GUEST_KEY } from "../../lib/constants";
 import { useNotifications } from "../../hooks/useNotifications";
 import { ChrlFile, Project } from "../../lib/types";
+import { useAppState } from "../../hooks/useAppState";
 
 interface Props {
   onClose: () => void;
@@ -17,16 +18,23 @@ export default function ImportModal({ onImport, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [dots, setDots] = useState(0);
   const notify = useNotifications();
+  const { userId } = useAppState();
 
   useEffect(() => {
+    if (!userId || userId === GUEST_KEY) return;
     const { pathname } = window.location;
-    const [uid, pid] = pathname.slice(7).split("/");
+    const [ownerUid, pid] = pathname.slice(7).split("/");
     setLoading(true)
-    const interval = setInterval(() => setDots(d => (d + 1) % 4), 500)
-    importWithLink(uid, pid).then(res => {
+    const interval = setInterval(() => setDots(d => (d + 1) % 4), 500);
+    console.log(userId, ownerUid, pid, pathname);
+    importWithLink(userId, ownerUid, pid).then(res => {
       setHasCollision(res.collision);
       setPending(res.project);
-    }).catch(err => setError("Unable to fetch story")).finally(() => setLoading(false));
+    }).catch(err => {
+      console.warn(err);
+      setError("Unable to fetch story")
+    }
+    ).finally(() => setLoading(false));
     return () => clearInterval(interval);
   }, []);
 
@@ -74,46 +82,50 @@ export default function ImportModal({ onImport, onClose }: Props) {
         </div>
 
         <div className="px-6 py-5" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {!pending && (
-            <>
-              <div
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 10,
-                  padding: "14px 16px",
-                  borderRadius: 10,
-                  background: "var(--bg-surface)",
-                  border: "1px dashed var(--border-medium)",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <Link2 size={16} style={{ color: "var(--gold)", flexShrink: 0 }} />
-                  <p style={{ color: "var(--text-secondary)", marginBottom: 2 }}>
-                    Import{loading ? "ing" : ""} from link{loading ? ".".repeat(dots) : ""}
-                  </p>
-                </div>
-
-
-              </div>
-
-              {error && (
-                <p
+          {userId === GUEST_KEY ? <p>
+            Sharing stories is reserved for signed users.<br />Please sign in and try again.
+          </p>
+            :
+            (!pending && (
+              <>
+                <div
                   style={{
-                    fontSize: 12,
-                    color: CRIT_COLOR,
-                    fontFamily: "'DM Mono', monospace",
+                    width: "100%",
                     display: "flex",
-                    alignItems: "center",
-                    gap: 6,
+                    flexDirection: "column",
+                    gap: 10,
+                    padding: "14px 16px",
+                    borderRadius: 10,
+                    background: "var(--bg-surface)",
+                    border: "1px dashed var(--border-medium)",
                   }}
                 >
-                  <AlertTriangle size={12} /> {error}
-                </p>
-              )}
-            </>
-          )}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <Link2 size={16} style={{ color: "var(--gold)", flexShrink: 0 }} />
+                    <p style={{ color: "var(--text-secondary)", marginBottom: 2 }}>
+                      Import{loading ? "ing" : ""} from link{loading ? ".".repeat(dots) : ""}
+                    </p>
+                  </div>
+
+
+                </div>
+
+                {error && (
+                  <p
+                    style={{
+                      fontSize: 12,
+                      color: CRIT_COLOR,
+                      fontFamily: "'DM Mono', monospace",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <AlertTriangle size={12} /> {error}
+                  </p>
+                )}
+              </>
+            ))}
 
           {pending && (
             <>

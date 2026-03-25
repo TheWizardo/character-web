@@ -59,8 +59,9 @@ export default function GraphApp() {
   }, [notify, deleteProject, reloadActiveProject]);
 
   useEffect(() => {
+    if (!userId) return;
     if (window.location.pathname !== "/") setShowImport(true);
-  }, [])
+  }, [userId])
 
   useEffect(() => {
     cleanRadicalProjects();

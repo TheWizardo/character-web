@@ -51,12 +51,13 @@ export function makeEmptyProject(id: string, name: string): Project {
   };
 }
 
-export async function importWithLink(uid: string, pid: string): Promise<{ project: Project, collision: boolean }> {
-  if (!uid.trim() || !pid.trim()) {
-    throw new Error("Both uid and pid are required");
+export async function importWithLink(uid: string, ownerUid: string, pid: string): Promise<{ project: Project, collision: boolean }> {
+  console.log(ownerUid, pid)
+  if (!ownerUid || !pid) {
+    throw new Error("Both ownerUid and pid are required");
   }
 
-  const compressed = await getPublicProject(uid.trim(), pid.trim());
+  const compressed = await getPublicProject(ownerUid, pid);
 
   if (!isCompressed(compressed)) {
     throw new Error("Invalid public project response");
