@@ -11,7 +11,7 @@ import { getAuth } from "firebase/auth";
 import { ProjectServer } from "./types";
 // import { loadSyncedAt, setSyncedAt } from "./storage";
 
-const BASE = "http://localhost:4000";
+const BASE = "https://api.charcter-loom.com";
 
 async function token(): Promise<string> {
   const user = getAuth().currentUser;
