@@ -24,7 +24,7 @@ interface Props {
   connectionCount: number;
   onReset: () => void;
   onDelete: () => void;
-  onSaveCb: (p: Project) => void;
+  onSaveCb: (p: Project) => Project;
   onAddConnectionType: (types: ConnectionType) => void;
   onRemoveConnectionType: (id: string) => void;
   onClose: () => void;
@@ -83,8 +83,7 @@ export default function ProjectSettingsModal({
 
   const saveDetails = () => {
     const updatedProject: Project = { ...project, name: name.trim(), isPublic: publicity ? true : undefined };
-    onSaveCb(updatedProject);
-    uploadProject(userId, { p: updatedProject })
+    uploadProject(userId, { p: onSaveCb(updatedProject) })
       .then(ok => {
         if (ok) {
           notify.success(`Uploaded "${project.name}"`);

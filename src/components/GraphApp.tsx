@@ -26,7 +26,7 @@ export default function GraphApp() {
   const notify = useNotifications();
 
   const {
-    state, loaded, getUserId,
+    state, loaded, userId,
     activeData, saveActiveData, resetActiveProject,
     activeProject, createProject, saveProject, reloadActiveProject, syncWithRemote, deleteProject, switchProject,
     setTheme, setLabelBg, importChrl, updateUser
@@ -49,14 +49,14 @@ export default function GraphApp() {
   const theme = state.theme ?? "dark";
   const useLabelBg = state.useLabelBg ?? true;
 
-  const showActiveProjectConflictMessage = useCallback((pid: string) => {
-    const project = loadProjectData(getUserId(), pid);
+  const showActiveProjectConflictMessage = useCallback((uid: string, pid: string) => {
+    const project = loadProjectData(uid, pid);
     notify.confirmation(`"${project.name}" was not synced. Showing local project.\nOverwrite local data?`,
       "confirm",
-      () => { promoteTempProject(getUserId(), project.id); reloadActiveProject() }, "Overwrite",
+      () => { promoteTempProject(uid, project.id); reloadActiveProject() }, "Overwrite",
       () => deleteProject(project.id, true)
     )
-  }, [notify, deleteProject, reloadActiveProject, getUserId]);
+  }, [notify, deleteProject, reloadActiveProject]);
 
   useEffect(() => {
     if (window.location.pathname !== "/") setShowImport(true);
@@ -75,7 +75,7 @@ export default function GraphApp() {
           const { unsaved, staged } = syncWithRemote(remoteProjects, freshProjects, freshMeta, user.uid);
           if (!existed) return;
           if (staged.includes(freshMeta.activeProjectId)) {
-            showActiveProjectConflictMessage(freshMeta.activeProjectId);
+            showActiveProjectConflictMessage(user.uid, freshMeta.activeProjectId);
           }
           unsaved.forEach((up) => {
             notify.confirmation(
@@ -87,15 +87,15 @@ export default function GraphApp() {
             );
           });
         })
-        .catch(() => notify.error("Failed to contact server.\nShowing only local projects"));
+      // .catch(() => notify.error("Failed to contact server.\nShowing only local projects"));
     } else if (status === "signed-out") {
       updateUser(GUEST_KEY);
     }
   }, [status, user]);
 
   useEffect(() => {
-    if (handleActiveProjConfirmation(getUserId(), activeProject)) {
-      showActiveProjectConflictMessage(activeProject.id);
+    if (handleActiveProjConfirmation(userId, activeProject)) {
+      showActiveProjectConflictMessage(userId, activeProject.id);
     }
   }, [activeProject?.id])
 
