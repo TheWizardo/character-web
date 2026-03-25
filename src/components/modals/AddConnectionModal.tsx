@@ -53,12 +53,13 @@ export default function AddConnectionModal({
   }, [source, target]);
 
   const normalize = (s: string) => {
+    if (!s) return s;
     const t = s.trim().slice(0, 15);
     return t.charAt(0).toUpperCase() + t.slice(1);
   };
 
   const submit = () => {
-    if (!source || !target || source === target || !label.trim()) return;
+    if (!source || !target || source === target) return;
     onAdd({ id: uuidv4(), source, target, label: normalize(label), type, unmutual: (mutual ? undefined : true) });
     onClose();
   };
@@ -160,23 +161,6 @@ export default function AddConnectionModal({
           </div>
 
           <div>
-            <label className="cl-label">
-              Label <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>({label.length}/15)</span>
-            </label>
-            <input
-              className="cl-input"
-              placeholder="Married, Rivals…"
-              maxLength={15}
-              value={label}
-              onChange={(e) => {
-                const v = e.target.value.slice(0, 15);
-                setLabel(v.charAt(0).toUpperCase() + v.slice(1));
-              }}
-              onKeyDown={(e) => e.key === "Enter" && submit()}
-            />
-          </div>
-
-          <div>
             <label className="cl-label mb-2">Type</label>
             <div className="grid grid-cols-2 gap-2">
               {connectionTypes.map((t) => (
@@ -194,6 +178,23 @@ export default function AddConnectionModal({
                 </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <label className="cl-label">
+              Additional label <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>({label.length}/15)</span>
+            </label>
+            <input
+              className="cl-input"
+              placeholder="Married, Rivals…"
+              maxLength={15}
+              value={label}
+              onChange={(e) => {
+                const v = e.target.value.slice(0, 15);
+                setLabel(v.charAt(0).toUpperCase() + v.slice(1));
+              }}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+            />
           </div>
         </div>
 
@@ -215,7 +216,7 @@ export default function AddConnectionModal({
 
           <button
             onClick={submit}
-            disabled={!source || !target || source === target || !label.trim()}
+            disabled={!source || !target || source === target}
             className="px-5 py-2 rounded-lg text-sm font-mono flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-40"
             style={{
               background: "linear-gradient(135deg, var(--text-muted), var(--gold))",
