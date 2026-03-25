@@ -4,10 +4,10 @@ import { chrlToProject } from "../../lib/chrl";
 import { stageNewerRemoteProjects } from "../../lib/cloudStorage";
 import { decompressData } from "../../lib/compress";
 import { GUEST_KEY, DEFAULT_CONNECTION_TYPES } from "../../lib/constants";
-import { loadMeta, loadProjects, saveMeta, saveProjectData, loadProjectData, userExists, makeEmptyProject, deleteProjectData } from "../../lib/localstorage";
+import { loadMeta, loadProjects, saveMeta, saveProjectData, loadProjectData, userExists, deleteProjectData } from "../../lib/localstorage";
 import { Meta, Project, GraphData, ProjectServer, ChrlFile, AppState } from "../../lib/types";
 import { AppStateContextValue, AppStateContext } from "../../hooks/useAppState";
-import { isEmptyProject } from "../../lib/abstractStorage";
+import { isEmptyProject, makeEmptyProject } from "../../lib/abstractStorage";
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [meta, setMeta] = useState<Meta>(() => loadMeta(GUEST_KEY));
@@ -48,7 +48,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     };
 
   const saveProject = useCallback((project: Project) => {
-    saveProjectData(project.id, project);
+    saveProjectData(project.id, { ...project, updatedAt: Date.now() });
     setProjects((prev) =>
       prev.map((p) => (p.id === project.id ? project : p)).sort((a, b) => b.updatedAt - a.updatedAt)
     );
@@ -61,7 +61,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       const updated: Project = {
         ...activeProject,
         ...data,
-        updatedAt: Date.now(),
       };
 
       saveProject(updated);
@@ -85,7 +84,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       characters: [],
       connections: [],
       connectionTypes: [...DEFAULT_CONNECTION_TYPES],
-      updatedAt: Date.now(),
     };
 
     saveProject(reset);
@@ -123,22 +121,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       );
     },
     [meta, persistMeta, userId]
-  );
-
-  const renameProject = useCallback(
-    (id: string, name: string) => {
-      const existing = projects.find((p) => p.id === id);
-      if (!existing) return;
-
-      const updated: Project = {
-        ...existing,
-        name,
-        updatedAt: Date.now(),
-      };
-
-      saveProject(updated);
-    },
-    [projects, saveProject]
   );
 
   const deleteProject = useCallback(
@@ -304,9 +286,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       activeProject,
       updateUser,
       saveActiveData,
+      saveProject,
       resetActiveProject,
       createProject,
-      renameProject,
       reloadActiveProject,
       syncWithRemote,
       deleteProject,
@@ -323,9 +305,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       activeProject,
       updateUser,
       saveActiveData,
+      saveProject,
       resetActiveProject,
       createProject,
-      renameProject,
       reloadActiveProject,
       syncWithRemote,
       deleteProject,

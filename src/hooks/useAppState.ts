@@ -8,9 +8,9 @@ export interface AppStateContextValue {
   activeProject: Project | null;
   updateUser: (uid: string) => { existed: boolean; meta: Meta; projects: Project[] };
   saveActiveData: (data: GraphData) => void;
+  saveProject: (p: Project) => void;
   resetActiveProject: () => void;
   createProject: (name: string) => void;
-  renameProject: (id: string, name: string) => void;
   reloadActiveProject: () => void;
   syncWithRemote: (
     remoteProjects: (ProjectServer & { id: string })[],

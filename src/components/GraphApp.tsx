@@ -15,7 +15,7 @@ import GraphNavigation from "./interface/GraphNavigation";
 import { fetchUserProjects } from "../lib/api";
 import { uploadProject } from "../lib/cloudStorage";
 import { useNotifications } from "../hooks/useNotifications";
-import { cleanRadicalProjects, promoteTempProject } from "../lib/localstorage";
+import { cleanRadicalProjects, getRawProject, promoteTempProject } from "../lib/localstorage";
 import { deleteActiveProject, handleActiveProjConfirmation } from "../lib/abstractStorage";
 import Loading from "./Loading";
 import TopBar from "./interface/TopBar";
@@ -27,7 +27,7 @@ export default function GraphApp() {
   const {
     state, loaded,
     activeData, saveActiveData, resetActiveProject,
-    activeProject, createProject, renameProject, reloadActiveProject, syncWithRemote, deleteProject, switchProject,
+    activeProject, createProject, saveProject, reloadActiveProject, syncWithRemote, deleteProject, switchProject,
     setTheme, setLabelBg, importChrl, updateUser
   } = useAppState();
 
@@ -74,7 +74,7 @@ export default function GraphApp() {
             notify.confirmation(
               `"${up.name}" was not saved to the cloud.\nUpload?`,
               "dismiss",
-              () => uploadProject(up.id), "Upload",
+              () => uploadProject({ id: up.id }), "Upload",
               () => { }, "Local only",
               1000 * 60 * 60 * 10
             );
@@ -289,7 +289,6 @@ export default function GraphApp() {
             setHighlightTypeId(null);
           }}
           onCreate={createProject}
-          onRename={renameProject}
           onClose={() => setShowProjects(false)}
         />
       )}
@@ -339,7 +338,6 @@ export default function GraphApp() {
           connectionTypes={activeData.connectionTypes}
           characterCount={activeData.characters.length}
           connectionCount={activeData.connections.length}
-          onRename={(name) => renameProject(activeProject.id, name)}
           onReset={() => {
             resetActiveProject();
             setSelectedId(null);
@@ -349,6 +347,7 @@ export default function GraphApp() {
           onAddConnectionType={handleAddConnectionType}
           onRemoveConnectionType={handleRemoveConnectionType}
           onClose={() => setShowProjSettings(false)}
+          onSaveCb={saveProject}
         />
       )}
 

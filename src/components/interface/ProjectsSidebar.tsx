@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, Plus, Check, X } from "lucide-react";
+import { BookOpen, Plus, Check, X, Globe } from "lucide-react";
 import { CRIT_COLOR, OK_COLOR } from "../../lib/constants";
 import { useAppState } from "../../hooks/useAppState";
 
 interface Props {
   onSwitch: (id: string) => void;
   onCreate: (name: string) => void;
-  onRename: (id: string, name: string) => void;
   onClose: () => void;
 }
 
-export default function ProjectsSidebar({ onSwitch, onCreate, onRename, onClose }: Props) {
+export default function ProjectsSidebar({ onSwitch, onCreate, onClose }: Props) {
   const [creatingName, setCreatingName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const { state } = useAppState();
@@ -118,6 +117,7 @@ export default function ProjectsSidebar({ onSwitch, onCreate, onRename, onClose 
                   })}
                 </p>
               </div>
+              {p.isPublic && <Globe size={24} style={{color: "var(--text-muted-dim)"}}/>}
             </div>
           </div>
         ))}
