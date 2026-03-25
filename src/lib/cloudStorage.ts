@@ -12,7 +12,6 @@
 
 import { updateProject } from "./api";
 import { compressData, decompressData, dehydrateProject } from "./compress";
-import { GUEST_KEY } from "./constants";
 import {
   getRawProject,
   saveRawProject,
