@@ -92,7 +92,7 @@ function dehydrateConnection(c: Connection): Connection {
     id: c.id,
     source: c.source,
     target: c.target,
-    label: c.label,
+    ...(c.label ? { label: c.label } : {}),
     type: c.type,
     unmutual: c.unmutual === undefined ? undefined : true,
   }
@@ -104,6 +104,7 @@ export function dehydrateProject(p: Project): Project {
     characters: p.characters.map(dehydrateCharacter) as Character[],
     connections: p.connections.map(dehydrateConnection) as Connection[],
     connectionTypes: p.connectionTypes.filter((t) => !t.isDefault),
+    isPublic: p.isPublic === undefined ? undefined : true,
   };
 }
 

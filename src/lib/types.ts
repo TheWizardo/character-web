@@ -17,14 +17,14 @@ export interface Connection {
   id: string;
   source: string;
   target: string;
-  label: string;
+  label?: string;
   type: string;
   unmutual?: true;
 }
 
 export interface ConnectionType {
   id: string;
-  label: string;
+  label?: string;
   emoji: string;
   color: string;
   isDefault?: boolean;
@@ -41,11 +41,13 @@ export interface Project extends GraphData {
   name: string;
   createdAt: number;
   updatedAt: number;
+  isPublic?: true;
 }
 
 export interface ProjectServer {
   zippedProject: string;
   updatedAt: number;
+  isPublic: boolean;
 }
 
 export interface Meta {

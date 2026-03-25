@@ -1,14 +1,20 @@
-import { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Project, ConnectionType } from "../../lib/types";
-import { X, Check, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download, CloudUpload } from "lucide-react";
+import { X, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download, CloudUpload, Share, Check, Copy } from "lucide-react";
 import { downloadChrl } from "../../lib/chrl";
-import { CON_PALETTE, CRIT_COLOR, EMOJIS, GUEST_KEY } from "../../lib/constants";
+import { CON_PALETTE, CRIT_COLOR, EMOJIS, GUEST_KEY, OK_COLOR } from "../../lib/constants";
 import { uploadProject } from "../../lib/cloudStorage";
 import { useNotifications } from "../../hooks/useNotifications";
 import { v4 as uuidv4 } from "uuid";
 import { useAppState } from "../../hooks/useAppState";
+import ToggleBtn from "../interface/ToggleBtn";
 
-type Tab = "general" | "connections";
+type TabTag = "general" | "connections" | "share";
+type Tab = {
+  id: TabTag,
+  Icon: typeof Settings,
+  name: string
+}
 
 interface Props {
   project: Project;
@@ -16,20 +22,37 @@ interface Props {
   connectionTypes: ConnectionType[];
   characterCount: number;
   connectionCount: number;
-  onRename: (name: string) => void;
   onReset: () => void;
   onDelete: () => void;
+  onSaveCb: (p: Project) => void;
   onAddConnectionType: (types: ConnectionType) => void;
   onRemoveConnectionType: (id: string) => void;
   onClose: () => void;
 }
 
+const TABS: Tab[] = [
+  {
+    id: "general",
+    Icon: Settings,
+    name: "General"
+  }, {
+    id: "connections",
+    Icon: Link,
+    name: "Connections"
+  }, {
+    id: "share",
+    Icon: Share,
+    name: "Share"
+  }
+]
+
 export default function ProjectSettingsModal({
   project, canDelete, connectionTypes, characterCount, connectionCount,
-  onRename, onReset, onDelete, onAddConnectionType, onRemoveConnectionType, onClose
+  onSaveCb, onReset, onDelete, onAddConnectionType, onRemoveConnectionType, onClose
 }: Props) {
-  const [tab, setTab] = useState<Tab>("general");
+  const [tab, setTab] = useState<TabTag>("general");
   const [name, setName] = useState(project.name);
+  const [publicity, setPublicity] = useState<boolean>(project.isPublic);
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmDel, setConfirmDel] = useState(false);
   const [pendingTypeDel, setPendingTypeDel] = useState<string | null>(null);
@@ -39,11 +62,37 @@ export default function ProjectSettingsModal({
   const [newColor, setNewColor] = useState(CON_PALETTE[0]);
   const [showEmoji, setShowEmoji] = useState(false);
 
+  const [copied, setCopied] = useState(false);
+
   const notify = useNotifications();
   const { userId } = useAppState();
 
-  const saveRename = () => {
-    if (name.trim() && name.trim() !== project.name) onRename(name.trim());
+  const publicUrl = useMemo(() => {
+    return `https://character-loom.com/share/${userId}/${project.id}`;
+  }, [project.id]);
+
+  const copyPublicUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1400);
+    } catch {
+      notify.error("Failed to copy link");
+    }
+  };
+
+  const saveDetails = () => {
+    const updatedProject: Project = { ...project, name: name.trim(), isPublic: publicity ? true : undefined };
+    onSaveCb(updatedProject);
+    uploadProject({ p: updatedProject })
+      .then(ok => {
+        if (ok) {
+          notify.success(`Uploaded "${project.name}"`);
+        }
+        else {
+          notify.error(`Unable to uploaded "${project.name}"`);
+        }
+      });
   };
 
   const addType = () => {
@@ -65,8 +114,6 @@ export default function ProjectSettingsModal({
   };
 
 
-  const btnBase = "flex items-center gap-1.5 px-4 py-2 text-sm font-mono rounded-lg transition-all";
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: "var(--overlay)" }}>
@@ -82,9 +129,34 @@ export default function ProjectSettingsModal({
         <div className="flex items-center justify-between px-6 py-4 flex-shrink-0"
           style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <div>
-            <h3 className="font-display text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-              Story Settings
-            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2
+                className="font-display text-lg font-semibold leading-none m-0"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Story Settings
+              </h2>
+
+              <span
+                aria-hidden="true"
+                className="leading-none"
+                style={{ color: "var(--text-muted)" }}
+              >
+                |
+              </span>
+
+              <span
+                className="text-sm leading-none"
+                style={{
+                  color: "var(--text-muted)",
+                  fontFamily: "'DM Mono', monospace",
+                  fontWeight: 400,
+                  marginTop: "0.02em",
+                }}
+              >
+                {project.name}
+              </span>
+            </div>
             <p className="font-mono text-xs" style={{ color: "var(--text-muted)", marginTop: 2 }}>
               {characterCount} character{characterCount !== 1 ? "s" : ""} · {connectionCount} connection{connectionCount !== 1 ? "s" : ""}
             </p>
@@ -93,19 +165,27 @@ export default function ProjectSettingsModal({
         </div>
 
         {/* Tabs */}
-        <div className="flex px-6 pt-3 gap-1 flex-shrink-0 mb-2">
-          {([["general", Settings, "General"], ["connections", Link, "Connections"]] as const).map(([id, Icon, label]) => (
-            <button key={id} onClick={() => setTab(id as Tab)}
-              className={btnBase}
+        <div className="flex px-6 pt-3 gap-1.5 flex-shrink-0 mb-2">
+          {TABS.map(({ id, Icon, name }) => (
+            <button key={id} onClick={() => setTab(id)}
+              className={`flex items-center gap-1 ${tab === id ? "px-5" : ""} py-2 text-sm font-mono rounded-lg transition-all`}
               style={{
                 background: tab === id ? "var(--gold-dim)" : "transparent",
                 border: `1px solid ${tab === id ? "var(--gold-border)" : "transparent"}`,
                 color: tab === id ? "var(--gold)" : "var(--text-muted)",
               }}>
-              <Icon size={13} /> {label}
+              <Icon size={13} /> {name}
             </button>
           ))}
         </div>
+
+        <div style={{
+          height: 0,
+          width: "97.5%",
+          margin: "0 auto",
+          border: "1px solid var(--text-muted)",
+          borderStyle: "dashed",
+        }} />
 
         {/* Tab body */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -113,31 +193,22 @@ export default function ProjectSettingsModal({
           {/* ── GENERAL TAB ──────────────────────────────── */}
           {tab === "general" && (
             <div className="space-y-5">
+
+              {/* isPublic */}
+              < ToggleBtn label="Public project" state={publicity} setState={setPublicity} />
+
+              {/* Name */}
               <div>
                 <label className="cl-label">Story Name</label>
-                <div className="flex gap-2">
-                  <input className="cl-input flex-1" value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && saveRename()} />
-                  <button onClick={saveRename}
-                    disabled={!name.trim() || name.trim() === project.name}
-                    className={`${btnBase} hover:scale-105 disabled:opacity-40`}
-                    style={{ background: "var(--gold-dim)", border: "1px solid var(--gold-border)", color: "var(--gold)" }}>
-                    <Check size={13} /> Save
-                  </button>
-                </div>
+                <input className="cl-input flex-1" value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && saveDetails()} />
               </div>
+
               {/* Upload */}
               <button
                 disabled={userId === GUEST_KEY}
-                onClick={() => uploadProject(project.id).then(ok => {
-                  if (ok) {
-                    notify.success(`Uploaded "${project.name}"`);
-                  }
-                  else {
-                    notify.error(`Unable to uploaded "${project.name}"`);
-                  }
-                })}
+                onClick={saveDetails}
                 className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-mono transition-all ${userId === GUEST_KEY ? "" : "hover:scale-[1.01]"}`}
                 style={{
                   background: "linear-gradient(135deg, var(--text-muted), var(--gold))",
@@ -147,7 +218,7 @@ export default function ProjectSettingsModal({
                 }}
               >
                 <CloudUpload size={18} />
-                {userId === GUEST_KEY ? "Login to upload" : "Save Project"}
+                {userId === GUEST_KEY ? "Login to upload" : "Save & Upload"}
               </button>
 
               {/* Export */}
@@ -393,6 +464,73 @@ export default function ProjectSettingsModal({
                 </button>
               </div>
             </div>
+          )}
+
+          {/* ── SHARE TAB ────────────────────────────────── */}
+          {project.isPublic === true ? (
+            <div className="space-y-3">
+
+              {/* Share */}
+              <div>
+                <p className="cl-label mb-3">Share Link</p>
+                <div
+                  className="flex items-stretch"
+                >
+                  <input
+                    readOnly
+                    value={publicUrl}
+                    aria-label="Public link"
+                    className="flex-1 min-w-0 px-3 py-2.5 text-sm"
+                    style={{
+                      background: "var(--bg-input)",
+                      color: "var(--text-secondary)",
+                      border: "1px solid var(--border-subtle)",
+                      fontFamily: "'DM Mono', monospace",
+                      borderTopLeftRadius: 8,
+                      borderBottomLeftRadius: 8
+                    }}
+                  />
+
+                  <button
+                    onClick={copyPublicUrl}
+                    aria-label={copied ? "Copied" : "Copy link"}
+                    className="relative w-11 transition-all duration-200 active:scale-95"
+                    style={{
+                      background: copied ? "rgba(46, 204, 113, 0.14)" : "var(--gold-border)",
+                      border: copied
+                        ? "1px solid rgba(46, 204, 113, 0.35)"
+                        : "1px solid var(--gold-border)",
+                      color: copied ? OK_COLOR : "var(--gold)",
+                      borderTopRightRadius: 8,
+                      borderBottomRightRadius: 8
+                    }}
+                  >
+                    <span
+                      className={`absolute inset-0 flex items-center justify-center transition-all duration-200 ${copied ? "opacity-0 scale-75" : "opacity-100 scale-100"
+                        }`}
+                    >
+                      <Copy size={16} />
+                    </span>
+
+                    <span
+                      className={`absolute inset-0 flex items-center justify-center transition-all duration-200 ${copied ? "opacity-100 scale-100" : "opacity-0 scale-75"
+                        }`}
+                    >
+                      <Check size={17} strokeWidth={2.5} />
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <h4
+              className="font-display text-lg font-semibold"
+              style={{ color: "var(--text-primary)" }}
+            >
+              This project is not a public project.
+              <br />
+              If you wish to share it with others, set it to public on the 'General' tab
+            </h4>
           )}
         </div>
       </div>

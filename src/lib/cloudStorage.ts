@@ -11,7 +11,7 @@
  */
 
 import { updateProject, deleteRemoteProject } from "./api";
-import { decompressData } from "./compress";
+import { compressData, decompressData, dehydrateProject } from "./compress";
 import {
   getRawProject,
   saveRawProject,
@@ -24,12 +24,25 @@ import { Project, ProjectServer } from "./types";
  * Reads the raw compressed blob directly — no full decompression needed
  * except to extract updatedAt for the server payload.
  */
-export async function uploadProject(id: string): Promise<boolean> {
-  const zippedProject = getRawProject(id, false);
+export async function uploadProject({ p, id }: { p?: Project, id?: string }): Promise<boolean> {
+  console.log({ p, id });
+  let zippedProject: string;
+  let updatedAt: number;
+  let isPublic: boolean;
+  if (p) {
+    zippedProject = compressData(dehydrateProject(p));
+    updatedAt = p.updatedAt;
+    isPublic = p.isPublic === true;
+  }
+  else {
+    zippedProject = getRawProject(id, false);
+    const unzipped = decompressData<Project>(zippedProject);
+    updatedAt = unzipped.updatedAt;
+    isPublic = unzipped.isPublic === true;
+  }
   if (!zippedProject) return false;
 
-  const { updatedAt } = decompressData<Pick<Project, "updatedAt">>(zippedProject);
-  return updateProject(id, { zippedProject, updatedAt });
+  return updateProject(p.id, { zippedProject, updatedAt, isPublic });
 }
 
 /**
