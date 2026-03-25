@@ -5,14 +5,14 @@ import { useAppState } from "../../hooks/useAppState";
 
 interface Props {
   onSwitch: (id: string) => void;
-  onCreate: (name: string) => void;
+  onCreate: (uid: string, name: string) => void;
   onClose: () => void;
 }
 
 export default function ProjectsSidebar({ onSwitch, onCreate, onClose }: Props) {
   const [creatingName, setCreatingName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const { state } = useAppState();
+  const { state, userId } = useAppState();
   const sidebarRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function ProjectsSidebar({ onSwitch, onCreate, onClose }: Props) 
 
   const submitCreate = () => {
     if (!creatingName.trim()) return;
-    onCreate(creatingName.trim());
+    onCreate(userId, creatingName.trim());
     setCreatingName("");
     setIsCreating(false);
     onClose();

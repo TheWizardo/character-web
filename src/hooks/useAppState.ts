@@ -8,9 +8,9 @@ export interface AppStateContextValue {
   activeProject: Project | null;
   updateUser: (uid: string) => { existed: boolean; meta: Meta; projects: Project[] };
   saveActiveData: (data: GraphData) => void;
-  saveProject: (p: Project) => void;
+  saveProject: (p: Project) => Project;
   resetActiveProject: () => void;
-  createProject: (name: string) => void;
+  createProject: (uid: string, name: string) => Meta;
   reloadActiveProject: () => void;
   syncWithRemote: (
     remoteProjects: (ProjectServer & { id: string })[],
@@ -24,7 +24,6 @@ export interface AppStateContextValue {
   setLabelBg: (show: boolean) => void;
   importChrl: (file: ChrlFile, mode: "append" | "override") => void;
   userId: string;
-  getUserId: () => string;
 }
 
 export const AppStateContext = createContext<AppStateContextValue | null>(null);

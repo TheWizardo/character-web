@@ -9,9 +9,7 @@
  *   cl:p:{id}:temp → Project (compressed, server version pending confirmation)
  */
 
-import { makeEmptyProject } from "./abstractStorage";
 import { compressData, decompressData, dehydrateProject, isCompressed, normalizeProject } from "./compress";
-import { DEF_PROJECT_NAME } from "./constants";
 import { Meta, Project } from "./types";
 
 // ── keys ─────────────────────────────────────────────────
@@ -56,8 +54,8 @@ function lsSet(key: string, val: unknown): void {
 
 // ── factory functions ─────────────────────────────────────
 
-export function makeMeta(projectId: string): Meta {
-  return { projectIds: [projectId], activeProjectId: projectId, theme: "dark", useLabelBg: true };
+export function makeMeta(): Meta {
+  return { projectIds: [], activeProjectId: null, theme: "dark", useLabelBg: true };
 }
 
 // ── meta ──────────────────────────────────────────────────
@@ -72,9 +70,7 @@ export function loadMeta(uid: string): Meta {
   const existing = lsGet<Meta>(K.meta(uid));
 
   if (!existing) {
-    const id = crypto.randomUUID();
-    const meta = makeMeta(id);
-    saveProjectData(uid, id, makeEmptyProject(id, DEF_PROJECT_NAME));
+    const meta = makeMeta();
     saveMeta(meta, uid);
     return meta;
   }
@@ -82,9 +78,7 @@ export function loadMeta(uid: string): Meta {
   const loaded = loadProjects(uid, existing.projectIds ?? []);
 
   if (loaded.length === 0) {
-    const id = crypto.randomUUID();
-    const meta: Meta = { ...existing, projectIds: [id], activeProjectId: id };
-    saveProjectData(uid, id, makeEmptyProject(id, DEF_PROJECT_NAME));
+    const meta = makeMeta();
     saveMeta(meta, uid);
     return meta;
   }

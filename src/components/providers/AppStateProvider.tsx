@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { chrlToProject } from "../../lib/chrl";
 import { stageNewerRemoteProjects } from "../../lib/cloudStorage";
 import { decompressData } from "../../lib/compress";
-import { GUEST_KEY, DEFAULT_CONNECTION_TYPES } from "../../lib/constants";
+import { GUEST_KEY, DEFAULT_CONNECTION_TYPES, DEF_PROJECT_NAME } from "../../lib/constants";
 import { loadMeta, loadProjects, saveMeta, saveProjectData, loadProjectData, userExists, deleteProjectData } from "../../lib/localstorage";
 import { Meta, Project, GraphData, ProjectServer, ChrlFile, AppState } from "../../lib/types";
 import { AppStateContextValue, AppStateContext } from "../../hooks/useAppState";
@@ -13,7 +13,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [meta, setMeta] = useState<Meta>(() => loadMeta(GUEST_KEY));
   const [projects, setProjects] = useState<Project[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [userId, setUserId] = useState<string>(GUEST_KEY);
+  const [userId, setUserId] = useState<string>();
 
   useEffect(() => {
     const loadedProjects = loadProjects(userId, meta.projectIds);
@@ -48,10 +48,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     };
 
   const saveProject = useCallback((project: Project) => {
-    saveProjectData(userId, project.id, { ...project, updatedAt: Date.now() });
+    const now = Date.now();
+    const updatedProject = { ...project, updatedAt: now };
+    saveProjectData(userId, project.id, updatedProject);
     setProjects((prev) =>
       prev.map((p) => (p.id === project.id ? project : p)).sort((a, b) => b.updatedAt - a.updatedAt)
     );
+    return updatedProject;
   }, [userId]);
 
   const saveActiveData = useCallback(
@@ -94,7 +97,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     const existed = userExists(uid);
     setUserId(uid);
 
-    const userMeta = loadMeta(uid);
+    let userMeta = loadMeta(uid);
+    if (!userMeta.activeProjectId) {
+      userMeta = createProject(uid, DEF_PROJECT_NAME);
+    }
     const loadedProjects = loadProjects(uid, userMeta.projectIds);
 
     setMeta(userMeta);
@@ -104,23 +110,24 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   }, [userId]);
 
   const createProject = useCallback(
-    (name: string) => {
+    (uid: string, name: string) => {
       const id = uuidv4();
       const project = makeEmptyProject(id, name);
 
-      saveProjectData(userId, id, project);
+      saveProjectData(uid, id, project);
       setProjects((prev) => [project, ...prev]);
-
+      const newMeta = {
+        ...meta,
+        projectIds: [id, ...meta.projectIds],
+        activeProjectId: id,
+      };
       persistMeta(
-        {
-          ...meta,
-          projectIds: [id, ...meta.projectIds],
-          activeProjectId: id,
-        },
-        userId
+        newMeta,
+        uid
       );
+      return newMeta
     },
-    [meta, persistMeta, userId]
+    [meta, persistMeta]
   );
 
   const deleteProject = useCallback(
@@ -152,7 +159,16 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       currentMeta: Meta,
       currentUser: string
     ) => {
-      const stagedIds = stageNewerRemoteProjects(currentUser, remoteProjects, currentProjects);
+      let projectsInMemory = currentProjects;
+      if (currentProjects.length === 1 && isEmptyProject(currentProjects[0]) && !remoteProjects) {
+        return { unsaved: [], staged: [] };
+      }
+      if (currentProjects.length > 1 || remoteProjects.length > 1) {
+        projectsInMemory = currentProjects.filter(p => !isEmptyProject(p));
+        currentProjects.filter(p => isEmptyProject(p)).forEach(p => deleteProject(p.id, false));
+      }
+
+      const stagedIds = stageNewerRemoteProjects(currentUser, remoteProjects, projectsInMemory);
 
       const syncedProjects = remoteProjects
         .map((rp) => {
@@ -165,9 +181,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         .filter((p): p is Project => p !== null);
 
       const remoteIds = new Set(remoteProjects.map((p) => p.id));
-      const emptyLocals = currentProjects.filter((p) => isEmptyProject(p));
-      const localOnlyProjects = currentProjects.filter((p) => !remoteIds.has(p.id) && !isEmptyProject(p));
-
+      const localOnlyProjects = projectsInMemory.filter((p) => !remoteIds.has(p.id));
       const nextProjects = [...syncedProjects, ...localOnlyProjects].sort((a, b) => b.updatedAt - a.updatedAt);
 
       setProjects(nextProjects);
@@ -180,8 +194,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
           ? currentMeta.activeProjectId
           : nextProjectIds[0],
       };
-
-      emptyLocals.forEach(e => deleteProject(e.id, false));
 
       persistMeta(nextMeta, currentUser);
       return { unsaved: localOnlyProjects, staged: stagedIds };
@@ -278,8 +290,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     [projects, activeProject, meta]
   );
 
-  const getUserId = useCallback(() => userId, [userId]);
-
   const value = useMemo<AppStateContextValue>(
     () => ({
       state,
@@ -299,7 +309,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setLabelBg,
       importChrl,
       userId,
-      getUserId,
     }),
     [
       state,
@@ -319,7 +328,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setLabelBg,
       importChrl,
       userId,
-      getUserId
     ]
   );
 
