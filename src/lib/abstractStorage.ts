@@ -52,7 +52,6 @@ export function makeEmptyProject(id: string, name: string): Project {
 }
 
 export async function importWithLink(uid: string, ownerUid: string, pid: string): Promise<{ project: Project, collision: boolean }> {
-  console.log(ownerUid, pid)
   if (!ownerUid || !pid) {
     throw new Error("Both ownerUid and pid are required");
   }
@@ -64,10 +63,10 @@ export async function importWithLink(uid: string, ownerUid: string, pid: string)
   }
 
   const project = decompressData<Project>(compressed);
-  saveRawProject(uid, pid, compressed, true);
 
+  const collision = projectExists(uid, project.id, false);
   return {
-    collision: projectExists(uid, project.id, false),
+    collision,
     project
   };
 }
