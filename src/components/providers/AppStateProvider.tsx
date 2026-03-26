@@ -232,14 +232,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   );
 
   const importChrl = useCallback(
-    (file: ChrlFile, mode: "append" | "override") => {
+    (file: ChrlFile, mode: "append" | "override" | "insert") => {
       const project = chrlToProject(file);
-
-      if (mode === "override") {
+      if (mode === "override" || mode === "insert") {
         saveProject(project);
         persistMeta(
           {
             ...meta,
+            projectIds: [project.id, ...meta.projectIds],
             activeProjectId: project.id,
           },
           userId

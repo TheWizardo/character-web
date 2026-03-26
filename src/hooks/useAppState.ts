@@ -22,7 +22,7 @@ export interface AppStateContextValue {
   switchProject: (id: string) => void;
   setTheme: (theme: "dark" | "light") => void;
   setLabelBg: (show: boolean) => void;
-  importChrl: (file: ChrlFile, mode: "append" | "override") => void;
+  importChrl: (file: ChrlFile, mode: "append" | "override" | "insert") => void;
   userId: string;
 }
 

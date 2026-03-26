@@ -8,7 +8,7 @@ import { useAppState } from "../../hooks/useAppState";
 
 interface Props {
   onClose: () => void;
-  onImport: (file: ChrlFile, mode: "append" | "override") => void;
+  onImport: (file: ChrlFile, mode: "append" | "override" | "insert") => void;
 }
 
 export default function ImportModal({ onImport, onClose }: Props) {
@@ -26,7 +26,6 @@ export default function ImportModal({ onImport, onClose }: Props) {
     const [ownerUid, pid] = pathname.slice(7).split("/");
     setLoading(true)
     const interval = setInterval(() => setDots(d => (d + 1) % 4), 500);
-    console.log(userId, ownerUid, pid, pathname);
     importWithLink(userId, ownerUid, pid).then(res => {
       setHasCollision(res.collision);
       setPending(res.project);
@@ -40,7 +39,7 @@ export default function ImportModal({ onImport, onClose }: Props) {
 
 
 
-  const confirm = (mode: "append" | "override", file?: ChrlFile) => {
+  const confirm = (mode: "append" | "override" | "insert", file?: ChrlFile) => {
     if (!pending && !file) return;
     onImport(pending as ChrlFile, mode);
     notify.success(`Imported ${pending.name}`)
@@ -192,7 +191,7 @@ export default function ImportModal({ onImport, onClose }: Props) {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <button
-                  onClick={() => confirm("override")}
+                  onClick={() => confirm(hasCollision ? "override" : "insert")}
                   className="w-full py-2.5 rounded-lg font-mono text-sm font-semibold transition-all hover:scale-[1.02]"
                   style={{
                     background: hasCollision ? "rgba(192,57,43,0.12)" : "var(--gold-dim)",
