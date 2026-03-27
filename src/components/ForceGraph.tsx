@@ -263,7 +263,11 @@ export default function ForceGraph({
       .attr("marker-end", (d: any) => `url(#ae-${d.type})`)
       .attr("marker-start", (d: any) => (d.unmutual ? null : `url(#as-${d.type})`));
 
-    const labelGs = container.append("g").selectAll("g").data(links).join("g");
+    const labelGs = container
+      .append("g")
+      .selectAll("g")
+      .data(links.filter((d: any) => String(d.label ?? "").trim().length > 0))
+      .join("g");
 
     const label = labelGs
       .append("text")
@@ -272,10 +276,7 @@ export default function ForceGraph({
       .attr("font-size", "9px")
       .attr("fill", (d: any) => typeColor(d.type))
       .attr("opacity", 0.9)
-      .text((d: any) => {
-        const s = String(d.label ?? "");
-        return s.charAt(0).toUpperCase() + s.slice(1);
-      });
+      .text((d: any) => String(d.label ?? ""));
 
     if (useLabelBg) {
       label.each(function () {
@@ -287,7 +288,7 @@ export default function ForceGraph({
           .attr("width", bbox.width + 2)
           .attr("height", bbox.height)
           .attr("rx", 3)
-          .attr("fill", cssVar("--bg-base", "#111"));
+          .attr("fill", "var(--bg-base)");
       });
     }
 
@@ -501,6 +502,10 @@ export default function ForceGraph({
         .attr("fill-opacity", (d: any) => (d.id === charId ? 0.3 : 0.15))
         .attr("stroke-width", (d: any) => (d.id === charId ? 3 : 2))
         .attr("filter", (d: any) => (d.id === charId ? "url(#selGlow)" : null));
+        
+      nodeEls
+        .select(".node-fill")
+        .attr("r", (d: any) => RADIUS * (d.id === charId ? 1.25 : 1))
 
       if (typeId) {
         linkPaths
