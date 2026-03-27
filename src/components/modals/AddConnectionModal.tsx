@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Character, Connection, ConnectionType } from "../../lib/types";
 import { X, Link, ArrowLeftRight, ArrowRight } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import { capitalize } from "../../lib/helpers";
 
 interface Props {
   characters: Character[];
@@ -52,15 +53,9 @@ export default function AddConnectionModal({
     }
   }, [source, target]);
 
-  const normalize = (s: string) => {
-    if (!s) return s;
-    const t = s.trim().slice(0, 15);
-    return t.charAt(0).toUpperCase() + t.slice(1);
-  };
-
   const submit = () => {
     if (!source || !target || source === target) return;
-    onAdd({ id: uuidv4(), source, target, label: normalize(label), type, unmutual: (mutual ? undefined : true) });
+    onAdd({ id: uuidv4(), source, target, label: capitalize(label), type, unmutual: (mutual ? undefined : true) });
     onClose();
   };
 
@@ -191,7 +186,7 @@ export default function AddConnectionModal({
               value={label}
               onChange={(e) => {
                 const v = e.target.value.slice(0, 15);
-                setLabel(v.charAt(0).toUpperCase() + v.slice(1));
+                setLabel(capitalize(v));
               }}
               onKeyDown={(e) => e.key === "Enter" && submit()}
             />

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Project, ConnectionType } from "../../lib/types";
 import { X, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download, CloudUpload, Share, Check, Copy } from "lucide-react";
 import { downloadChrl } from "../../lib/chrl";
@@ -8,6 +8,7 @@ import { useNotifications } from "../../hooks/useNotifications";
 import { v4 as uuidv4 } from "uuid";
 import { useAppState } from "../../hooks/useAppState";
 import ToggleBtn from "../interface/ToggleBtn";
+import { capitalize } from "../../lib/helpers";
 
 type TabTag = "general" | "connections" | "share";
 type Tab = {
@@ -46,26 +47,60 @@ const TABS: Tab[] = [
   }
 ]
 
+function isSingleEmoji(value: string): boolean {
+  const v = value.trim();
+
+  if (!v) return false;
+
+  // Match one emoji grapheme-like unit, including most composed emoji
+  const emojiRegex = /^(?:\p{Emoji_Presentation}|\p{Extended_Pictographic})(?:\uFE0F)?(?:\u200D(?:\p{Emoji_Presentation}|\p{Extended_Pictographic})(?:\uFE0F)?)*$/u;
+
+  return emojiRegex.test(v);
+}
+
+
+const getRandomType = (cts: ConnectionType[]) => {
+  const { colors, emojis } = getAvailableConnectionTypes(cts);
+  return { label: "", color: colors[Math.floor(Math.random() * colors.length)], emoji: emojis[Math.floor(Math.random() * emojis.length)] }
+}
+
+const getAvailableConnectionTypes = (cts: ConnectionType[]) => {
+  const existingColors = cts.map(ct => ct.color);
+  const existingEmojis = cts.map(ct => ct.emoji);
+  const colors = CON_PALETTE.filter(c => !existingColors.includes(c));
+  const emojis = EMOJIS.filter(e => !existingEmojis.includes(e));
+  return { colors, emojis };
+}
+
 export default function ProjectSettingsModal({
   project, canDelete, connectionTypes, characterCount, connectionCount,
   onSaveCb, onReset, onDelete, onAddConnectionType, onRemoveConnectionType, onClose
 }: Props) {
+  const [form, setForm] = useState<Omit<ConnectionType, "id"> & { isDirty: boolean, errors?: { label?: string, emoji?: string } }>({ ...getRandomType(connectionTypes), isDirty: false });
   const [tab, setTab] = useState<TabTag>("general");
   const [name, setName] = useState(project.name);
   const [publicity, setPublicity] = useState<boolean>(project.isPublic);
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmDel, setConfirmDel] = useState(false);
   const [pendingTypeDel, setPendingTypeDel] = useState<string | null>(null);
+  const [availableEmojis, setAvailableEmojis] = useState<string[]>([]);
+  const [availableColors, setAvailableColors] = useState<string[]>([]);
 
-  const [newLabel, setNewLabel] = useState("");
-  const [newEmoji, setNewEmoji] = useState("🔗");
-  const [newColor, setNewColor] = useState(CON_PALETTE[0]);
   const [showEmoji, setShowEmoji] = useState(false);
 
   const [copied, setCopied] = useState(false);
 
   const notify = useNotifications();
   const { userId } = useAppState();
+
+
+  const updateRoster = () => {
+    const { colors, emojis } = getAvailableConnectionTypes(connectionTypes);
+    setAvailableColors(colors);
+    setAvailableEmojis(emojis);
+  }
+
+  useEffect(updateRoster, [connectionTypes]);
 
   const publicUrl = useMemo(() => {
     return `https://character-loom.com/share/${userId}/${project.id}`;
@@ -94,24 +129,54 @@ export default function ProjectSettingsModal({
       });
   };
 
-  const addType = () => {
-    if (!newLabel.trim()) return;
-
-    const id = "custom-" + uuidv4().slice(0, 8);
-    const newConnection: ConnectionType = {
-      id,
-      label: newLabel.trim(),
-      emoji: newEmoji,
-      color: newColor,
-      isDefault: false
+  const evaluateForm = (
+    f: Omit<ConnectionType, "id"> & {
+      isDirty: boolean;
+      errors?: { label?: string; emoji?: string };
     }
-    onAddConnectionType(newConnection);
-    setNewLabel("");
-    setNewEmoji("🔗");
-    setNewColor(CON_PALETTE[Math.floor(Math.random() * CON_PALETTE.length)]);
-    setShowEmoji(false);
+  ) => {
+    const errors: { label?: string; emoji?: string } = {};
+    if (!f.label.trim()) {
+      errors.label = "Type must have a label";
+    }
+    if (!f.emoji.trim()) {
+      errors.emoji = "Type must have an emoji";
+    } else if (!isSingleEmoji(f.emoji)) {
+      errors.emoji = "Enter a single emoji";
+    }
+
+    const newForm = { ...f, errors };
+    if (!errors.label && !errors.emoji) {
+      delete newForm.errors;
+    }
+    setForm(newForm);
+    return newForm;
   };
 
+  const addType = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const newForm = evaluateForm(form);
+    if (newForm.errors) {
+      setForm({ ...newForm, isDirty: true });
+      return;
+    }
+
+    const id = "custom-" + form.label + uuidv4().slice(0, 4);
+    const newType: ConnectionType = {
+      id,
+      label: form.label,
+      color: form.color,
+      emoji: form.emoji,
+      isDefault: false
+    };
+    onAddConnectionType(newType)
+    const newConnectionTypes = [...connectionTypes, newType];
+    const { emojis, colors } = getAvailableConnectionTypes(newConnectionTypes)
+    setAvailableColors(colors);
+    setAvailableEmojis(emojis);
+    setForm({ ...getRandomType(newConnectionTypes), isDirty: false });
+    setShowEmoji(false);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -399,30 +464,66 @@ export default function ProjectSettingsModal({
               ))}
 
               {/* Add new */}
-              <div className="pt-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+              <form
+                className="pt-3"
+                style={{ borderTop: "1px solid var(--border-subtle)" }}
+                onSubmit={addType}
+              >
                 <p className="cl-label mb-3">Add Custom Type</p>
 
                 {/* Emoji */}
                 <div className="mb-3">
                   <label className="cl-label">Emoji</label>
-                  <button onClick={() => setShowEmoji(!showEmoji)}
+                  <button
+                    type="button"
+                    onClick={() => setShowEmoji(!showEmoji)}
                     className="text-xl w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-110"
-                    style={{ background: "var(--bg-surface)", border: "1px solid var(--border-medium)" }}>
-                    {newEmoji}
+                    style={{
+                      background: "var(--bg-surface)",
+                      border: `1px solid ${form.isDirty && form.errors?.emoji ? CRIT_COLOR : "var(--border-medium)"}`,
+                    }}
+                    title={form.isDirty ? form.errors?.emoji : ""}
+                  >
+                    {form.emoji}
                   </button>
+
                   {showEmoji && (
-                    <div className="mt-2 p-2 rounded-lg grid grid-cols-8 gap-1"
-                      style={{ background: "var(--bg-deep)", border: "1px solid var(--border-medium)" }}>
-                      {EMOJIS.map((e) => (
-                        <button key={e} onClick={() => { setNewEmoji(e); setShowEmoji(false); }}
-                          className="text-base w-8 h-8 rounded flex items-center justify-center border-0 outline-none bg-transparent hover:bg-white/10 transition-colors">
+                    <div
+                      className="mt-2 p-2 rounded-lg grid grid-cols-8 gap-1"
+                      style={{
+                        background: "var(--bg-deep)",
+                        border: `1px solid ${form.isDirty && form.errors?.emoji ? CRIT_COLOR : "var(--border-medium)"}`,
+                      }}
+                    >
+                      {availableEmojis.map((e) => (
+                        <button
+                          key={e}
+                          type="button"
+                          onClick={() => {
+                            evaluateForm({ ...form, emoji: e });
+                            setShowEmoji(false);
+                          }}
+                          className="text-base w-8 h-8 rounded flex items-center justify-center border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
+                        >
                           {e}
                         </button>
                       ))}
-                      <input className="col-span-2 bg-transparent text-center text-sm focus:outline-none"
-                        style={{ border: "1px solid var(--border-input)", color: "var(--text-primary)", borderRadius: 4 }}
-                        placeholder="✍️ Custom" maxLength={2}
-                        onChange={(e) => { if (e.target.value) setNewEmoji(e.target.value); }} />
+
+                      <input
+                        className="col-span-2 bg-transparent text-center text-sm focus:outline-none"
+                        style={{
+                          border: `1px solid ${form.isDirty && form.errors?.emoji ? CRIT_COLOR : "var(--border-input)"}`,
+                          color: "var(--text-primary)",
+                          borderRadius: 4,
+                        }}
+                        title={form.isDirty ? form.errors?.emoji : ""}
+                        placeholder="✍️ Custom"
+                        maxLength={8}
+                        value={availableEmojis.includes(form.emoji) ? "" : form.emoji}
+                        onChange={(e) => {
+                          evaluateForm({ ...form, emoji: e.target.value });
+                        }}
+                      />
                     </div>
                   )}
                 </div>
@@ -430,38 +531,65 @@ export default function ProjectSettingsModal({
                 {/* Label */}
                 <div className="mb-3">
                   <label className="cl-label">Label</label>
-                  <input className="cl-input" placeholder="Mentor, Nemesis, Soulmate…"
-                    value={newLabel} onChange={(e) => setNewLabel(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && addType()} />
+                  <input
+                    className="cl-input"
+                    placeholder="Mentor, Nemesis, Soulmate…"
+                    value={form.label}
+                    onChange={(e) => evaluateForm({ ...form, label: capitalize(e.target.value) })}
+                    style={{
+                      border: `1px solid ${form.isDirty && form.errors?.label ? CRIT_COLOR : "var(--border-medium)"}`,
+                    }}
+                    title={form.isDirty ? form.errors?.label : ""}
+                  />
                 </div>
 
                 {/* Color */}
                 <div className="mb-4">
                   <label className="cl-label">Color</label>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {CON_PALETTE.map((col) => (
-                      <button key={col} onClick={() => setNewColor(col)}
+                    {availableColors.map((col) => (
+                      <button
+                        key={col}
+                        type="button"
+                        onClick={() => evaluateForm({ ...form, color: col })}
                         className="w-7 h-7 rounded-full transition-transform hover:scale-110"
                         style={{
                           background: col,
-                          border: newColor === col ? "2px solid var(--text-primary)" : "2px solid transparent",
-                          boxShadow: newColor === col ? `0 0 8px ${col}` : "none",
-                        }} />
+                          border: form.color === col ? "2px solid var(--text-primary)" : "2px solid transparent",
+                          boxShadow: form.color === col ? `0 0 8px ${col}` : "none",
+                        }}
+                      />
                     ))}
+
                     <div className="flex gap-2 mt-1">
-                      <p className={`text-sm font-mono flex items-center justify-center`} style={{ textAlign: "center", color: "var(--gold)" }}>Custom</p>
-                      <input type="color" value={newColor} onChange={(e) => setNewColor(e.target.value)}
-                        className="w-7 h-7 rounded-full cursor-pointer border-0 p-0 bg-transparent" />
+                      <p
+                        className="text-sm font-mono flex items-center justify-center"
+                        style={{ textAlign: "center", color: "var(--gold)" }}
+                      >
+                        Custom
+                      </p>
+                      <input
+                        type="color"
+                        value={form.color}
+                        onChange={(e) => evaluateForm({ ...form, color: e.target.value })}
+                        className="w-7 h-7 rounded-full cursor-pointer border-0 p-0 bg-transparent"
+                      />
                     </div>
                   </div>
                 </div>
 
-                <button onClick={addType} disabled={!newLabel.trim()}
-                  className={`w-full py-2 rounded-lg text-sm font-mono flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-40`}
-                  style={{ background: "var(--bg-surface)", border: "1px solid var(--border-medium)", color: "var(--gold)" }}>
+                <button
+                  type="submit"
+                  className="w-full py-2 rounded-lg text-sm font-mono flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-40"
+                  style={{
+                    background: "var(--bg-surface)",
+                    border: "1px solid var(--border-medium)",
+                    color: "var(--gold)",
+                  }}
+                >
                   <Plus size={14} /> Add Type
                 </button>
-              </div>
+              </form>
             </div>
           )}
 
@@ -533,7 +661,7 @@ export default function ProjectSettingsModal({
               </h4>
             ))}
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

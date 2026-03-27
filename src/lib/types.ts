@@ -24,7 +24,7 @@ export interface Connection {
 
 export interface ConnectionType {
   id: string;
-  label?: string;
+  label: string;
   emoji: string;
   color: string;
   isDefault?: boolean;
