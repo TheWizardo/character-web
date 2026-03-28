@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Project, ConnectionType } from "../../lib/types";
+import { Project, ConnectionType, FormErrors, Form } from "../../lib/types";
 import { X, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download, CloudUpload, Share, Check, Copy } from "lucide-react";
 import { downloadChrl } from "../../lib/chrl";
 import { CON_PALETTE, CRIT_COLOR, EMOJIS, GUEST_KEY, OK_COLOR } from "../../lib/constants";
@@ -76,7 +76,7 @@ export default function ProjectSettingsModal({
   project, canDelete, connectionTypes, characterCount, connectionCount,
   onSaveCb, onReset, onDelete, onAddConnectionType, onRemoveConnectionType, onClose
 }: Props) {
-  const [form, setForm] = useState<Omit<ConnectionType, "id"> & { isDirty: boolean, errors?: { label?: string, emoji?: string } }>({ ...getRandomType(connectionTypes), isDirty: false });
+  const [form, setForm] = useState<Form<ConnectionType>>({ ...getRandomType(connectionTypes), isDirty: false });
   const [tab, setTab] = useState<TabTag>("general");
   const [name, setName] = useState(project.name);
   const [publicity, setPublicity] = useState<boolean>(project.isPublic);
@@ -129,13 +129,8 @@ export default function ProjectSettingsModal({
       });
   };
 
-  const evaluateForm = (
-    f: Omit<ConnectionType, "id"> & {
-      isDirty: boolean;
-      errors?: { label?: string; emoji?: string };
-    }
-  ) => {
-    const errors: { label?: string; emoji?: string } = {};
+  const evaluateForm = (f: Form<ConnectionType>) => {
+    const errors: FormErrors<ConnectionType> = {};
     if (!f.label.trim()) {
       errors.label = "Type must have a label";
     }
@@ -146,7 +141,7 @@ export default function ProjectSettingsModal({
     }
 
     const newForm = { ...f, errors };
-    if (!errors.label && !errors.emoji) {
+    if (Object.keys(errors).length === 0) {
       delete newForm.errors;
     }
     setForm(newForm);
@@ -473,7 +468,7 @@ export default function ProjectSettingsModal({
 
                 {/* Emoji */}
                 <div className="mb-3">
-                  <label className="cl-label">Emoji</label>
+                  <label className="cl-label">Emoji *</label>
                   <button
                     type="button"
                     onClick={() => setShowEmoji(!showEmoji)}
@@ -530,7 +525,7 @@ export default function ProjectSettingsModal({
 
                 {/* Label */}
                 <div className="mb-3">
-                  <label className="cl-label">Label</label>
+                  <label className="cl-label">Label *</label>
                   <input
                     className="cl-input"
                     placeholder="Mentor, Nemesis, Soulmate…"

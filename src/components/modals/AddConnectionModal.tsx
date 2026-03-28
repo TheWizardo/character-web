@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Character, Connection, ConnectionType } from "../../lib/types";
+import { Character, Connection, ConnectionType, Form, FormErrors } from "../../lib/types";
 import { X, Link, ArrowLeftRight, ArrowRight } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { capitalize } from "../../lib/helpers";
+import { CRIT_COLOR } from "../../lib/constants";
 
 interface Props {
   characters: Character[];
@@ -17,12 +18,9 @@ export default function AddConnectionModal({
   onAdd,
   onClose,
 }: Props) {
-  const [source, setSource] = useState("");
-  const [target, setTarget] = useState("");
+  const [form, setForm] = useState<Omit<Connection, "id"> & { isDirty: boolean, errors?: FormErrors<Connection> }>({ label: "", source: "", target: "", type: "", isDirty: false });
   const [sourceInput, setSourceInput] = useState("");
   const [targetInput, setTargetInput] = useState("");
-  const [label, setLabel] = useState("");
-  const [type, setType] = useState(connectionTypes[0]?.id ?? "friendship");
   const [mutual, setMutual] = useState(true);
 
   const sortedCharacters = useMemo(
@@ -33,30 +31,75 @@ export default function AddConnectionModal({
   const sortedTargetCharacters = useMemo(
     () =>
       [...characters]
-        .filter((c) => c.id !== source)
+        .filter((c) => c.id !== form.source)
         .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())),
-    [characters, source]
+    [characters, form.source]
   );
 
   useEffect(() => {
-    setSourceInput(characters.find((c) => c.id === source)?.name ?? "");
-  }, [source, characters]);
+    setSourceInput(characters.find((c) => c.id === form.source)?.name ?? "");
+  }, [form.source, characters]);
 
   useEffect(() => {
-    setTargetInput(characters.find((c) => c.id === target)?.name ?? "");
-  }, [target, characters]);
+    setTargetInput(characters.find((c) => c.id === form.target)?.name ?? "");
+  }, [form.target, characters]);
 
   useEffect(() => {
-    if (source && target && source === target) {
-      setTarget("");
+    if (form.source && form.target && form.source === form.target) {
+      setForm({ ...form, target: "" });
       setTargetInput("");
     }
-  }, [source, target]);
+  }, [form.source, form.target]);
 
-  const submit = () => {
-    if (!source || !target || source === target) return;
-    onAdd({ id: uuidv4(), source, target, label: capitalize(label), type, unmutual: (mutual ? undefined : true) });
-    onClose();
+  const evaluateForm = (f: Form<Connection>) => {
+    const errors: FormErrors<Connection> = {};
+
+    if (!f.source?.trim()) {
+      errors.source = "Connection must have a source";
+    }
+    if (characters.filter(c => c.id === f.source).length !== 1) {
+      errors.source = "Cannot find character";
+    }
+
+    if (!f.target?.trim()) {
+      errors.target = "Connection must have a target";
+    }
+    if (characters.filter(c => c.id === f.target).length !== 1) {
+      errors.target = "Cannot find character";
+    }
+
+    if (connectionTypes.filter(ct => ct.id === f.type).length !== 1) {
+      errors.type = "Cannot find specified type";
+    }
+
+    const newForm = { ...f, errors };
+
+    if (Object.keys(errors).length === 0) {
+      delete newForm.errors;
+    }
+
+    setForm(newForm);
+    return newForm;
+  };
+
+  const submit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+
+    const checkedForm = evaluateForm({ ...form, isDirty: true });
+
+    if (checkedForm.errors) return;
+
+    const newConnection: Connection = {
+      id: uuidv4(),
+      source: checkedForm.source.trim(),
+      target: checkedForm.target.trim(),
+      type: checkedForm.type.trim(),
+      ...(checkedForm.label?.trim() ? { label: checkedForm.label.trim() } : {}),
+      unmutual: (mutual ? undefined : true),
+    };
+
+    onAdd(newConnection)
+    onClose()
   };
 
   return (
@@ -92,11 +135,13 @@ export default function AddConnectionModal({
         <div className="px-6 py-5 space-y-4">
           <div className="flex items-end gap-2">
             <div className="flex-1">
-              <label className="cl-label">From</label>
+              <label className="cl-label">From *</label>
               <input
                 className="cl-input"
                 list="characters-from-list"
                 value={sourceInput}
+                style={{ borderColor: form.isDirty && form.errors?.source ? CRIT_COLOR : "" }}
+                title={form.errors?.source || ""}
                 onChange={(e) => {
                   const v = e.target.value;
                   setSourceInput(v);
@@ -104,7 +149,7 @@ export default function AddConnectionModal({
                   const selected = sortedCharacters.find(
                     (c) => c.name.toLowerCase() === v.toLowerCase()
                   );
-                  setSource(selected?.id ?? "");
+                  evaluateForm({ ...form, source: (selected?.id ?? "") });
                 }}
                 placeholder="Select or type a character…"
               />
@@ -116,7 +161,7 @@ export default function AddConnectionModal({
             </div>
 
             <div className="flex flex-col items-center gap-1 pb-0.5">
-              <span className="cl-label">Mutual</span>
+              <span className="cl-label">Relations</span>
               <button
                 onClick={() => setMutual(!mutual)}
                 className="w-10 h-9 rounded-lg flex items-center justify-center transition-all hover:scale-105"
@@ -131,11 +176,13 @@ export default function AddConnectionModal({
             </div>
 
             <div className="flex-1">
-              <label className="cl-label">To</label>
+              <label className="cl-label">To *</label>
               <input
                 className="cl-input"
                 list="characters-to-list"
                 value={targetInput}
+                style={{ borderColor: form.isDirty && form.errors?.target ? CRIT_COLOR : "" }}
+                title={form.errors?.target || ""}
                 onChange={(e) => {
                   const v = e.target.value;
                   setTargetInput(v);
@@ -143,7 +190,7 @@ export default function AddConnectionModal({
                   const selected = sortedTargetCharacters.find(
                     (c) => c.name.toLowerCase() === v.toLowerCase()
                   );
-                  setTarget(selected?.id ?? "");
+                  evaluateForm({ ...form, target: (selected?.id ?? "") });
                 }}
                 placeholder="Select or type a character…"
               />
@@ -156,17 +203,20 @@ export default function AddConnectionModal({
           </div>
 
           <div>
-            <label className="cl-label mb-2">Type</label>
-            <div className="grid grid-cols-2 gap-2">
+            <label className="cl-label mb-2">Type *</label>
+            <div
+              className="grid grid-cols-2 gap-2"
+              title={form.errors?.type || ""}
+              style={form.isDirty && form.errors?.type ? { border: `1px solid ${CRIT_COLOR}`, padding: "1ch", borderRadius: 5} : {}}>
               {connectionTypes.map((t) => (
                 <button
                   key={t.id}
-                  onClick={() => setType(t.id)}
+                  onClick={() => evaluateForm({ ...form, type: t.id })}
                   className="py-2 px-3 rounded-lg text-sm font-mono text-left flex items-center gap-2 transition-all"
                   style={{
-                    background: type === t.id ? `${t.color}25` : "var(--bg-surface)",
-                    border: type === t.id ? `4px solid ${t.color}80` : "1px solid var(--border-subtle)",
-                    color: type === t.id ? t.color : "var(--text-muted)",
+                    background: form.type === t.id ? `${t.color}25` : "var(--bg-surface)",
+                    border: form.type === t.id ? `4px solid ${t.color}80` : "1px solid var(--border-subtle)",
+                    color: form.type === t.id ? t.color : "var(--text-muted)",
                   }}
                 >
                   <span style={{ fontSize: 18 }}>{t.emoji}</span> {t.label}
@@ -177,16 +227,16 @@ export default function AddConnectionModal({
 
           <div>
             <label className="cl-label">
-              Additional label <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>({label.length}/15)</span>
+              Optional label <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>({form.label.length}/15)</span>
             </label>
             <input
               className="cl-input"
               placeholder="Married, Rivals…"
               maxLength={15}
-              value={label}
+              value={form.label}
               onChange={(e) => {
                 const v = e.target.value.slice(0, 15);
-                setLabel(capitalize(v));
+                evaluateForm({ ...form, label: capitalize(v) });
               }}
               onKeyDown={(e) => e.key === "Enter" && submit()}
             />
@@ -211,7 +261,7 @@ export default function AddConnectionModal({
 
           <button
             onClick={submit}
-            disabled={!source || !target || source === target}
+            disabled={form.isDirty && form.errors !== undefined}
             className="px-5 py-2 rounded-lg text-sm font-mono flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-40"
             style={{
               background: "linear-gradient(135deg, var(--text-muted), var(--gold))",
@@ -223,7 +273,7 @@ export default function AddConnectionModal({
             <Link size={14} /> Connect
           </button>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Character } from "../../lib/types";
+import { Character, Form, FormErrors } from "../../lib/types";
 import { X, Plus } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
-import { CHAR_PALLETTE } from "../../lib/constants";
+import { CHAR_PALLETTE, CRIT_COLOR } from "../../lib/constants";
+import { capitalize } from "../../lib/helpers";
 
 interface Props {
   onAdd: (character: Character) => void;
@@ -10,29 +11,93 @@ interface Props {
 }
 
 export default function AddCharacterModal({ onAdd, onClose }: Props) {
-  const [form, setForm] = useState<Partial<Character>>({
+  const [form, setForm] = useState<Form<Character>>({
+    name: "",
+    isDirty: false,
     color: CHAR_PALLETTE[Math.floor(Math.random() * CHAR_PALLETTE.length)],
     hobbies: [],
   });
   const [hobbiesText, setHobbiesText] = useState("");
   const [newColor, setNewColor] = useState(CHAR_PALLETTE[0]);
 
-  const submit = () => {
-    if (!form.name?.trim()) return;
-    onAdd({
+
+  const evaluateForm = (f: Form<Character>) => {
+    const errors: FormErrors<Character> = {};
+
+    if (!f.name?.trim()) {
+      errors.name = "Character must have a name";
+    }
+
+    if (f.fullName !== undefined && !f.fullName.trim()) {
+      delete f.fullName;
+    }
+
+    if (f.age !== undefined && (Number.isNaN(f.age) || f.age < 0)) {
+      errors.age = "Age must be a non-negative number";
+    }
+
+    if (f.birthDate !== undefined && !f.birthDate.trim()) {
+      delete f.birthDate;
+    }
+
+    if (f.physicalDescription !== undefined && !f.physicalDescription.trim()) {
+      delete f.physicalDescription;
+    }
+
+    if (f.hobbies !== undefined && !Array.isArray(f.hobbies)) {
+      errors.hobbies = "Hobbies must be a list";
+    }
+
+    if (f.address !== undefined && !f.address.trim()) {
+      delete f.address;
+    }
+
+    if (f.workplace !== undefined && !f.workplace.trim()) {
+      delete f.workplace;
+    }
+
+    if (f.education !== undefined && !f.education.trim()) {
+      delete f.education;
+    }
+
+    if (f.additionalInfo !== undefined && !f.additionalInfo.trim()) {
+      delete f.additionalInfo;
+    }
+
+    const newForm = { ...f, errors };
+
+    if (Object.keys(errors).length === 0) {
+      delete newForm.errors;
+    }
+
+    setForm(newForm);
+    return newForm;
+  };
+
+  const submit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const newForm = evaluateForm(form);
+    if (newForm.errors) {
+      setForm({ ...newForm, isDirty: true });
+      return;
+    }
+
+    const newCharacter = {
       id: uuidv4(),
-      name: form.name.trim(),
-      fullName: form.fullName || form.name.trim(),
-      age: form.age,
-      birthDate: form.birthDate,
-      physicalDescription: form.physicalDescription || "",
+      name: newForm.name.trim(),
+      fullName: newForm.fullName || newForm.name.trim(),
+      age: newForm.age,
+      birthDate: newForm.birthDate,
+      physicalDescription: newForm.physicalDescription || "",
       hobbies: hobbiesText.split(",").map((s) => s.trim()).filter(Boolean),
-      address: form.address || "",
-      workplace: form.workplace || "",
-      education: form.education || "",
-      additionalInfo: form.additionalInfo || "",
-      color: form.color,
-    });
+      address: newForm.address || "",
+      workplace: newForm.workplace || "",
+      education: newForm.education || "",
+      additionalInfo: newForm.additionalInfo || "",
+      color: newForm.color,
+    }
+    onAdd(newCharacter);
+    onClose();
   };
 
   return (
@@ -50,69 +115,69 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="cl-label">Name *</label>
-              <input className="cl-input" placeholder="Eleanor"
-                value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })}
+              <input className="cl-input" placeholder="Ellie" style={{ borderColor: form.isDirty && form.errors?.name ? CRIT_COLOR : "" }} title={form.isDirty ? form.errors?.name : ""}
+                value={form.name || ""} onChange={(e) => evaluateForm({ ...form, name: capitalize(e.target.value) })}
                 onKeyDown={(e) => e.key === "Enter" && submit()} />
             </div>
             <div>
               <label className="cl-label">Full Name</label>
-              <input className="cl-input" placeholder="Eleanor Voss"
-                value={form.fullName || ""} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+              <input className="cl-input" placeholder="Eleanor Voss" style={{ borderColor: form.isDirty && form.errors?.fullName ? CRIT_COLOR : "" }} title={form.isDirty ? form.errors?.fullName : ""}
+                value={form.fullName || ""} onChange={(e) => evaluateForm({ ...form, fullName: e.target.value.split(" ").map(n => capitalize(n)).join(" ") })} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="cl-label">Age</label>
-              <input type="number" className="cl-input" placeholder="34"
-                value={form.age || ""} onChange={(e) => setForm({ ...form, age: parseInt(e.target.value) || undefined })} />
+              <input type="number" className="cl-input" placeholder="34" style={{ borderColor: form.isDirty && form.errors?.age ? CRIT_COLOR : "" }} title={form.isDirty ? form.errors?.age : ""}
+                value={form.age || form.age?.toString() || ""} onChange={(e) => evaluateForm({ ...form, age: parseInt(e.target.value) === 0 ? 0 : parseInt(e.target.value) || undefined })} />
             </div>
             <div>
               <label className="cl-label">Birthdate</label>
-              <input type="date" className="cl-input" value={form.birthDate || ""}
-                onChange={(e) => setForm({ ...form, birthDate: e.target.value })} />
+              <input type="date" className="cl-input" value={form.birthDate || ""} style={{ borderColor: form.isDirty && form.errors?.birthDate ? CRIT_COLOR : "" }} title={form.isDirty ? form.errors?.birthDate : ""}
+                onChange={(e) => evaluateForm({ ...form, birthDate: e.target.value })} />
             </div>
           </div>
           <div>
             <label className="cl-label">Physical Description</label>
-            <textarea className="cl-input" rows={2} style={{ resize: "none" }} placeholder="Tall with auburn hair…"
-              value={form.physicalDescription || ""} onChange={(e) => setForm({ ...form, physicalDescription: e.target.value })} />
+            <textarea className="cl-input" rows={2} style={{ resize: "none", borderColor: form.isDirty && form.errors?.physicalDescription ? CRIT_COLOR : "" }} placeholder="Tall with auburn hair…"
+              value={form.physicalDescription || ""} onChange={(e) => evaluateForm({ ...form, physicalDescription: e.target.value })} title={form.isDirty ? form.errors?.physicalDescription : ""} />
           </div>
           <div>
             <label className="cl-label">Hobbies (comma-separated)</label>
-            <input className="cl-input" placeholder="Reading, Chess, Cooking"
+            <input className="cl-input" placeholder="Reading, Chess, Cooking" style={{ borderColor: form.isDirty && form.errors?.hobbies ? CRIT_COLOR : "" }} title={form.isDirty ? form.errors?.hobbies : ""}
               value={hobbiesText} onChange={(e) => setHobbiesText(e.target.value)} />
           </div>
           <div>
             <label className="cl-label">Address</label>
-            <input className="cl-input" placeholder="14 Harlow Street"
-              value={form.address || ""} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <input className="cl-input" placeholder="14 Harlow Street" style={{ borderColor: form.isDirty && form.errors?.address ? CRIT_COLOR : "" }} title={form.isDirty ? form.errors?.address : ""}
+              value={form.address || ""} onChange={(e) => evaluateForm({ ...form, address: e.target.value })} />
           </div>
           <div>
             <label className="cl-label">Workplace</label>
-            <input className="cl-input" placeholder="Voss & Merrick Antiquities"
-              value={form.workplace || ""} onChange={(e) => setForm({ ...form, workplace: e.target.value })} />
+            <input className="cl-input" placeholder="Voss & Merrick Antiquities" style={{ borderColor: form.isDirty && form.errors?.workplace ? CRIT_COLOR : "" }} title={form.isDirty ? form.errors?.workplace : ""}
+              value={form.workplace || ""} onChange={(e) => evaluateForm({ ...form, workplace: e.target.value })} />
           </div>
           <div>
             <label className="cl-label">Education</label>
-            <input className="cl-input" placeholder="MA in Art History, Edinburgh"
-              value={form.education || ""} onChange={(e) => setForm({ ...form, education: e.target.value })} />
+            <input className="cl-input" placeholder="MA in Art History, Edinburgh" style={{ borderColor: form.isDirty && form.errors?.education ? CRIT_COLOR : "" }} title={form.isDirty ? form.errors?.education : ""}
+              value={form.education || ""} onChange={(e) => evaluateForm({ ...form, education: e.target.value })} />
           </div>
           <div>
             <label className="cl-label">Additional Information</label>
-            <textarea className="cl-input" rows={3} style={{ resize: "vertical" }} placeholder="Backstory, secrets, arcs…"
-              value={form.additionalInfo || ""} onChange={(e) => setForm({ ...form, additionalInfo: e.target.value })} />
+            <textarea className="cl-input" rows={3} style={{ resize: "vertical", borderColor: form.isDirty && form.errors?.additionalInfo ? CRIT_COLOR : "" }} placeholder="Backstory, secrets, arcs…" title={form.isDirty ? form.errors?.additionalInfo : ""}
+              value={form.additionalInfo || ""} onChange={(e) => evaluateForm({ ...form, additionalInfo: e.target.value })} />
           </div>
           <div>
             <label className="cl-label">Color</label>
             <div className="flex gap-2 flex-wrap mt-1">
               {CHAR_PALLETTE.map((col) => (
-                <button key={col} onClick={() => { setForm({ ...form, color: col }); setNewColor(col); }}
+                <button key={col} onClick={() => { evaluateForm({ ...form, color: col }); setNewColor(col); }}
                   className="w-7 h-7 rounded-full transition-transform hover:scale-110"
                   style={{ background: col, border: form.color === col ? "2px solid var(--text-primary)" : "2px solid transparent", boxShadow: form.color === col ? `0 0 8px ${col}` : "none" }} />
               ))}
               <div className="flex gap-2 mt-1">
                 <p className={`text-sm font-mono flex items-center justify-center`} style={{ textAlign: "center", color: "var(--gold)" }}>Custom</p>
-                <input type="color" value={newColor} onChange={(e) => { setForm({ ...form, color: e.target.value }); setNewColor(e.target.value) }}
+                <input type="color" value={newColor} onChange={(e) => { evaluateForm({ ...form, color: e.target.value }); setNewColor(e.target.value) }}
                   className="w-7 h-7 rounded-full cursor-pointer border-0 p-0 bg-transparent" />
               </div>
             </div>
@@ -132,7 +197,7 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
           >
             Cancel
           </button>
-          <button onClick={submit} disabled={!form.name?.trim()}
+          <button onClick={submit} disabled={form.isDirty && form.errors !== undefined}
             className="px-5 py-2 rounded-lg text-sm font-mono flex items-center gap-2 transition-all hover:scale-105 disabled:opacity-40"
             style={{
               background: "linear-gradient(135deg, var(--text-muted), var(--gold))",

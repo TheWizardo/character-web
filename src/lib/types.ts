@@ -101,3 +101,10 @@ interface ConfirmationNotification extends BaseNotification {
 }
 
 export type Notification = SimpleNotification | ConfirmationNotification;
+
+
+export type FormErrors<T> = {
+  [K in keyof T]?: string;
+};
+
+export type Form<T> = Omit<T, "id"> & { isDirty: boolean, errors?: FormErrors<T> }
