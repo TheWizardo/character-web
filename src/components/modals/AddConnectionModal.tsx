@@ -110,7 +110,7 @@ export default function AddConnectionModal({
       <div
         className="w-full rounded-xl overflow-hidden fade-in"
         style={{
-          maxWidth: "32rem",
+          maxWidth: "38rem",
           background: "var(--panel-gradient)",
           border: "1px solid var(--border-medium)",
           boxShadow: "0 40px 80px var(--shadow-xl)",
@@ -231,7 +231,7 @@ export default function AddConnectionModal({
             </label>
             <input
               className="cl-input"
-              placeholder="Married, Rivals…"
+              placeholder="Married, Nemesis, Cousin…"
               maxLength={15}
               value={form.label}
               onChange={(e) => {
