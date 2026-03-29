@@ -10,8 +10,8 @@
 import { getAuth } from "firebase/auth";
 import { ProjectServer } from "./types";
 
-const BASE = "http://localhost:4000";
-// const BASE = "https://api.character-loom.com";
+// const BASE = "http://localhost:4000";
+const BASE = "https://api.character-loom.com";
 
 async function token(): Promise<string> {
   const user = getAuth().currentUser;
