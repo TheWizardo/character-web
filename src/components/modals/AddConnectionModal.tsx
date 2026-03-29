@@ -4,6 +4,7 @@ import { X, Link, ArrowLeftRight, ArrowRight } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { capitalize } from "../../lib/helpers";
 import { CRIT_COLOR } from "../../lib/constants";
+import ToggleBtn from "../interface/ToggleBtn";
 
 interface Props {
   characters: Character[];
@@ -22,6 +23,7 @@ export default function AddConnectionModal({
   const [sourceInput, setSourceInput] = useState("");
   const [targetInput, setTargetInput] = useState("");
   const [mutual, setMutual] = useState(true);
+  const [dotted, setDotted] = useState(false);
 
   const sortedCharacters = useMemo(
     () => [...characters].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())),
@@ -96,8 +98,10 @@ export default function AddConnectionModal({
       type: checkedForm.type.trim(),
       ...(checkedForm.label?.trim() ? { label: checkedForm.label.trim() } : {}),
       unmutual: (mutual ? undefined : true),
+      dotted: (dotted ? true : undefined),
     };
 
+    console.log(newConnection);
     onAdd(newConnection)
     onClose()
   };
@@ -207,7 +211,7 @@ export default function AddConnectionModal({
             <div
               className="grid grid-cols-2 gap-2"
               title={form.errors?.type || ""}
-              style={form.isDirty && form.errors?.type ? { border: `1px solid ${CRIT_COLOR}`, padding: "1ch", borderRadius: 5} : {}}>
+              style={form.isDirty && form.errors?.type ? { border: `1px solid ${CRIT_COLOR}`, padding: "1ch", borderRadius: 5 } : {}}>
               {connectionTypes.map((t) => (
                 <button
                   key={t.id}
@@ -223,6 +227,9 @@ export default function AddConnectionModal({
                 </button>
               ))}
             </div>
+          </div>
+          <div>
+            <ToggleBtn label="Dotted" state={dotted} setState={setDotted} />
           </div>
 
           <div>

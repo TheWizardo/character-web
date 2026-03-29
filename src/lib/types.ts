@@ -20,6 +20,7 @@ export interface Connection {
   label?: string;
   type: string;
   unmutual?: true;
+  dotted?: true;
 }
 
 export interface ConnectionType {

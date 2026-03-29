@@ -259,6 +259,7 @@ export default function ForceGraph({
       .attr("fill", "none")
       .attr("stroke", (d: any) => typeColor(d.type))
       .attr("stroke-width", 1.25)
+      .attr("stroke-dasharray", (d: any) => (d.dotted ? "4 4" : null))
       .attr("opacity", 0.55)
       .attr("marker-end", (d: any) => `url(#ae-${d.type})`)
       .attr("marker-start", (d: any) => (d.unmutual ? null : `url(#as-${d.type})`));
@@ -502,7 +503,7 @@ export default function ForceGraph({
         .attr("fill-opacity", (d: any) => (d.id === charId ? 0.3 : 0.15))
         .attr("stroke-width", (d: any) => (d.id === charId ? 3 : 2))
         .attr("filter", (d: any) => (d.id === charId ? "url(#selGlow)" : null));
-        
+
       nodeEls
         .select(".node-fill")
         .attr("r", (d: any) => RADIUS * (d.id === charId ? 1.25 : 1))

@@ -95,6 +95,7 @@ function dehydrateConnection(c: Connection): Connection {
     ...(c.label ? { label: c.label } : {}),
     type: c.type,
     unmutual: c.unmutual === undefined ? undefined : true,
+    dotted: c.dotted === undefined ? undefined : true,
   }
 }
 
