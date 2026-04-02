@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { X, Moon, Sun, Upload, AlertTriangle, Download, Check, SunMoon, Info } from "lucide-react";
+import { Moon, Sun, Upload, AlertTriangle, Download, Check, SunMoon, Info } from "lucide-react";
 import { importFile } from "../../lib/chrl";
 import { CRIT_COLOR, GUEST_KEY, OK_COLOR } from "../../lib/constants";
 import { ChrlFile, Tab } from "../../lib/types";
@@ -8,6 +8,8 @@ import ToggleBtn from "../interface/ToggleBtn";
 import { useAppState } from "../../hooks/useAppState";
 import { importWithLink } from "../../lib/abstractStorage";
 import SettingsModal from "./SettingsModal";
+import ChangeLog from "../ChangeLog";
+import { changes } from "../../lib/changeLog";
 
 interface Props {
   theme: "dark" | "light";
@@ -22,7 +24,7 @@ const TABS: Tab[] = [
   {
     id: "ui",
     Icon: SunMoon,
-    name: "User Interface"
+    name: "Interface"
   }, {
     id: "import",
     Icon: Download,
@@ -324,13 +326,21 @@ export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLab
               width: "100%",
             }}
           >
-            <span style={{
-              margin: "0 auto",
-              fontWeight: 600,
-            }}>
+            <span
+              style={{
+                margin: "0 auto",
+                fontWeight: 600,
+              }}
+            >
               ☕ Buy me a coffee
             </span>
           </a>
+
+          <ChangeLog changes={changes} />
+
+          <p className="cl-label" style={{ marginTop: 8 }}>
+            v{changes[changes.length - 1].version}
+          </p>
         </div>
       )}
     </SettingsModal >
