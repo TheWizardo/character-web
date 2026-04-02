@@ -1,3 +1,5 @@
+import { LucideProps } from "lucide-react";
+
 export interface Character {
   id: string;
   name: string;
@@ -109,3 +111,9 @@ export type FormErrors<T> = {
 };
 
 export type Form<T> = Omit<T, "id"> & { isDirty: boolean, errors?: FormErrors<T> }
+
+export type Tab = {
+  id: string,
+  Icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>,
+  name: string
+}

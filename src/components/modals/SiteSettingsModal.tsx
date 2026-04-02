@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { X, Moon, Sun, Upload, AlertTriangle, Download, Check } from "lucide-react";
+import { X, Moon, Sun, Upload, AlertTriangle, Download, Check, SunMoon, Info } from "lucide-react";
 import { importFile } from "../../lib/chrl";
 import { CRIT_COLOR, GUEST_KEY, OK_COLOR } from "../../lib/constants";
-import { ChrlFile } from "../../lib/types";
+import { ChrlFile, Tab } from "../../lib/types";
 import { useNotifications } from "../../hooks/useNotifications";
 import ToggleBtn from "../interface/ToggleBtn";
 import { useAppState } from "../../hooks/useAppState";
 import { importWithLink } from "../../lib/abstractStorage";
+import SettingsModal from "./SettingsModal";
 
 interface Props {
   theme: "dark" | "light";
@@ -17,7 +18,24 @@ interface Props {
   onClose: () => void;
 }
 
+const TABS: Tab[] = [
+  {
+    id: "ui",
+    Icon: SunMoon,
+    name: "User Interface"
+  }, {
+    id: "import",
+    Icon: Download,
+    name: "Import"
+  }, {
+    id: "info",
+    Icon: Info,
+    name: "Info"
+  }
+]
+
 export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLabelBg, onImport, onClose }: Props) {
+  const [tab, setTab] = useState<string>("ui");
   const fileRef = useRef<HTMLInputElement>(null);
   const [linkCheck, setLinkCheck] = useState(false);
   const [link, setLink] = useState<string>();
@@ -121,51 +139,12 @@ export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLab
     onClose();
   };
 
-  return (<div
-    className="fixed inset-0 z-50 flex items-center justify-center p-4"
-    style={{ background: "var(--overlay)" }}
-  >
-    <div
-      className="w-full max-w-sm rounded-xl overflow-hidden scale-in flex flex-col"
-      style={{
-        background: "var(--panel-gradient)",
-        border: "1px solid var(--border-medium)",
-        boxShadow: "0 40px 80px var(--shadow-xl)",
-        maxHeight: "88vh"
-      }}
-    >
-      <div
-        className="flex items-center justify-between px-6 py-4 shrink-0"
-        style={{ borderBottom: "1px solid var(--border-subtle)" }}
-      >
-        <h2
-          className="font-display text-lg font-semibold"
-          style={{ color: "var(--text-primary)" }}
-        >
-          Site Settings
-        </h2>
-        <button
-          onClick={onClose}
-          className="appearance-none rounded border-0 outline-none bg-transparent hover:bg-white/10 transition-colors"
-          style={{
-            color: "var(--text-muted)",
-            cursor: "pointer",
-            display: "flex",
-          }}
-        >
-          <X size={18} />
-        </button>
-      </div>
-
-      <div
-        className="px-6 py-5 overflow-y-auto min-h-0"
-        style={{ display: "flex", flexDirection: "column", gap: 24 }}
-      >
-
-        {/* ── Theme ──────────────────────────────────── */}
+  return (
+    <SettingsModal title="Site Settings" onClose={onClose} tabs={TABS} currentTab={tab} setTab={setTab}>
+      {tab === "ui" && (
         <div>
           <label className="cl-label" style={{ marginBottom: 8 }}>Theme</label>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
             {(["dark", "light"] as const).map((t) => (
               <button key={t} onClick={() => onSetTheme(t)}
                 style={{
@@ -191,40 +170,15 @@ export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLab
               </button>
             ))}
           </div>
+
+          {/* ── Label background ───────────────────────── */}
+          <ToggleBtn label="Link Label Background" state={labelBg} setState={onSetLabelBg} />
+
         </div>
+      )}
 
-        {/* ── Label background ───────────────────────── */}
-        <ToggleBtn label="Link Label Background" state={labelBg} setState={onSetLabelBg} />
-
-        {/* ── Donations for the poor ───────────────────────── */}
+      {tab === "import" && (
         <div>
-          <label className="cl-label" style={{ marginBottom: 8 }}>Support this project</label>
-          <a
-            href="https://www.paypal.com/paypalme/BooksByOss"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2 rounded-lg text-sm font-mono transition-all hover:scale-105"
-            style={{
-              background: "linear-gradient(135deg, var(--text-muted), var(--gold))",
-              color: "var(--bg-deep)",
-              border: "1px solid var(--gold-border)",
-              textDecoration: "none",
-              display: "inline-flex",
-              alignItems: "center",
-              width: "100%",
-            }}
-          >
-            <span style={{
-              margin: "0 auto",
-              fontWeight: 600,
-            }}>
-              ☕ Buy me a coffee
-            </span>
-          </a>
-        </div>
-
-        {/* ── Import ─────────────────────────────────── */}
-        <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 20 }}>
           {isImportWithLink && !pending && <div>
             <p className="cl-label mb-3">Import with Link</p>
             <div
@@ -350,8 +304,35 @@ export default function SiteSettingsModal({ theme, labelBg, onSetTheme, onSetLab
             </div>
           }
         </div>
-      </div>
-    </div>
-  </div>
+      )}
+
+      {tab === "info" && (
+        <div>
+          <label className="cl-label" style={{ marginBottom: 8 }}>Support this project</label>
+          <a
+            href="https://www.paypal.com/paypalme/BooksByOss"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 rounded-lg text-sm font-mono transition-all hover:scale-105"
+            style={{
+              background: "linear-gradient(135deg, var(--text-muted), var(--gold))",
+              color: "var(--bg-deep)",
+              border: "1px solid var(--gold-border)",
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <span style={{
+              margin: "0 auto",
+              fontWeight: 600,
+            }}>
+              ☕ Buy me a coffee
+            </span>
+          </a>
+        </div>
+      )}
+    </SettingsModal >
   );
 }
