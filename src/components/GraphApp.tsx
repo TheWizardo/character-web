@@ -87,8 +87,7 @@ export default function GraphApp() {
               1000 * 60 * 60 * 10
             );
           });
-        })
-      // .catch(() => notify.error("Failed to contact server.\nShowing only local projects"));
+        }).catch(() => notify.error("Failed to contact server.\nShowing only local projects"));
     } else if (status === "signed-out") {
       updateUser(GUEST_KEY);
     }
