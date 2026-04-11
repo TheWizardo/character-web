@@ -103,10 +103,8 @@ export default function GraphApp() {
   const handleUpdatePositions = useCallback(() => { }, []);
 
   const handleSelectCharacter = useCallback((id: string | null) => {
-    console.log("clicked on", id, "currently selected", selectedId, { isMobile });
     if (isMobile && id && id === selectedId) {
       setShowCharacterPanel(true);
-      console.log("showing character panel for", id);
       return;
     }
     setSelectedId(id);
@@ -121,7 +119,6 @@ export default function GraphApp() {
     if (typeId) {
       setSelectedId(null);
       setShowCharacterPanel(false);
-      console.log("closing character panel, highlighted type", typeId);
     }
   }, []);
 
@@ -150,7 +147,6 @@ export default function GraphApp() {
     });
     setSelectedId(null);
     setShowCharacterPanel(false);
-    console.log("closing character panel, deleted character", id);
   };
 
   const handleDeleteConnection = (connId: string) =>
@@ -330,7 +326,7 @@ export default function GraphApp() {
             connections={activeData.connections}
             allCharacters={activeData.characters}
             connectionTypes={activeData.connectionTypes}
-            onClose={() => { setSelectedId(null); setShowCharacterPanel(false); console.log("closing character panel") }}
+            onClose={() => { setSelectedId(null); setShowCharacterPanel(false); }}
             onUpdate={handleUpdateCharacter}
             onDelete={handleDeleteCharacter}
             onDeleteConnection={handleDeleteConnection}

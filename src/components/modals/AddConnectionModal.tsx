@@ -101,7 +101,6 @@ export default function AddConnectionModal({
       dotted: (dotted ? true : undefined),
     };
 
-    console.log(newConnection);
     onAdd(newConnection)
     onClose()
   };
