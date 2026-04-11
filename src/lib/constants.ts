@@ -28,7 +28,7 @@ export const DEFAULT_CONNECTION_TYPES: ConnectionType[] = [
   { id: "professional", label: "Professional", emoji: "💼", color: "#2980b9", isDefault: true },
 ];
 
-export const RADIUS = 24
+export const RADIUS = {"small": 16, "medium": 24, "big": 36};
 
 export const GUEST_KEY = "guest";
 export const DEF_PROJECT_NAME = "My Story"; 

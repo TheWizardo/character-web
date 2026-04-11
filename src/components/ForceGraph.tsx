@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import * as d3 from "d3";
 import { GraphData } from "../lib/types";
 import { DEF_COLOR, RADIUS } from "../lib/constants";
-import { useIsMobile } from "../hooks/useIsMobile";
+import { getCharById } from "../lib/helpers";
 
 interface Props {
   data: GraphData;
@@ -30,7 +30,6 @@ export default function ForceGraph({
   const highlightTypeIdRef = useRef(highlightTypeId);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const containerRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     selectedIdRef.current = selectedId;
@@ -231,7 +230,7 @@ export default function ForceGraph({
       .force(
         "collision",
         d3.forceCollide((d: any) => {
-          const base = RADIUS + 10;
+          const base = (getCharById(data.characters, d.id)?.size || RADIUS["medium"]) + 10;
           const extra = Math.min(d.degree ?? 0, 6) * 2;
           return base + extra;
         })
@@ -324,7 +323,7 @@ export default function ForceGraph({
 
     const charNodes = nodeEls
       .append("circle")
-      .attr("r", RADIUS)
+      .attr("r", (d: any) => d.size || RADIUS["medium"])
       .attr("fill", (d: any) => d.color || DEF_COLOR)
       .attr("fill-opacity", 0.15)
       .attr("stroke", (d: any) => d.color || DEF_COLOR)
@@ -335,7 +334,7 @@ export default function ForceGraph({
       charNodes.each(function () {
         d3.select(this.parentNode as SVGGElement)
           .insert("circle", ".node-ring")
-          .attr("r", RADIUS)
+          .attr("r", (d: any) => d.size || RADIUS["medium"])
           .attr("fill", "var(--bg-base)")
           .attr("class", "node-fill");
       });
@@ -355,7 +354,7 @@ export default function ForceGraph({
     nodeEls
       .append("text")
       .attr("text-anchor", "middle")
-      .attr("dy", "2.8em")
+      .attr("dy", (d: any) => (d.size || RADIUS["medium"]) + 12)
       .attr("font-family", "'Cormorant Garamond', serif")
       .attr("font-size", "13px")
       .attr("font-weight", "500")
@@ -367,23 +366,23 @@ export default function ForceGraph({
       .on("mouseenter", function () {
         d3.select(this)
           .select(".node-ring")
-          .attr("r", RADIUS * 1.25)
+          .attr("r", (d: any) => (d.size || RADIUS["medium"]) * 1.25)
           .attr("fill-opacity", 0.25)
           .attr("filter", "url(#glow)");
         d3.select(this)
           .select(".node-fill")
-          .attr("r", RADIUS * 1.25);
+          .attr("r", (d: any) => (d.size || RADIUS["medium"]) * 1.25);
       })
       .on("mouseleave", function (_e, d: any) {
         const s = d.id === selectedIdRef.current;
         d3.select(this)
           .select(".node-ring")
-          .attr("r", RADIUS * (s ? 1.25 : 1))
+          .attr("r", (d: any) => (d.size || RADIUS["medium"]) * (s ? 1.25 : 1))
           .attr("fill-opacity", s ? 0.3 : 0.15)
           .attr("filter", s ? "url(#selGlow)" : null);
         d3.select(this)
           .select(".node-fill")
-          .attr("r", RADIUS * (s ? 1.25 : 1));
+          .attr("r", (d: any) => (d.size || RADIUS["medium"]) * (s ? 1.25 : 1));
       });
 
     // ── Path helpers ──────────────────────────────────────
@@ -411,10 +410,10 @@ export default function ForceGraph({
       const ux = dx / len;
       const uy = dy / len;
 
-      const startX = sx + ux * RADIUS;
-      const startY = sy + uy * RADIUS;
-      const endX = tx - ux * RADIUS;
-      const endY = ty - uy * RADIUS;
+      const startX = sx + ux * (getCharById(data.characters, d.source.id)?.size || RADIUS["medium"]);
+      const startY = sy + uy * (getCharById(data.characters, d.source.id)?.size || RADIUS["medium"]);
+      const endX = tx - ux * (getCharById(data.characters, d.target.id)?.size || RADIUS["medium"]);
+      const endY = ty - uy * (getCharById(data.characters, d.target.id)?.size || RADIUS["medium"]);
 
       if (d._pairTotal === 1) {
         return {
@@ -526,14 +525,14 @@ export default function ForceGraph({
     const applyHighlight = (charId: string | null, typeId: string | null) => {
       nodeEls
         .select(".node-ring")
-        .attr("r", (d: any) => RADIUS * (d.id === charId ? 1.25 : 1))
+        .attr("r", (d: any) => (d.size || RADIUS["medium"]) * (d.id === charId ? 1.25 : 1))
         .attr("fill-opacity", (d: any) => (d.id === charId ? 0.3 : 0.15))
         .attr("stroke-width", (d: any) => (d.id === charId ? 3 : 2))
         .attr("filter", (d: any) => (d.id === charId ? "url(#selGlow)" : null));
 
       nodeEls
         .select(".node-fill")
-        .attr("r", (d: any) => RADIUS * (d.id === charId ? 1.25 : 1))
+        .attr("r", (d: any) => (d.size || RADIUS["medium"]) * (d.id === charId ? 1.25 : 1));
 
       if (typeId) {
         linkPaths

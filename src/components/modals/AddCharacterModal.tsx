@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Character, Form, FormErrors } from "../../lib/types";
 import { X, Plus } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
-import { CHAR_PALLETTE, CRIT_COLOR } from "../../lib/constants";
+import { CHAR_PALLETTE, CRIT_COLOR, RADIUS } from "../../lib/constants";
 import { capitalize } from "../../lib/helpers";
 
 interface Props {
@@ -16,6 +16,7 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
     isDirty: false,
     color: CHAR_PALLETTE[Math.floor(Math.random() * CHAR_PALLETTE.length)],
     hobbies: [],
+    size: RADIUS["medium"],
   });
   const [hobbiesText, setHobbiesText] = useState("");
   const [newColor, setNewColor] = useState(CHAR_PALLETTE[0]);
@@ -95,6 +96,7 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
       education: newForm.education || "",
       additionalInfo: newForm.additionalInfo || "",
       color: newForm.color,
+      size: newForm.size || RADIUS["medium"],
     }
     onAdd(newCharacter);
     onClose();
@@ -180,6 +182,38 @@ export default function AddCharacterModal({ onAdd, onClose }: Props) {
                 <input type="color" value={newColor} onChange={(e) => { evaluateForm({ ...form, color: e.target.value }); setNewColor(e.target.value) }}
                   className="w-7 h-7 rounded-full cursor-pointer border-0 p-0 bg-transparent" />
               </div>
+            </div>
+          </div>
+          <div>
+            <label className="cl-label">Size</label>
+            <div
+              className="flex mt-1 overflow-hidden"
+              style={{
+                width: 240,
+                border: "1px solid var(--border-medium)",
+                borderRadius: 10,
+                background: "var(--bg-surface)",
+              }}
+            >
+              {Object.keys(RADIUS).map((size, i) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => setForm({ ...form, size: RADIUS[size] })}
+                  className="py-1.5 text-sm font-mono transition-all"
+                  style={{
+                    flex: 1,
+                    background: form.size === RADIUS[size] ? "var(--gold-dim)" : "transparent",
+                    color: form.size === RADIUS[size] ? "var(--gold)" : "var(--text-muted)",
+                    fontWeight: form.size === RADIUS[size] ? 600 : 400,
+                    border: "none",
+                    borderLeft: i === 0 ? "none" : "1px solid var(--border-medium)",
+                    borderRadius: 0,
+                  }}
+                >
+                  {capitalize(size)}
+                </button>
+              ))}
             </div>
           </div>
         </div>

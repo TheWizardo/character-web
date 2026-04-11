@@ -13,6 +13,7 @@ export interface Character {
   education?: string;
   additionalInfo?: string;
   color?: string;
+  size?: number;
 }
 
 export interface Connection {

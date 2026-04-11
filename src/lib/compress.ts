@@ -6,7 +6,7 @@
 
 import { gzipSync, gunzipSync, strToU8, strFromU8 } from "fflate";
 import { Character, Connection, ConnectionType, Project } from "./types";
-import { DEFAULT_CONNECTION_TYPES } from "./constants";
+import { DEFAULT_CONNECTION_TYPES, RADIUS } from "./constants";
 
 export function compressData(data: unknown): string {
   const json = JSON.stringify(data);
@@ -84,6 +84,7 @@ function dehydrateCharacter(
     ...(str(c.education) ? { education: str(c.education) } : {}),
     ...(str(c.additionalInfo) ? { additionalInfo: str(c.additionalInfo) } : {}),
     ...(str(c.color) ? { color: str(c.color) } : {}),
+    ...(typeof c.size === "number" && c.size !== RADIUS["medium"] ? { size: c.size } : {}),
   };
 }
 

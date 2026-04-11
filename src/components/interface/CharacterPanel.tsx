@@ -4,7 +4,8 @@ import {
   X, MapPin, Briefcase, GraduationCap, Heart, Edit3, Check,
   Trash2, User, ArrowLeftRight, ArrowRight, Calendar, FileText, AlertTriangle
 } from "lucide-react";
-import { CHAR_PALLETTE, CRIT_COLOR, DEF_COLOR, OK_COLOR } from "../../lib/constants";
+import { CHAR_PALLETTE, CRIT_COLOR, DEF_COLOR, OK_COLOR, RADIUS } from "../../lib/constants";
+import { capitalize } from "../../lib/helpers";
 
 interface Props {
   character: Character;
@@ -149,7 +150,7 @@ export default function CharacterPanel({
       <div className="flex-1 overflow-y-auto px-6 py-5">
 
         {/* Color picker */}
-        {editing && (
+        {editing && (<>
           <div className="mb-5">
             <label className="cl-label">Color</label>
             <div className="flex gap-2 flex-wrap mt-1">
@@ -166,6 +167,39 @@ export default function CharacterPanel({
               </div>
             </div>
           </div>
+          <div>
+            <label className="cl-label">Size</label>
+            <div
+              className="flex mt-1 overflow-hidden mb-5"
+              style={{
+                width: 240,
+                border: "1px solid var(--border-medium)",
+                borderRadius: 10,
+                background: "var(--bg-surface)",
+              }}
+            >
+              {Object.keys(RADIUS).map((size, i) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => setDraft({ ...draft, size: RADIUS[size] })}
+                  className="py-1.5 text-sm font-mono transition-all"
+                  style={{
+                    flex: 1,
+                    background: (!draft.size && size === "medium") || draft.size === RADIUS[size] ? "var(--gold-dim)" : "transparent",
+                    color: (!draft.size && size === "medium") || draft.size === RADIUS[size] ? "var(--gold)" : "var(--text-muted)",
+                    fontWeight: (!draft.size && size === "medium") || draft.size === RADIUS[size] ? 600 : 400,
+                    border: "none",
+                    borderLeft: i === 0 ? "none" : "1px solid var(--border-medium)",
+                    borderRadius: 0,
+                  }}
+                >
+                  {capitalize(size)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
         )}
 
         {/* Full name */}
