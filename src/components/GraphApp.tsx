@@ -44,6 +44,7 @@ export default function GraphApp() {
   const [showSiteSettings, setShowSiteSettings] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [showCharacterPanel, setShowCharacterPanel] = useState(false);
 
   const selectedCharacter = activeData.characters.find((c) => c.id === selectedId) ?? null;
   const theme = state.theme ?? "dark";
@@ -102,16 +103,26 @@ export default function GraphApp() {
   const handleUpdatePositions = useCallback(() => { }, []);
 
   const handleSelectCharacter = useCallback((id: string | null) => {
+    console.log("clicked on", id, "currently selected", selectedId, { isMobile });
+    if (isMobile && id && id === selectedId) {
+      setShowCharacterPanel(true);
+      console.log("showing character panel for", id);
+      return;
+    }
     setSelectedId(id);
     if (id) {
       setHighlightTypeId(null);
       setShowAddMenu(false);
     }
-  }, []);
+  }, [selectedId]);
 
   const handleLegendHighlight = useCallback((typeId: string | null) => {
     setHighlightTypeId(typeId);
-    if (typeId) setSelectedId(null);
+    if (typeId) {
+      setSelectedId(null);
+      setShowCharacterPanel(false);
+      console.log("closing character panel, highlighted type", typeId);
+    }
   }, []);
 
   const handleAddCharacter = (char: Character) => {
@@ -138,6 +149,8 @@ export default function GraphApp() {
       connections: activeData.connections.filter((c) => c.source !== id && c.target !== id),
     });
     setSelectedId(null);
+    setShowCharacterPanel(false);
+    console.log("closing character panel, deleted character", id);
   };
 
   const handleDeleteConnection = (connId: string) =>
@@ -299,7 +312,8 @@ export default function GraphApp() {
         />
       )}
 
-      {selectedCharacter && !showProjects && (
+      {/* Character Panel is shown on mobile devices only after double-clicking a character, the equal evaluation is used as a XNOR gate since we want to disregard the flag on desktop */}
+      {selectedCharacter && (showCharacterPanel === isMobile) && !showProjects && (
         <div
           style={{
             position: "absolute",
@@ -316,7 +330,7 @@ export default function GraphApp() {
             connections={activeData.connections}
             allCharacters={activeData.characters}
             connectionTypes={activeData.connectionTypes}
-            onClose={() => setSelectedId(null)}
+            onClose={() => { setSelectedId(null); setShowCharacterPanel(false); console.log("closing character panel") }}
             onUpdate={handleUpdateCharacter}
             onDelete={handleDeleteCharacter}
             onDeleteConnection={handleDeleteConnection}

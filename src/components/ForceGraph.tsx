@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import * as d3 from "d3";
 import { GraphData } from "../lib/types";
 import { DEF_COLOR, RADIUS } from "../lib/constants";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 interface Props {
   data: GraphData;
@@ -29,6 +30,7 @@ export default function ForceGraph({
   const highlightTypeIdRef = useRef(highlightTypeId);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const containerRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     selectedIdRef.current = selectedId;
@@ -85,9 +87,6 @@ export default function ForceGraph({
     const W = window.innerWidth;
     const H = window.innerHeight;
     svg.attr("width", W).attr("height", H);
-
-    const cssVar = (v: string, fb: string) =>
-      getComputedStyle(document.documentElement).getPropertyValue(v).trim() || fb;
 
     // ── Defs ──────────────────────────────────────────────
     const defs = svg.append("defs");
@@ -194,7 +193,7 @@ export default function ForceGraph({
     const hasKnownPositions = nodes.some((nd: any) => posRef.current[nd.id]);
     const startAlpha = hasKnownPositions ? 0.15 : 0.8;
 
-    const padX = Math.min(W / 2 - 80, 200 + n * 12);
+    const padX = Math.min(W / 2 - 20, 200 + n * 12);
     const padY = Math.min(H / 2 - 80, 160 + n * 10);
 
     const linkForce = d3
@@ -240,7 +239,7 @@ export default function ForceGraph({
       .force("center", d3.forceCenter(0, 0).strength(0.04))
       .force("bound", (alpha: number) => {
         nodes.forEach((nd: any) => {
-          const k = 0.6 * alpha;
+          const k = 0.01 * alpha;
           if (nd.x > padX) nd.vx -= k * (nd.x - padX);
           if (nd.x < -padX) nd.vx -= k * (nd.x + padX);
           if (nd.y > padY) nd.vy -= k * (nd.y - padY);
@@ -496,6 +495,34 @@ export default function ForceGraph({
     sim.on("end", () => onUpdatePositions({ ...posRef.current }));
 
     // ── Highlight ─────────────────────────────────────────
+    const centerOnCharacter = (charId: string) => {
+      if (!svgRef.current || !zoomRef.current) return;
+
+      const node = nodes.find((n: any) => n.id === charId);
+      if (!node) return;
+
+      const svgEl = svgRef.current;
+      const rect = svgEl.getBoundingClientRect();
+
+      const topInset = 56;
+      const bottomInset = 80;
+
+      const centerX = rect.width / 2;
+      const centerY = (rect.height - topInset - bottomInset) / 2 + topInset;
+
+      d3.select(svgEl)
+        .interrupt()
+        .transition()
+        .duration(450)
+        .ease(d3.easeCubicInOut)
+        .call(
+          zoomRef.current.translateTo,
+          node.x,
+          node.y,
+          [centerX, centerY]
+        );
+    };
+
     const applyHighlight = (charId: string | null, typeId: string | null) => {
       nodeEls
         .select(".node-ring")
@@ -537,6 +564,8 @@ export default function ForceGraph({
             ? 0.85
             : 0.3;
         });
+
+        centerOnCharacter(charId);
       } else {
         linkPaths.attr("opacity", 0.55).attr("stroke-width", 1.25);
         labelGs.attr("opacity", 1);

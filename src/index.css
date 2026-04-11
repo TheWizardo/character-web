@@ -954,7 +954,6 @@ body,
 @media (max-width: 767px) {
   .character-panel-responsive {
     width: 100% !important;
-    max-height: 75vh !important;
     top: auto !important;
     bottom: 0 !important;
     border-left: none !important;
