@@ -11,13 +11,13 @@ interface Props {
   charNum: number,
   connNum: number,
   showAddMenu: boolean,
-  setShowAddMenu: React.Dispatch<React.SetStateAction<boolean>>
-  setShowAddChar: React.Dispatch<React.SetStateAction<boolean>>
-  setShowAddConn: React.Dispatch<React.SetStateAction<boolean>>
-  setShowProjSettings: React.Dispatch<React.SetStateAction<boolean>>
-  setShowSiteSettings: React.Dispatch<React.SetStateAction<boolean>>
-  setShowProjects: React.Dispatch<React.SetStateAction<boolean>>
-  setSelectedId: React.Dispatch<React.SetStateAction<string>>
+  setShowAddMenu: (b: boolean) => void;
+  setShowAddChar: (b: boolean) => void;
+  setShowAddConn: (b: boolean) => void;
+  setShowProjSettings: (b: boolean) => void;
+  setShowSiteSettings: (b: boolean) => void;
+  setShowProjects: (b: boolean) => void;
+  setSelectedId: (id: string | null) => void;
 }
 
 export default function TopBar({
