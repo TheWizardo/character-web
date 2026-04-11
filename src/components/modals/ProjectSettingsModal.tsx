@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Project, ConnectionType, FormErrors, Form, Tab } from "../../lib/types";
-import { X, RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download, CloudUpload, Share, Check, Copy } from "lucide-react";
+import { RotateCcw, Trash2, AlertTriangle, Plus, Settings, Link, Download, CloudUpload, Share, Check, Copy } from "lucide-react";
 import { downloadChrl } from "../../lib/chrl";
 import { CON_PALETTE, CRIT_COLOR, EMOJIS, GUEST_KEY, OK_COLOR } from "../../lib/constants";
 import { uploadProject } from "../../lib/cloudStorage";
